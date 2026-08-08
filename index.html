@@ -107,6 +107,7 @@
       top: 20px;
       left: 50%;
       width: 128px;
+      height: auto;
       aspect-ratio: 714 / 1000;
       object-fit: cover;
       border: 1px solid rgba(231,210,151,.7);
@@ -115,9 +116,9 @@
       box-shadow: 0 20px 34px rgba(0,0,0,.5), 0 0 24px rgba(83,164,205,.11);
       transform-origin: 50% 92%;
     }
-    .fan-card:nth-child(1) { z-index: 1; transform: translateX(-116%) rotate(-13deg); }
-    .fan-card:nth-child(2) { z-index: 3; top: 4px; transform: translateX(-50%); }
-    .fan-card:nth-child(3) { z-index: 2; transform: translateX(16%) rotate(13deg); }
+    .fan-card:nth-of-type(1) { z-index: 1; transform: translateX(-116%) rotate(-13deg); }
+    .fan-card:nth-of-type(2) { z-index: 3; top: 4px; transform: translateX(-50%); }
+    .fan-card:nth-of-type(3) { z-index: 2; transform: translateX(16%) rotate(13deg); }
     .fan-glow { position: absolute; inset: 24% 3% 0; border-radius: 50%; background: rgba(80,175,213,.15); filter: blur(30px); }
 
     .options {
@@ -160,6 +161,7 @@
       position: relative;
       z-index: 2;
       width: 56px;
+      height: auto;
       aspect-ratio: 714 / 1000;
       object-fit: cover;
       border: 1px solid rgba(225,202,141,.55);
@@ -225,9 +227,9 @@
       .welcome { font-size: clamp(2rem, 10vw, 2.8rem); }
       .card-fan { height: 170px; margin-top: 3px; }
       .fan-card { top: 15px; width: 98px; border-radius: 7px; }
-      .fan-card:nth-child(1) { transform: translateX(-119%) rotate(-12deg); }
-      .fan-card:nth-child(2) { top: 2px; }
-      .fan-card:nth-child(3) { transform: translateX(19%) rotate(12deg); }
+      .fan-card:nth-of-type(1) { transform: translateX(-119%) rotate(-12deg); }
+      .fan-card:nth-of-type(2) { top: 2px; }
+      .fan-card:nth-of-type(3) { transform: translateX(19%) rotate(12deg); }
       .options { grid-template-columns: 1fr; gap: 11px; }
       .primary, .secondary, .practice { grid-column: 1; min-height: 0; }
       .option { padding: 18px; }
