@@ -13,7 +13,7 @@
   --surface: #ffffff; --sunk: #f1eef5; --raise: #ffffff;
   --fg: #1d1724; --muted: #6a6175; --line: #dad3e3; --line-strong: #c3b9d0;
   --accent: #6a2bb8; --accent-ink: #ffffff; --accent-soft: #ece2fa;
-  --gold: #b07d12; --danger: #c0392b;
+  --gold: #b07d12; --danger: #c0392b; --ok: #1f8a4c; --on-strong: #ffffff;
   --shadow: 0 1px 2px rgba(20,10,30,.08), 0 8px 24px rgba(20,10,30,.10);
   --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
   --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -25,7 +25,7 @@
   --surface: #1b1622; --sunk: #231d2c; --raise: #262030;
   --fg: #eee9f4; --muted: #a197ad; --line: #322a3c; --line-strong: #463b53;
   --accent: #b07cf5; --accent-ink: #160d22; --accent-soft: #2e2142;
-  --gold: #f2c14e; --danger: #ff6b5e;
+  --gold: #f2c14e; --danger: #ff6b5e; --ok: #4cd38a; --on-strong: #120e17;
   --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
   color-scheme: dark; } }
 :root[data-theme="dark"] {
@@ -33,7 +33,7 @@
   --surface: #1b1622; --sunk: #231d2c; --raise: #262030;
   --fg: #eee9f4; --muted: #a197ad; --line: #322a3c; --line-strong: #463b53;
   --accent: #b07cf5; --accent-ink: #160d22; --accent-soft: #2e2142;
-  --gold: #f2c14e; --danger: #ff6b5e;
+  --gold: #f2c14e; --danger: #ff6b5e; --ok: #4cd38a; --on-strong: #120e17;
   --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
   color-scheme: dark; }
 
@@ -47,7 +47,7 @@ button { cursor: pointer; }
 kbd { font: 500 11px var(--f-mono); padding: 1px 5px; border: 1px solid var(--line-strong); border-bottom-width: 2px; border-radius: 4px; background: var(--sunk); color: var(--fg); }
 
 /* ---------- App shell ---------- */
-#app { position: fixed; inset: 0; display: grid; grid-template-rows: auto 1fr; padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left); }
+#app { position: fixed; inset: 0; display: grid; grid-template-rows: auto 1fr auto; padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left); }
 header.bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--line); min-width: 0; z-index: 20; }
 .brand { font: 700 20px/1 var(--f-display); letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; }
 .brand span { color: var(--accent); }
@@ -310,21 +310,151 @@ svg.layer { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overfl
   #minimap { width: 150px; height: 104px; }
   #zoomctl, #legend { bottom: 124px; }
 }
+/* ---------- Vistas pro ---------- */
+.views { display: flex; gap: 2px; background: var(--sunk); border-radius: 9px; padding: 3px; margin-right: auto; flex: none; }
+.views button { border: 0; background: none; padding: 5px 12px; border-radius: 7px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.views button:hover { color: var(--fg); }
+.views button.on { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.14); }
+body:not([data-view="map"]) .only-map { display: none !important; }
+.vbar { display: none; border-top: 1px solid var(--line); background: var(--surface); padding: 4px 6px calc(4px + env(safe-area-inset-bottom)); gap: 4px; z-index: 20; }
+.vbar button { flex: 1; border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 5px 4px; font-size: 11.5px; font-weight: 600; color: var(--muted); border-radius: 8px; }
+.vbar button .ic { font-size: 18px; line-height: 1.1; }
+.vbar button.on { color: var(--accent); background: var(--accent-soft); }
+.view { position: absolute; inset: 0; overflow: auto; background: var(--bg); z-index: 15; display: none; overscroll-behavior: contain; }
+.view.show { display: block; }
+.vwrap { max-width: 1240px; margin: 0 auto; padding: 22px 20px 70px; }
+.vhead { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.vhead h1 { font: 700 34px/1 var(--f-display); text-transform: uppercase; letter-spacing: .02em; margin: 0 0 6px; }
+.vhead p { margin: 0; }
+.vhead .btnrow { margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 12.5px; }
+.vgrid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 22px; align-items: start; }
+.vside { display: grid; gap: 12px; position: sticky; top: 0; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+.panel > .sec:first-child { margin-top: 0; }
+.rsec { margin-bottom: 20px; }
+.rh { margin: -2px 0 10px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); gap: 12px; }
+.tile { position: relative; border: 0; padding: 0; background: none; text-align: left; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.th { position: relative; display: block; aspect-ratio: 744 / 1039; border-radius: 8px; overflow: hidden; background: linear-gradient(160deg, var(--dc, #555), #15111b 85%); flex: none; }
+.th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.th b { display: none; position: absolute; inset: 0; padding: 7px; color: #fff; font: 700 13px/1.05 var(--f-display); text-transform: uppercase; }
+.th.noimg b { display: block; }
+.th.noimg img { display: none; }
+.th.bf { aspect-ratio: 1039 / 744; }
+.tile .th { box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .12s; }
+.tile:hover .th { transform: translateY(-3px); }
+.tq { position: absolute; top: 6px; right: 6px; background: rgba(10,6,16,.82); color: #fff; font: 600 12px var(--f-mono); padding: 1px 6px; border-radius: 6px; }
+.tq:empty { display: none; }
+.tf { position: absolute; top: 6px; left: 6px; background: var(--gold); color: #1a1200; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 6px; }
+.tile.flex .th { outline: 2px dashed var(--gold); outline-offset: 2px; }
+.tn { font-size: 12.5px; font-weight: 500; line-height: 1.25; display: flex; gap: 6px; }
+.tn i { font-style: normal; color: var(--muted); }
+.modal:has(.sheet), .modal:has(.hand) { width: min(780px, 100%); }
+.sheet { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 18px; }
+.sheet h2 { margin-top: 0; }
+.recipes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 540px), 1fr)); gap: 14px; }
+.recipe { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+.rp { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; align-content: flex-start; }
+.recipe .rp { max-width: 250px; align-self: start; }
+.recipe .rp .th { width: 70px; }
+.recipe .rp .th.bf { width: 98px; }
+.recipe .rp.n3 { flex-wrap: nowrap; max-width: 300px; }
+.recipe .rp.n3 .th { width: 58px; }
+.recipe .rp.n4 .th { width: 50px; }
+.plus { font: 700 18px var(--f-display); color: var(--muted); }
+.rb h3 { margin: 0 4px 4px 0; font: 700 21px/1.1 var(--f-display); text-transform: uppercase; display: inline; }
+.rb p { margin: 8px 0; }
+.rb .btnrow { margin-bottom: 0; }
+.rstats { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--muted); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+.rstats b { color: var(--fg); }
+.sugs { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); gap: 10px; }
+.sug { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; border: 1px dashed var(--line-strong); border-radius: 12px; padding: 12px; background: var(--surface); }
+.sug .rp { flex-wrap: nowrap; }
+.th.sm { width: 50px; }
+.th.sm.bf { width: 70px; }
+.th.sm b { font-size: 9px; padding: 4px; }
+.sug p { margin: 4px 0; }
+.sug .btnrow { margin: 6px 0 0; }
+.hand { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin: 12px 0; }
+.hcard { border: 0; padding: 0; background: none; border-radius: 9px; position: relative; }
+.hcard .th { width: 100%; }
+.hcard.mk .th { opacity: .45; outline: 3px solid var(--danger); outline-offset: 2px; }
+.hcard.mk::after { content: 'Cambiar'; position: absolute; top: 42%; left: 0; right: 0; text-align: center; color: #fff; font-weight: 700; text-shadow: 0 1px 4px #000; }
+.hcard:disabled { cursor: default; color: inherit; }
+.hres { background: var(--sunk); border-radius: 10px; padding: 4px 12px; }
+.hres p { margin: 8px 0; }
+.addrow { display: flex; gap: 8px; flex-wrap: wrap; }
+.addrow input { flex: 1; min-width: 200px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: var(--raise); padding: 6px 12px; font-weight: 500; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.btn.win, .btn.loss { color: var(--on-strong); border-color: transparent; font-weight: 600; padding: 8px 20px; }
+.btn.win { background: var(--ok); }
+.btn.loss { background: var(--danger); }
+.addm { margin-bottom: 8px; }
+.tbl { display: grid; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); }
+.tr { display: grid; grid-template-columns: minmax(0, 1fr) 70px 56px 140px; gap: 8px; align-items: center; padding: 9px 12px; border: 0; border-top: 1px solid var(--line); background: none; text-align: left; font-size: 13px; }
+.tr.thd { border-top: 0; font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; background: var(--sunk); }
+button.tr:hover { background: var(--sunk); }
+.tr.on { background: var(--accent-soft); }
+.wr { display: inline-block; width: 56px; height: 6px; background: var(--sunk); border-radius: 3px; overflow: hidden; vertical-align: middle; margin-right: 6px; }
+.wr i { display: block; height: 100%; }
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
+.kpis b { display: block; font-size: 22px; }
+.kpis span { font-size: 12px; color: var(--muted); }
+.hist { display: grid; gap: 3px; }
+.hrow { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto auto auto; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 8px; background: var(--surface); font-size: 13px; }
+.hrow .o { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.res { width: 24px; height: 24px; border-radius: 6px; display: grid; place-items: center; font-weight: 700; color: var(--on-strong); font-size: 12px; }
+.res.W { background: var(--ok); } .res.L { background: var(--danger); } .res.D { background: var(--muted); }
+.mu { margin: 14px 0; }
+.mugrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.stp { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 4px 0; font-size: 13px; border-bottom: 1px solid var(--line); }
+.stp .ctl { display: inline-flex; align-items: center; gap: 6px; flex: none; }
+.stp .ctl button { width: 26px; height: 26px; border: 1px solid var(--line); background: var(--raise); border-radius: 6px; padding: 0; }
+.n.warn { color: var(--danger); }
+@media (max-width: 900px) {
+  .vgrid { grid-template-columns: minmax(0, 1fr); }
+  .vside { position: static; }
+}
+@media (max-width: 1100px) {
+  .views { display: none; }
+  .vbar { display: flex; }
+  #toast { bottom: 84px; }
+}
+@media (max-width: 640px) {
+  .vwrap { padding: 16px 16px 40px; }
+  .vhead h1 { font-size: 28px; }
+  .tiles { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; }
+  .sheet { grid-template-columns: minmax(0, 1fr); }
+  .sheet .bigcard { max-width: 200px; }
+  .recipe { grid-template-columns: minmax(0, 1fr); }
+  .recipe .rp { max-width: none; }
+  .mugrid { grid-template-columns: minmax(0, 1fr); }
+  .tr { grid-template-columns: minmax(0, 1fr) 44px 50px 96px; padding: 9px 10px; }
+  .wr { width: 34px; }
+  .hrow { grid-template-columns: 26px minmax(0, 1fr) auto auto; }
+  .hrow > .small:nth-of-type(2) { display: none; }
+}
 </style>
 <div id="app">
   <header class="bar">
-    <button class="btn icon ghost" id="tglLeft" title="Panel izquierdo ([)" aria-label="Panel izquierdo">☰</button>
+    <button class="btn icon ghost only-map" id="tglLeft" title="Panel izquierdo ([)" aria-label="Panel izquierdo">☰</button>
     <div class="brand">Mapa de <span>Combos</span></div>
     <div class="deckpick">
       <select id="deckSel" aria-label="Deck"></select>
       <button class="btn sm" id="btnImport" title="Importar un deck nuevo (I)">+ Deck</button>
     </div>
-    <nav class="tabs" id="mapTabs" aria-label="Mapas"></nav>
+    <nav class="views" id="viewTabs" aria-label="Vistas"><button data-v="deck">Mi deck</button><button data-v="combos">Combos</button><button data-v="map">Mapa</button><button data-v="games">Partidas</button></nav>
+    <nav class="tabs only-map" id="mapTabs" aria-label="Mapas"></nav>
     <button class="btn search-trigger hide-narrow" id="btnPal" title="Paleta de comandos">Buscar o ejecutar… <kbd>⌘K</kbd></button>
     <button class="btn icon only-narrow" id="btnPal2" aria-label="Buscar">⌕</button>
     <span class="save-ind hide-narrow" id="saveInd">Guardado</span>
     <button class="btn icon ghost" id="btnMore" title="Más opciones" aria-label="Más opciones">⋯</button>
-    <button class="btn icon ghost" id="tglRight" title="Inspector (])" aria-label="Inspector">◧</button>
+    <button class="btn icon ghost only-map" id="tglRight" title="Inspector (])" aria-label="Inspector">◧</button>
   </header>
   <main class="work" id="work">
     <aside class="left" id="left">
@@ -365,7 +495,9 @@ svg.layer { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overfl
       </div>
     </section>
     <aside class="right" id="right"><div class="pbody insp" id="insp"></div></aside>
+    <section class="view" id="view" aria-live="polite"></section>
   </main>
+  <nav class="vbar" id="viewBar" aria-label="Vistas"><button data-v="deck"><span class="ic">▤</span>Mi deck</button><button data-v="combos"><span class="ic">✦</span>Combos</button><button data-v="map"><span class="ic">⌗</span>Mapa</button><button data-v="games"><span class="ic">◎</span>Partidas</button></nav>
 </div>
 <div id="preview"></div>
 <div class="float edgepop" id="edgepop"></div>
@@ -469,6 +601,22 @@ const SEED_EDGES = [
 const SEED_DECKS = [{
   name: "Kha'Zix Voidreaver",
   list: KHAZIX_LIST,
+  pro: {
+    guide: {
+      plan: "Borrador: ajústalo a tu estilo.\nT1 a T3: baja unidades que se mueven (Faefolk, Shadow Order Disciple, Traveling Merchant, Reckless Innovator) y pelea battlefields desde temprano.\nT4 en adelante: deja a un enemigo solo con Faefolk, Void Assault o Gust y mete a Kha'Zix por Ambush para +2 might y 2 XP.\nGasta el XP de la leyenda en Buff o para regresar a base una unidad agotada.\nCierra con trucos (Punch First, Switcheroo, Onslaught) y usa Fizz para repetir Void Assault desde el trash.",
+      keep: "Una unidad de 2 (Faefolk, Disciple, Merchant) más una forma de aislar (Void Assault, Faefolk o Gust).",
+      toss: "Manos con dos o más cartas de 4+ y sin jugada temprana. Trucos de combate sin unidades que los usen."
+    },
+    recipes: [
+      { name: 'Aislar con Faefolk', pieces: ['Irresistible Faefolk', KZ], turn: 4, tags: ['Línea principal'], result: "Faefolk se mueve a una battlefield y arrastra ahí a una unidad enemiga, que queda sola. Kha'Zix entra por Ambush: +2 might y 2 XP." },
+      { name: 'Void Assault directo', pieces: ['Void Assault', KZ], turn: 5, tags: ['Línea principal'], result: "Mueves a Kha'Zix y a un enemigo a la misma battlefield: atacas tú y el enemigo está solo. +2 might y 2 XP en un solo turno." },
+      { name: 'Fizz recicla Void Assault', pieces: ['Void Assault', 'Fizz, Trickster'], turn: 5, tags: ['Valor'], result: "Fizz rejuega Void Assault desde el trash sin pagar energía (solo la runa): segundo aislamiento en el mismo turno o en el siguiente." },
+      { name: 'Forbidding Waste + Kha\'Zix', pieces: ['Forbidding Waste', KZ], turn: 4, tags: ['Battlefield'], result: "El enemigo que defiende solo en Forbidding Waste tiene -2 might y Kha'Zix gana +2: una diferencia de 4 en el showdown." },
+      { name: 'Switcheroo sobre Kha\'Zix', pieces: [KZ, 'Switcheroo'], turn: 6, tags: ['vs unidades grandes'], result: "Cuando el enemigo aislado es más grande, intercambia las mights en el showdown después del +2 de Kha'Zix." },
+      { name: 'Emboscada de Rengar', pieces: ['Rengar, Trophy Hunter', 'Gust', KZ], turn: 7, tags: ['Cierre'], result: "Rengar entra donde hay enemigos aunque no tengas unidades ahí, Gust devuelve al compañero y Kha'Zix embosca al que quedó solo.", note: 'Mucha energía: normalmente se reparte entre dos turnos.' },
+      { name: 'Merchant filtra en movimiento', pieces: ['Traveling Merchant', 'Ride the Wind'], turn: 3, tags: ['Valor'], result: 'Ride the Wind mueve a Merchant y lo prepara: descartas 1, robas 1 y sigue listo para atacar o bloquear.' },
+    ]
+  },
   notes: [
     [KZ, 'Plan del deck: dejar a una unidad enemiga sola en la battlefield de Kha\'Zix para que gane +2 might y 2 XP, y gastar ese XP con la leyenda.'],
   ],
@@ -584,7 +732,7 @@ function imgSrc(id, remote) {
   if (packsOk && IMG_PACKS.includes(s)) { loadPack(s); return ''; }
   return remote || '';
 }
-function refreshImages() { if (!S) return; renderNodes(); renderInspector(); if (leftTab === 'lib' && $('#libGrid')) renderLibGrid(); }
+function refreshImages() { if (!S) return; renderNodes(); renderInspector(); if (leftTab === 'lib' && $('#libGrid')) renderLibGrid(); if (typeof VIEW !== 'undefined' && VIEW !== 'map' && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('#view') && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))) renderView(); }
 const norm = s => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[’`´]/g, "'").replace(/'/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 const NAME_IDX = new Map();
 for (const c of DB.values()) { const k = norm(c.name); if (!NAME_IDX.has(k)) NAME_IDX.set(k, c.id); }
@@ -1567,7 +1715,7 @@ function renderLegend() {
 }
 function toggleFocus() { focusMode = !focusMode; renderLegend(); applyClasses(); toast(focusMode ? 'Modo enfoque activado' : 'Modo enfoque desactivado'); }
 function renderAll(refit) {
-  renderTabs(); renderNodes(); renderEdges(); renderLegend(); renderLeft(); renderInspector();
+  renderTabs(); renderNodes(); renderEdges(); renderLegend(); renderLeft(); renderInspector(); renderView();
   const m = map();
   if (refit || !m.view) { if (m.view && refit) { Object.assign(V, m.view); applyView(); } else { applyView(); fit(undefined, 1, 0); } }
   else applyView();
@@ -1606,6 +1754,8 @@ function showHelp() {
   const K = (k, d) => `<dt>${k}</dt><dd>${d}</dd>`;
   openModal(`<h2>Atajos y navegación</h2><dl class="keys">
     ${K('<kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>K</kbd>', 'Paleta: busca cartas, mapas, combos y comandos')}
+    ${K('<kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd>', 'Cambiar de vista: Mi deck · Combos · Mapa · Partidas')}
+    ${K('<kbd>H</kbd>', 'Robar una mano de prueba (fuera del mapa)')}
     ${K('<kbd>/</kbd>', 'Buscar una carta del mapa')}
     ${K('Arrastrar el fondo · dos dedos', 'Moverte por el mapa')}
     ${K('Pellizcar · <kbd>⌘</kbd>+rueda · <kbd>+</kbd> <kbd>−</kbd>', 'Zoom')}
@@ -1634,6 +1784,8 @@ let palItems = [], palIdx = 0;
 function commands() {
   const d = deck(), m = map();
   const cmds = [
+    ['Ir a Mi deck', '1', () => setView('deck')], ['Ir a Combos (recetas)', '2', () => setView('combos')], ['Ir al Mapa', '3', () => setView('map')], ['Ir a Partidas', '4', () => setView('games')],
+    ['Robar una mano de prueba', 'H', openHand], ['Nueva receta de combo', '', () => { setView('combos'); editRecipe(null); }],
     ['Ajustar vista a todo el mapa', 'F', () => fit()],
     ['Zoom al 100%', '0', () => { const r = stage().getBoundingClientRect(); animateTo(...centerTarget(r.width / 2, r.height / 2, 1)); }],
     ['Auto-organizar cartas por tipo y coste', 'L', relayout],
@@ -1766,6 +1918,10 @@ function onKey(ev) {
     if (ev.key === 'Enter' || ev.key === 'Escape') { hideEdgePop(); return; }
   }
   if (typing) { if (ev.key === 'Escape') document.activeElement.blur(); return; }
+  if (!mod && !ev.altKey && /^[1-4]$/.test(ev.key) && !play) { setView(['deck', 'combos', 'map', 'games'][+ev.key - 1]); return; }
+  if (!mod && (ev.key === 'h' || ev.key === 'H') && !play && VIEW !== 'map') { openHand(); return; }
+  if (VIEW !== 'map' && ev.key === '?') { showHelp(); return; }
+  if (VIEW !== 'map' && !(mod && /^[zy]$/i.test(ev.key))) return;
   if (mod && ev.key.toLowerCase() === 'z') { ev.preventDefault(); ev.shiftKey ? redo() : undo(); return; }
   if (mod && ev.key.toLowerCase() === 'y') { ev.preventDefault(); redo(); return; }
   if (mod && ev.key.toLowerCase() === 'a') { ev.preventDefault(); Object.keys(map().nodes).forEach(k => sel.nodes.add(k)); onSelChange(); return; }
@@ -1867,12 +2023,323 @@ function init() {
   $('#fileIn').onchange = ev => { const f = ev.target.files[0]; if (f) importJSON(f); ev.target.value = ''; };
   document.querySelectorAll('.ptabs button').forEach(b => b.onclick = () => setLeftTab(b.dataset.t));
   for (const e of deck().cards) getCard(e.key);
+  document.querySelectorAll('#viewTabs button, #viewBar button').forEach(b => b.onclick = () => setView(b.dataset.v));
+  let v0 = null; try { v0 = localStorage.getItem(LS_KEY + '.view'); } catch (e) { }
   renderAll(true);
+  setView(['deck', 'combos', 'map', 'games'].includes(v0) ? v0 : 'deck');
   connectDb();
   let seen = null; try { seen = localStorage.getItem(LS_KEY + '.seen'); } catch (e) { }
   if (!seen) { try { localStorage.setItem(LS_KEY + '.seen', '1'); } catch (e) { } setTimeout(() => toast('Tip: ⌘K para buscar cualquier cosa · ? para ver los atajos'), 800); }
 }
 window.addEventListener('DOMContentLoaded', init);
+
+/* ================= Vistas pro: Mi deck · Combos · Partidas · Robar mano ================= */
+const ROLES = [
+  { id: 'nucleo', es: 'Núcleo', hint: 'Leyenda y campeón: definen el plan del deck' },
+  { id: 'amenaza', es: 'Amenazas', hint: 'Unidades que presionan y ganan battlefields' },
+  { id: 'habilita', es: 'Habilitadores', hint: 'Mueven, preparan o arman las jugadas' },
+  { id: 'truco', es: 'Trucos de combate', hint: 'Might extra y efectos para el showdown' },
+  { id: 'interaccion', es: 'Interacción', hint: 'Removal, counters, rebotes y disrupción' },
+  { id: 'robo', es: 'Robo y ventaja', hint: 'Cartas extra, reciclar y rejugar' },
+  { id: 'otro', es: 'Otros', hint: '' },
+  { id: 'campo', es: 'Battlefields', hint: '' },
+];
+const ROLE_ES = Object.fromEntries(ROLES.map(r => [r.id, r.es]));
+let VIEW = 'deck';
+
+function autoRole(key, zone) {
+  const c = getCard(key), t = (c.text || '').toLowerCase();
+  if (zone === 'legend' || zone === 'champion') return 'nucleo';
+  if (c.type === 'Battlefield' || zone === 'battlefield') return 'campo';
+  if (c.type === 'Unit') {
+    if (/from your trash/.test(t)) return 'robo';
+    if (/\bmove\b|when i move/.test(t)) return 'habilita';
+    if (/\bdraw \d/.test(t)) return 'robo';
+    return 'amenaza';
+  }
+  if (/counter a spell|\bkill\b|deal \d+ damage|damage equal|return a unit|return a friendly unit and an enemy|\bstun\b|recycle that card|reveal their hand|prevent/.test(t)) return 'interaccion';
+  if (/\+\d+ might|swap the might/.test(t)) return 'truco';
+  if (/\bmove\b/.test(t)) return 'habilita';
+  if (/\bdraw \d|from your trash/.test(t)) return 'robo';
+  return 'otro';
+}
+function ensureDeckPro(d) {
+  d.roles = d.roles || {}; d.flex = d.flex || {}; d.recipes = d.recipes || []; d.matches = d.matches || []; d.matchups = d.matchups || {};
+  d.guide = d.guide || { plan: '', keep: '', toss: '' }; d.dismissed = d.dismissed || {};
+  if (!d.proSeeded) {
+    d.proSeeded = true;
+    const sd = (typeof SEED_DECKS !== 'undefined') && SEED_DECKS.find(x => x.name === d.name && x.pro);
+    if (sd && !d.recipes.length) {
+      const K = n => resolveName(n, 'main');
+      d.recipes = sd.pro.recipes.map(r => ({ id: uid('r'), name: r.name, pieces: r.pieces.map(K), result: r.result, turn: r.turn, tags: r.tags || [], note: r.note || '' }));
+      if (!d.guide.plan) d.guide = { ...sd.pro.guide };
+      setTimeout(save, 0);
+    }
+  }
+  return d;
+}
+const roleOf = (d, key, zone) => d.roles[key] || autoRole(key, zone);
+
+function setView(v) {
+  VIEW = v; try { localStorage.setItem(LS_KEY + '.view', v); } catch (e) { }
+  document.body.dataset.view = v;
+  document.querySelectorAll('#viewTabs button, #viewBar button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  const el = $('#view'); el.classList.toggle('show', v !== 'map');
+  if (v === 'map') { stage().focus({ preventScroll: true }); setTimeout(drawMinimap, 30); } else renderView();
+}
+function renderView() {
+  if (VIEW === 'map' || !S) return;
+  const d = ensureDeckPro(deck());
+  if (VIEW === 'deck') renderDeckView(d);
+  else if (VIEW === 'combos') renderCombosView(d);
+  else if (VIEW === 'games') renderGamesView(d);
+}
+const pct = p => p * 100 >= 99.5 ? '>99%' : Math.round(p * 100) + '%';
+function thumb(key, cls = '') {
+  const c = getCard(key);
+  return `<span class="th ${cls}${c.img ? '' : ' noimg'}${c.type === 'Battlefield' ? ' bf' : ''}" style="--dc:${dcol(c)}">${c.img ? `<img src="${esc(c.img)}" alt="" loading="lazy" onerror="this.parentNode.classList.add('noimg')">` : ''}<b>${esc(c.name)}</b></span>`;
+}
+
+/* ---------- Mi deck ---------- */
+function renderDeckView(d) {
+  const main = d.cards.filter(c => c.zone === 'main'); const N = mainSize();
+  const groups = {}; const seen = new Set();
+  for (const e of d.cards) {
+    if (e.zone === 'rune' || e.zone === 'side' || seen.has(e.key)) continue; seen.add(e.key);
+    const r = roleOf(d, e.key, e.zone); (groups[r] = groups[r] || []).push(e);
+  }
+  const curve = Array(8).fill(0); main.forEach(e => { const c = getCard(e.key); if (c.energy != null) curve[Math.min(7, c.energy)] += e.qty; });
+  const mx = Math.max(1, ...curve);
+  const doms = {}; main.forEach(e => (getCard(e.key).domains || []).forEach(x => doms[x] = (doms[x] || 0) + e.qty));
+  const units = main.filter(e => getCard(e.key).type === 'Unit').reduce((a, e) => a + e.qty, 0);
+  const spells = main.filter(e => getCard(e.key).type === 'Spell').reduce((a, e) => a + e.qty, 0);
+  const avg = main.reduce((a, e) => a + (getCard(e.key).energy || 0) * e.qty, 0) / Math.max(1, N);
+  const cheap = main.filter(e => (getCard(e.key).energy ?? 9) <= 2).reduce((a, e) => a + e.qty, 0);
+  const pCheap = 1 - Math.exp(lnC(N - cheap, 4) - lnC(N, 4));
+  const tile = e => {
+    const c = getCard(e.key), f = d.flex[e.key];
+    return `<button class="tile${f ? ' flex' : ''}" data-key="${esc(e.key)}" title="${esc(c.name)}">${thumb(e.key)}<span class="tq">${e.qty > 1 ? '×' + e.qty : ''}</span>${f ? '<span class="tf">Flex</span>' : ''}<span class="tn"><i class="mono">${c.energy ?? '–'}</i>${esc(c.name)}</span></button>`;
+  };
+  const side = d.cards.filter(c => c.zone === 'side'), runes = d.cards.filter(c => c.zone === 'rune');
+  $('#view').innerHTML = `<div class="vwrap">
+    <div class="vhead"><div><h1>${esc(d.name)}</h1><p class="muted">${N} cartas en el main · ${units} unidades · ${spells} hechizos · coste medio <b class="mono">${avg.toFixed(1)}</b></p></div>
+      <div class="btnrow"><button class="btn primary" id="vDraw">🂠 Robar mano</button><button class="btn" id="vToMap">Ver mapa</button></div></div>
+    <div class="vgrid">
+      <div class="vmain">
+        ${ROLES.filter(r => groups[r.id]).map(r => `<section class="rsec"><div class="sec"><h3>${r.es}</h3><span class="n">${groups[r.id].reduce((a, e) => a + (e.zone === 'main' ? e.qty : 0), 0) || ''}</span></div>${r.hint ? `<p class="small muted rh">${r.hint}</p>` : ''}<div class="tiles">${groups[r.id].sort((a, b) => (getCard(a.key).energy ?? 0) - (getCard(b.key).energy ?? 0)).map(tile).join('')}</div></section>`).join('')}
+        ${side.length ? `<section class="rsec"><div class="sec"><h3>Sideboard</h3><span class="n">${side.reduce((a, e) => a + e.qty, 0)}</span></div><div class="tiles">${side.map(tile).join('')}</div></section>` : ''}
+        <p class="small muted">Los roles se sugieren leyendo el texto de cada carta. Toca una carta para cambiar su rol o marcarla como <b>Flex</b> (la primera que cortarías).</p>
+      </div>
+      <aside class="vside">
+        <div class="panel"><div class="sec"><h3>Curva de energía</h3></div>
+          <div class="curve">${curve.map(n => `<div class="b" style="height:${n / mx * 100}%"><span>${n || ''}</span></div>`).join('')}</div>
+          <div class="curve-l">${curve.map((_, i) => `<span>${i === 7 ? '7+' : i}</span>`).join('')}</div>
+          <div class="meta" style="margin-top:10px">${Object.entries(doms).map(([k, n]) => `<span class="pill"><span class="dot" style="background:${DOMAINS[k]?.c}"></span>${DOMAINS[k]?.es || k} ${n}</span>`).join('')}${runes.map(r => `<span class="pill">${r.qty} ${esc(getCard(r.key).name)}</span>`).join('')}</div>
+          <p class="small" style="margin:10px 0 0"><b>${pct(pCheap)}</b> de manos iniciales traen al menos una carta de coste 2 o menos.</p></div>
+        <div class="panel"><div class="sec"><h3>Guía del deck</h3></div>
+          <div class="field"><label for="gPlan">Plan de juego</label><textarea id="gPlan" rows="5" placeholder="Qué buscas cada turno, cómo ganas…">${esc(d.guide.plan)}</textarea></div>
+          <div class="field"><label for="gKeep">Mulligan: me quedo con</label><textarea id="gKeep" rows="2">${esc(d.guide.keep)}</textarea></div>
+          <div class="field"><label for="gToss">Mulligan: cambio</label><textarea id="gToss" rows="2">${esc(d.guide.toss)}</textarea></div></div>
+      </aside>
+    </div></div>`;
+  $('#vDraw').onclick = () => openHand(); $('#vToMap').onclick = () => setView('map');
+  $('#view').querySelectorAll('.tile').forEach(b => b.onclick = () => cardSheet(b.dataset.key));
+  for (const [id, f] of [['gPlan', 'plan'], ['gKeep', 'keep'], ['gToss', 'toss']]) { const t = $('#' + id); t.addEventListener('focus', () => commit(), { once: true }); t.oninput = () => { d.guide[f] = t.value; save(); }; }
+}
+function cardSheet(key) {
+  const d = deck(), c = getCard(key), e = d.cards.find(x => x.key === key) || { zone: 'main' };
+  const inRec = d.recipes.filter(r => r.pieces.includes(key));
+  openModal(`<div class="sheet"><div class="bigcard${c.type === 'Battlefield' ? ' bf' : ''}${c.img ? '' : ' noimg'}">${imgTag(c)}${phTag(c)}</div><div>
+    <h2>${esc(c.name)}</h2>
+    <div class="meta"><span class="pill">${esc(TYPES_ES[c.type] || c.type)}</span>${c.energy != null ? `<span class="pill">${c.energy} energía</span>` : ''}${c.power ? `<span class="pill">${c.power} runa${c.power > 1 ? 's' : ''} de poder</span>` : ''}${c.might != null ? `<span class="pill">${c.might} might</span>` : ''}</div>
+    ${c.text ? `<div class="ctext">${fmtText(c.text)}</div>` : ''}
+    <div class="field"><label for="csRole">Rol en el deck</label><select id="csRole">${ROLES.map(r => `<option value="${r.id}"${roleOf(d, key, e.zone) === r.id ? ' selected' : ''}>${r.es}</option>`).join('')}</select></div>
+    <label class="chip" style="cursor:pointer"><input type="checkbox" id="csFlex" ${d.flex[key] ? 'checked' : ''}> Flex: la primera que cortaría</label>
+    <div class="field"><label for="csNote">Notas</label><textarea id="csNote" rows="3" placeholder="Cuándo jugarla, contra qué, mulligan…">${esc(d.notes[key] || '')}</textarea></div>
+    ${inRec.length ? `<div class="small muted">Aparece en: ${inRec.map(r => esc(r.name)).join(', ')}</div>` : ''}
+    <div class="btnrow"><button class="btn primary" onclick="closeModal()">Listo</button><button class="btn" id="csMap">Ver en el mapa</button></div></div></div>`);
+  $('#csRole').onchange = ev => { commit(); d.roles[key] = ev.target.value; save(); renderView(); };
+  $('#csFlex').onchange = ev => { commit(); if (ev.target.checked) d.flex[key] = true; else delete d.flex[key]; save(); renderView(); };
+  const n = $('#csNote'); n.addEventListener('focus', () => commit(), { once: true }); n.oninput = () => { d.notes[key] = n.value; save(); };
+  $('#csMap').onclick = () => { closeModal(); setView('map'); if (map().nodes[key]) selectKey(key); else addToMap(key); };
+}
+
+/* ---------- Combos (recetas) ---------- */
+function recipeStats(d, r) {
+  const N = mainSize();
+  const pcs = [...new Set(r.pieces)].map(k => ({ k, q: deckQty(k, 'main') }));
+  const inDeck = pcs.filter(p => p.q > 0);
+  const missing = pcs.filter(p => p.q === 0 && !d.cards.some(e => e.key === p.k));
+  let en = 0, pw = 0; for (const p of pcs) { const c = getCard(p.k); if (c.type !== 'Legend' && c.type !== 'Battlefield') { en += c.energy || 0; pw += c.power || 0; } }
+  const P = t => inDeck.length ? probAll(inDeck.map(p => p.q), N, Math.min(N, 4 + t)) : 1;
+  return { en, pw, P, missing, nDeck: inDeck.length };
+}
+function suggestions(d) {
+  const have = new Set(d.recipes.map(r => [...r.pieces].sort().join('|')));
+  const out = [];
+  const add = (a, b, why, kind) => { const k = [a, b].sort().join('|'); if (have.has(k) || d.dismissed[k] || out.some(x => x.k === k)) return; out.push({ k, a, b, why, kind }); };
+  for (const m of d.maps) for (const e of m.edges) if (e.type === 'combo' || e.type === 'habilita') add(e.from, e.to, e.note || `${ET[e.type].es} (de tu mapa)`, 'mapa');
+  const keys = [...new Set(d.cards.filter(e => e.zone !== 'rune').map(e => e.key))];
+  for (const a of keys) for (const b of keys) {
+    if (a === b) continue; const A = getCard(a), B = getCard(b), ta = (A.text || '').toLowerCase(), tb = (B.text || '').toLowerCase();
+    if (/move a friendly unit|move me|move a unit/.test(ta) && /when i move/.test(tb)) add(a, b, `${A.name} mueve a ${B.name} y activa su efecto al moverse.`, 'auto');
+    if (/play a spell from your trash/.test(ta) && B.type === 'Spell' && (B.energy ?? 9) <= 3) add(a, b, `${A.name} rejuega ${B.name} desde el trash sin pagar su energía.`, 'auto');
+    if (/gain \d+ xp/.test(tb) && A.type === 'Legend' && /spend \d+ xp/.test(ta)) add(b, a, `${B.name} gana XP que la leyenda gasta.`, 'auto');
+    if (/is alone|defending alone/.test(tb) && /move an enemy unit|move an enemy|return a unit at a battlefield/.test(ta)) add(a, b, `${A.name} deja sola a una unidad enemiga para ${B.name}.`, 'auto');
+  }
+  return out.slice(0, 12);
+}
+function renderCombosView(d) {
+  const sug = suggestions(d);
+  const card = r => {
+    const s = recipeStats(d, r);
+    return `<article class="recipe" data-r="${r.id}">
+      <div class="rp n${Math.min(4, r.pieces.length)}">${r.pieces.map(k => thumb(k)).join('<span class="plus">+</span>')}</div>
+      <div class="rb"><h3>${esc(r.name)}</h3>${(r.tags || []).map(t => `<span class="pill">${esc(t)}</span>`).join(' ')}
+        <p>${esc(r.result || '')}</p>${r.note ? `<p class="small muted">${esc(r.note)}</p>` : ''}
+        <div class="rstats"><span><b class="mono">${s.en}</b> energía${s.pw ? ` + <b class="mono">${s.pw}</b> runa${s.pw > 1 ? 's' : ''}` : ''}</span><span>Turno ideal <b class="mono">${r.turn || '–'}</b></span>
+        ${s.nDeck ? `<span title="Probabilidad de tener en mano todas las piezas que salen del mazo (sin contar mulligan)">Piezas en mano: ${[3, 5, 7].map(t => `T${t} <b class="mono">${pct(s.P(t))}</b>`).join(' · ')}</span>` : '<span>Piezas siempre disponibles</span>'}</div>
+        ${s.missing.length ? `<p class="small" style="color:var(--danger)">No está en el deck: ${s.missing.map(p => esc(getCard(p.k).name)).join(', ')}</p>` : ''}
+        <div class="btnrow"><button class="btn sm" data-a="edit">Editar</button><button class="btn sm" data-a="map">Ver en mapa</button><button class="btn sm ghost danger" data-a="del">Borrar</button></div></div></article>`;
+  };
+  $('#view').innerHTML = `<div class="vwrap">
+    <div class="vhead"><div><h1>Combos</h1><p class="muted">Recetas: qué cartas se juntan, qué consiguen, cuánto cuestan y qué tan seguido las tendrás.</p></div>
+      <div class="btnrow"><button class="btn primary" id="rNew">+ Nueva receta</button><button class="btn" id="vDraw2">🂠 Robar mano</button></div></div>
+    <div class="recipes">${d.recipes.map(card).join('') || '<p class="empty">Aún no hay recetas. Crea una o acepta una sugerencia de abajo.</p>'}</div>
+    ${sug.length ? `<div class="sec" style="margin-top:28px"><h3>Combos sugeridos</h3><span class="n">${sug.length}</span></div><p class="small muted" style="margin-top:0">Los detecto leyendo el texto de tus cartas y las conexiones de tus mapas. Acéptalos para convertirlos en receta.</p>
+    <div class="sugs">${sug.map((s, i) => `<div class="sug" data-i="${i}"><div class="rp">${thumb(s.a, 'sm')}<span class="plus">+</span>${thumb(s.b, 'sm')}</div><div><b>${esc(getCard(s.a).name)} + ${esc(getCard(s.b).name)}</b><p class="small muted">${esc(s.why)}</p><div class="btnrow"><button class="btn sm primary" data-a="ok">Agregar</button><button class="btn sm ghost" data-a="no">Descartar</button></div></div></div>`).join('')}</div>` : ''}
+  </div>`;
+  $('#rNew').onclick = () => editRecipe(null); $('#vDraw2').onclick = () => openHand();
+  $('#view').querySelectorAll('.recipe').forEach(el => {
+    const r = d.recipes.find(x => x.id === el.dataset.r);
+    el.querySelectorAll('[data-a]').forEach(b => b.onclick = async () => {
+      if (b.dataset.a === 'edit') editRecipe(r);
+      if (b.dataset.a === 'map') { setView('map'); const ks = r.pieces.filter(k => map().nodes[k]); if (ks.length) { sel.nodes = new Set(ks); onSelChange(); fit(ks, 1); } }
+      if (b.dataset.a === 'del' && await askConfirm(`¿Borrar la receta “${r.name}”?`)) { commit(); d.recipes = d.recipes.filter(x => x !== r); save(); renderView(); }
+    });
+  });
+  $('#view').querySelectorAll('.sug').forEach(el => {
+    const s = sug[+el.dataset.i];
+    el.querySelector('[data-a=ok]').onclick = () => { commit(); d.recipes.push({ id: uid('r'), name: `${getCard(s.a).name.split(' - ')[0]} + ${getCard(s.b).name.split(' - ')[0]}`, pieces: [s.a, s.b], result: s.why, turn: null, tags: [], note: '' }); save(); renderView(); toast('Receta agregada'); };
+    el.querySelector('[data-a=no]').onclick = () => { commit(); d.dismissed[s.k] = true; save(); renderView(); };
+  });
+}
+function editRecipe(r) {
+  const d = deck(); const isNew = !r; r = r ? JSON.parse(JSON.stringify(r)) : { id: uid('r'), name: '', pieces: [], result: '', turn: null, tags: [], note: '' };
+  const opts = [...new Set(d.cards.filter(e => e.zone !== 'rune').map(e => e.key))].sort((a, b) => getCard(a).name.localeCompare(getCard(b).name));
+  const draw = () => {
+    openModal(`<h2>${isNew ? 'Nueva receta' : 'Editar receta'}</h2>
+      <div class="field"><label for="reName">Nombre</label><input type="text" id="reName" value="${esc(r.name)}" placeholder="Ej.: Aislar con Faefolk"></div>
+      <div class="field"><label>Piezas (toca para quitar)</label><div class="rp">${r.pieces.map((k, i) => `<button class="chip" data-rm="${i}">${esc(getCard(k).name)} ✕</button>`).join('') || '<span class="small muted">Agrega al menos dos cartas</span>'}</div>
+        <select id="reAdd"><option value="">+ Agregar carta del deck…</option>${opts.map(k => `<option value="${esc(k)}">${esc(getCard(k).name)}</option>`).join('')}</select></div>
+      <div class="field"><label for="reRes">Qué consigues</label><textarea id="reRes" rows="3" placeholder="Ej.: enemigo solo, Kha'Zix +2 might y 2 XP">${esc(r.result)}</textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:8px"><div class="field"><label for="reTurn">Turno ideal</label><input type="number" id="reTurn" min="1" max="12" value="${r.turn ?? ''}"></div>
+      <div class="field"><label for="reTags">Etiquetas (separadas por coma)</label><input type="text" id="reTags" value="${esc((r.tags || []).join(', '))}" placeholder="Línea principal, vs control"></div></div>
+      <div class="field"><label for="reNote">Notas</label><input type="text" id="reNote" value="${esc(r.note || '')}"></div>
+      <div class="btnrow"><button class="btn primary" id="reOk">Guardar</button><button class="btn" onclick="closeModal()">Cancelar</button></div>`);
+    const grab = () => { r.name = $('#reName').value; r.result = $('#reRes').value; r.turn = $('#reTurn').value ? +$('#reTurn').value : null; r.tags = $('#reTags').value.split(',').map(s => s.trim()).filter(Boolean); r.note = $('#reNote').value; };
+    $('#modal').querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { grab(); r.pieces.splice(+b.dataset.rm, 1); draw(); });
+    $('#reAdd').onchange = ev => { if (!ev.target.value) return; grab(); r.pieces.push(ev.target.value); draw(); };
+    $('#reOk').onclick = () => {
+      grab(); if (r.pieces.length < 1) return toast('Agrega al menos una carta');
+      if (!r.name.trim()) r.name = r.pieces.map(k => getCard(k).name.split(' - ')[0]).join(' + ');
+      commit(); const i = d.recipes.findIndex(x => x.id === r.id); if (i >= 0) d.recipes[i] = r; else d.recipes.push(r); save(); closeModal(); renderView(); toast('Receta guardada');
+    };
+  };
+  draw();
+}
+
+/* ---------- Robar mano ---------- */
+let HAND = null;
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function openHand() {
+  const d = deck(); const pile = [];
+  for (const e of d.cards) if (e.zone === 'main') for (let i = 0; i < e.qty; i++) pile.push(e.key);
+  shuffle(pile); HAND = { pile, hand: pile.splice(0, 4), marked: new Set(), turn: 0, mulled: false };
+  drawHand();
+}
+function drawHand() {
+  const d = deck(); const h = HAND;
+  const always = new Set(d.cards.filter(e => e.zone !== 'main' && e.zone !== 'side' && e.zone !== 'rune').map(e => e.key));
+  const have = new Set([...h.hand, ...always]);
+  const ok = d.recipes.filter(r => r.pieces.some(k => !always.has(k)) && r.pieces.every(k => have.has(k)));
+  const near = d.recipes.filter(r => !ok.includes(r)).map(r => ({ r, miss: r.pieces.filter(k => !have.has(k)) })).filter(x => x.miss.length === 1);
+  const champ = d.cards.find(e => e.zone === 'champion');
+  openModal(`<h2>Robar mano</h2>
+    <p class="small muted">${h.turn ? `Turno ${h.turn} · ` : 'Mano inicial · '}${h.hand.length} cartas en mano · ${h.pile.length} en el mazo${champ ? ` · Campeón listo: ${esc(getCard(champ.key).name)}` : ''}</p>
+    <div class="hand">${h.hand.map((k, i) => `<button class="hcard${h.marked.has(i) ? ' mk' : ''}" data-i="${i}" ${h.mulled || h.turn ? 'disabled' : ''}>${thumb(k)}</button>`).join('')}</div>
+    ${!h.mulled && !h.turn ? '<p class="small muted">Mulligan: toca hasta 2 cartas para cambiarlas.</p>' : ''}
+    <div class="hres">${ok.length ? `<p><b style="color:var(--ok)">✔ Combo listo:</b> ${ok.map(r => esc(r.name)).join(', ')}</p>` : '<p class="muted">Ningún combo completo todavía.</p>'}
+    ${near.length ? `<p class="small">A una carta de: ${near.map(x => `${esc(x.r.name)} <span class="muted">(falta ${esc(getCard(x.miss[0]).name)})</span>`).join(' · ')}</p>` : ''}</div>
+    <div class="btnrow">${!h.mulled && !h.turn ? `<button class="btn" id="hMull">${h.marked.size ? `Cambiar ${h.marked.size}` : 'Me quedo'}</button>` : ''}
+      <button class="btn primary" id="hNext">Robar (turno ${h.turn + 1})</button><button class="btn" id="hNew">Nueva mano</button><button class="btn ghost" onclick="closeModal()">Cerrar</button></div>`);
+  $('#modal').querySelectorAll('.hcard').forEach(b => b.onclick = () => { const i = +b.dataset.i; if (h.marked.has(i)) h.marked.delete(i); else if (h.marked.size < 2) h.marked.add(i); drawHand(); });
+  $('#hMull') && ($('#hMull').onclick = () => { const back = []; h.hand = h.hand.filter((k, i) => h.marked.has(i) ? (back.push(k), false) : true); h.hand.push(...h.pile.splice(0, back.length)); h.pile.push(...back); h.marked.clear(); h.mulled = true; drawHand(); });
+  $('#hNext').onclick = () => { if (!h.pile.length) return toast('No quedan cartas'); h.mulled = true; h.turn++; h.hand.push(h.pile.shift()); drawHand(); };
+  $('#hNew').onclick = openHand;
+}
+
+/* ---------- Partidas ---------- */
+function legendNames() { const out = []; for (const c of DB.values()) if (c.type === 'Legend') out.push(c.name); return [...new Set(out)].sort(); }
+function renderGamesView(d) {
+  const ms = d.matches; const W = ms.filter(m => m.res === 'W').length, L = ms.filter(m => m.res === 'L').length, D = ms.filter(m => m.res === 'D').length;
+  const wr = arr => { const w = arr.filter(m => m.res === 'W').length, l = arr.filter(m => m.res === 'L').length; return w + l ? w / (w + l) : null; };
+  const first = ms.filter(m => m.first === true), second = ms.filter(m => m.first === false);
+  const byOpp = {}; for (const m of ms) (byOpp[m.opp] = byOpp[m.opp] || []).push(m);
+  const opps = Object.entries(byOpp).sort((a, b) => b[1].length - a[1].length);
+  const bar = p => p == null ? '<span class="muted">–</span>' : `<span class="wr"><i style="width:${p * 100}%;background:${p >= .55 ? 'var(--ok)' : p <= .45 ? 'var(--danger)' : 'var(--gold)'}"></i></span><b class="mono">${Math.round(p * 100)}%</b>`;
+  const sel = GAMES_OPP && byOpp[GAMES_OPP] !== undefined ? GAMES_OPP : (GAMES_OPP || null);
+  $('#view').innerHTML = `<div class="vwrap">
+    <div class="vhead"><div><h1>Partidas</h1><p class="muted">Anota cada partida en segundos y mira contra qué ganas y contra qué no.</p></div></div>
+    <div class="vgrid">
+      <div class="vmain">
+        <div class="panel addm"><div class="sec"><h3>Nueva partida</h3></div>
+          <div class="addrow"><input type="text" id="gOpp" list="legList" placeholder="Leyenda rival (ej. Jinx - Loose Cannon)" value="${esc(LAST_OPP)}"><datalist id="legList">${legendNames().map(n => `<option value="${esc(n)}">`).join('')}</datalist>
+          <div class="seg" id="gFirst"><button data-v="1" class="${GFIRST === true ? 'on' : ''}">Empecé</button><button data-v="0" class="${GFIRST === false ? 'on' : ''}">Segundo</button></div></div>
+          <input type="text" id="gNote" placeholder="Nota rápida (opcional): qué pasó, qué carta decidió…" style="width:100%;margin-top:8px">
+          <div class="btnrow"><button class="btn win" data-res="W">Gané</button><button class="btn loss" data-res="L">Perdí</button><button class="btn" data-res="D">Empate</button></div></div>
+        <div class="sec"><h3>Por rival</h3><span class="n">${opps.length}</span></div>
+        ${opps.length ? `<div class="tbl"><div class="tr thd"><span>Rival</span><span>Partidas</span><span>V-D</span><span>Winrate</span></div>${opps.map(([o, arr]) => `<button class="tr${sel === o ? ' on' : ''}" data-o="${esc(o)}"><span>${esc(o)}</span><span class="mono">${arr.length}</span><span class="mono">${arr.filter(m => m.res === 'W').length}-${arr.filter(m => m.res === 'L').length}</span><span>${bar(wr(arr))}</span></button>`).join('')}</div>` : '<p class="empty">Todavía no hay partidas. Anota la primera arriba.</p>'}
+        ${sel ? matchupPanel(d, sel) : ''}
+        ${ms.length ? `<div class="sec"><h3>Historial</h3></div><div class="hist">${[...ms].reverse().slice(0, 40).map(m => `<div class="hrow"><span class="res ${m.res}">${m.res === 'W' ? 'V' : m.res === 'L' ? 'D' : 'E'}</span><span class="o">${esc(m.opp)}${m.note ? `<span class="small muted"> · ${esc(m.note)}</span>` : ''}</span><span class="small muted">${m.first === true ? 'Empecé' : m.first === false ? 'Segundo' : ''}</span><span class="small muted mono">${new Date(m.at).toLocaleDateString()}</span><button class="btn sm ghost" data-del="${m.id}" aria-label="Borrar">✕</button></div>`).join('')}</div>` : ''}
+      </div>
+      <aside class="vside">
+        <div class="panel"><div class="sec"><h3>Resumen</h3></div>
+          <div class="kpis"><div><b class="mono">${ms.length}</b><span>partidas</span></div><div><b class="mono">${W}-${L}${D ? '-' + D : ''}</b><span>V-D${D ? '-E' : ''}</span></div><div><b class="mono">${wr(ms) == null ? '–' : Math.round(wr(ms) * 100) + '%'}</b><span>winrate</span></div></div>
+          <div class="small" style="margin-top:10px">Empezando: ${bar(wr(first))} <span class="muted">(${first.length})</span></div>
+          <div class="small">De segundo: ${bar(wr(second))} <span class="muted">(${second.length})</span></div></div>
+        <div class="panel"><p class="small muted" style="margin:0">Tip: toca un rival en la tabla para escribir tu plan contra él y qué cartas entran y salen del sideboard.</p></div>
+      </aside></div></div>`;
+  $('#gFirst').querySelectorAll('button').forEach(b => b.onclick = () => { GFIRST = GFIRST === (b.dataset.v === '1') ? null : b.dataset.v === '1'; renderView(); });
+  $('#gOpp').oninput = e => LAST_OPP = e.target.value;
+  $('#view').querySelectorAll('[data-res]').forEach(b => b.onclick = () => {
+    const opp = $('#gOpp').value.trim(); if (!opp) { $('#gOpp').focus(); return toast('Escribe la leyenda rival'); }
+    commit(); d.matches.push({ id: uid('g'), opp, res: b.dataset.res, first: GFIRST, note: $('#gNote').value.trim(), at: Date.now() }); LAST_OPP = opp; save(); renderView(); toast('Partida anotada');
+  });
+  $('#view').querySelectorAll('.tr[data-o]').forEach(b => b.onclick = () => { GAMES_OPP = GAMES_OPP === b.dataset.o ? null : b.dataset.o; renderView(); });
+  $('#view').querySelectorAll('[data-del]').forEach(b => b.onclick = () => { commit(); d.matches = d.matches.filter(m => m.id !== b.dataset.del); save(); renderView(); });
+  bindMatchup(d, sel);
+}
+let GAMES_OPP = null, LAST_OPP = '', GFIRST = null;
+function matchupPanel(d, opp) {
+  const mu = d.matchups[opp] || { plan: '', ins: {}, outs: {} };
+  const side = d.cards.filter(e => e.zone === 'side'), main = d.cards.filter(e => e.zone === 'main');
+  const nin = Object.values(mu.ins).reduce((a, b) => a + b, 0), nout = Object.values(mu.outs).reduce((a, b) => a + b, 0);
+  const step = (e, bag, kind) => `<div class="stp"><span>${esc(getCard(e.key).name)}</span><span class="ctl"><button data-k="${esc(e.key)}" data-kind="${kind}" data-d="-1" aria-label="menos">−</button><b class="mono">${bag[e.key] || 0}</b><button data-k="${esc(e.key)}" data-kind="${kind}" data-d="1" aria-label="más">+</button></span></div>`;
+  return `<div class="panel mu"><div class="sec"><h3>Contra ${esc(opp)}</h3><span class="n ${nin !== nout ? 'warn' : ''}">Entran ${nin} · Salen ${nout}</span></div>
+    <div class="field"><label for="muPlan">Plan para este matchup</label><textarea id="muPlan" rows="3" placeholder="Qué cuidar, qué guardar, cómo ganan ellos…">${esc(mu.plan)}</textarea></div>
+    <div class="mugrid"><div><div class="small muted">Entran (del sideboard)</div>${side.map(e => step(e, mu.ins, 'ins')).join('') || '<p class="small muted">Sin sideboard</p>'}</div>
+    <div><div class="small muted">Salen (del main)</div>${main.map(e => step(e, mu.outs, 'outs')).join('')}</div></div></div>`;
+}
+function bindMatchup(d, opp) {
+  if (!opp || !$('#muPlan')) return;
+  const mu = d.matchups[opp] = d.matchups[opp] || { plan: '', ins: {}, outs: {} };
+  const p = $('#muPlan'); p.addEventListener('focus', () => commit(), { once: true }); p.oninput = () => { mu.plan = p.value; save(); };
+  $('#view').querySelectorAll('.stp button').forEach(b => b.onclick = () => {
+    const bag = mu[b.dataset.kind], k = b.dataset.k, max = deckQty(k, b.dataset.kind === 'ins' ? 'side' : 'main');
+    commit(); bag[k] = Math.max(0, Math.min(max, (bag[k] || 0) + +b.dataset.d)); if (!bag[k]) delete bag[k]; save(); renderView();
+  });
+}
 
 </script>
 </body></html>
