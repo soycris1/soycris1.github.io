@@ -737,7 +737,12 @@ const norm = s => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase
 const NAME_IDX = new Map();
 for (const c of DB.values()) { const k = norm(c.name); if (!NAME_IDX.has(k)) NAME_IDX.set(k, c.id); }
 
+const SEP = '~';
+const baseKey = k => String(k || '').split(SEP)[0];
+const copyNo = k => +(String(k || '').split(SEP)[1] || 1);
+const copiesOnMap = (base, m = map()) => Object.keys(m.nodes).filter(k => baseKey(k) === base).sort((a, b) => copyNo(a) - copyNo(b));
 function getCard(key) {
+  key = baseKey(key);
   const base0 = DB.get(key) || (CARD_ALIAS[key] && DB.get(CARD_ALIAS[key]));
   const base = base0 && { ...base0, img: imgSrc(base0.id, base0.img) };
   const cu = S && S.custom[key];
@@ -833,8 +838,8 @@ async function connectDb() {
 }
 const deck = () => S.decks.find(d => d.id === S.deckId) || S.decks[0];
 const map = () => { const d = deck(); return d.maps.find(m => m.id === d.mapId) || d.maps[0]; };
-const deckEntry = key => deck().cards.find(c => c.key === key);
-const deckQty = (key, zone) => deck().cards.filter(c => c.key === key && (!zone || c.zone === zone)).reduce((a, c) => a + c.qty, 0);
+const deckEntry = key => deck().cards.find(c => c.key === baseKey(key));
+const deckQty = (key, zone) => (key = baseKey(key), deck().cards.filter(c => c.key === key && (!zone || c.zone === zone)).reduce((a, c) => a + c.qty, 0));
 
 /* undo / redo */
 const UNDO = [], REDO = [];
@@ -904,8 +909,8 @@ function lanesFor(d) {
 }
 function autoLayout(m, d = deck(), onlyExisting = false) {
   const lanes = lanesFor(d);
-  const filt = arr => onlyExisting ? arr.filter(k => m.nodes[k]) : arr;
-  const old = m.nodes; m.nodes = {}; m.labels = [];
+  const old = m.nodes;
+  const filt = arr => onlyExisting ? arr.flatMap(k => Object.keys(old).filter(x => baseKey(x) === k).sort((p, q) => copyNo(p) - copyNo(q))) : arr; m.nodes = {}; m.labels = [];
   const GX = 190, GY = 270, ROWS = 4; let x = 0;
   const place = (title, keys, rows, w = GX, h = GY) => {
     if (!keys.length) return;
@@ -1002,17 +1007,17 @@ function phTag(c) {
   const dom = (c.domains || []).map(d => DOMAINS[d]?.es || d).join(' · ');
   return `<div class="ph" style="--dc:${dcol(c)}"><div class="pt">${esc(c.name)}</div><div class="pty">${esc(TYPES_ES[c.type] || c.type)}${c.energy != null ? ' · ' + c.energy + ' energía' : ''}${dom ? ' · ' + esc(dom) : ''}</div><div class="ptx">${c.text ? fmtText(c.text) : (c.missing ? 'Carta sin datos todavía. Selecciónala y usa “Buscar en Riftcodex” o completa los datos a mano.' : '')}</div></div>`;
 }
-function zoneOf(key) { const zs = deck().cards.filter(c => c.key === key).map(c => c.zone); return zs.includes('legend') ? 'legend' : zs.includes('champion') ? 'champion' : zs.find(z => z !== 'side') || zs[0]; }
+function zoneOf(key) { key = baseKey(key); const zs = deck().cards.filter(c => c.key === key).map(c => c.zone); return zs.includes('legend') ? 'legend' : zs.includes('champion') ? 'champion' : zs.find(z => z !== 'side') || zs[0]; }
 function renderNodes() {
   const m = map(), el = $('#nodes');
-  let h = '';
+  let h = ''; const ncp = {}; for (const k of Object.keys(m.nodes)) ncp[baseKey(k)] = (ncp[baseKey(k)] || 0) + 1;
   for (const [key, n] of Object.entries(m.nodes)) {
     const c = getCard(key), z = zoneOf(key);
     const q = deckQty(key) - deckQty(key, 'side'), qs = deckQty(key, 'side');
     const badge = z === 'legend' ? 'Leyenda' : z === 'champion' ? 'Campeón' : (!q && qs ? 'Side' : '');
     h += `<div class="node${c.type === 'Battlefield' ? ' bf' : ''}${c.img ? '' : ' noimg'}" data-key="${esc(key)}" style="left:${n.x}px;top:${n.y}px">
       <div class="cimg">${imgTag(c)}${phTag(c)}</div>
-      ${q > 1 || (qs && q) ? `<span class="qty">×${q}${qs ? '+' + qs : ''}</span>` : ''}
+      ${ncp[baseKey(key)] > 1 ? `<span class="qty" title="Copia ${copyNo(key)} de ${copiesTotal(baseKey(key))}">${copyNo(key)}/${copiesTotal(baseKey(key))}</span>` : q > 1 || (qs && q) ? `<span class="qty" title="Copias en el deck. Selecciona la carta y usa “Separar copia” para tenerlas por separado">×${q}${qs ? '+' + qs : ''}</span>` : ''}
       ${badge ? `<span class="zone">${badge}</span>` : ''}
       <div class="port" title="Arrastra hasta otra carta para conectar"></div>
       <div class="stepb"></div>
@@ -1330,7 +1335,7 @@ function probAll(pieces, N, n) {
   return Math.max(0, Math.min(1, p));
 }
 function comboPieces(c) {
-  const keys = [...new Set(c.steps.map(s => s.key))];
+  const keys = [...new Set(c.steps.map(s => baseKey(s.key)))];
   return keys.map(k => ({ key: k, q: deckQty(k, 'main') })).filter(p => p.q > 0);
 }
 const mainSize = () => deck().cards.filter(c => c.zone === 'main').reduce((a, c) => a + c.qty, 0);
@@ -1392,6 +1397,34 @@ function removeFromMap(keys) {
   m.edges = m.edges.filter(e => m.nodes[e.from] && m.nodes[e.to]);
   sel.nodes.clear(); renderNodes(); renderEdges(); renderLeft(); onSelChange(); save(); toast('Quitada del mapa · ⌘Z para deshacer');
 }
+function copiesTotal(bk) { const zs = deck().cards.filter(x => x.key === bk && x.zone !== 'rune'); const q = zs.filter(z => z.zone !== 'side').reduce((s, z) => s + z.qty, 0); return q || zs.reduce((s, z) => s + z.qty, 0); }
+function splitCopy(key, quiet) {
+  const m = map(), bk = baseKey(key), have = copiesOnMap(bk, m), total = copiesTotal(bk);
+  if (have.length >= total) { if (!quiet) toast('Ya están todas las copias en el mapa'); return null; }
+  let n = 2; while (m.nodes[bk + SEP + n] || (n === 1)) n++;
+  const nk = m.nodes[bk] ? bk + SEP + n : bk;
+  const src = m.nodes[key] || m.nodes[have[have.length - 1]]; const [w] = nodeSize(bk);
+  if (quiet) { m.nodes[nk] = { x: src.x + (w + 24) * have.length, y: src.y }; return nk; }
+  commit(); m.nodes[nk] = { x: src.x + w + 24, y: src.y };
+  let tries = 0; while (Object.entries(m.nodes).some(([k, o]) => k !== nk && Math.abs(o.x - m.nodes[nk].x) < 60 && Math.abs(o.y - m.nodes[nk].y) < 60) && tries++ < 30) m.nodes[nk].x += 40;
+  renderNodes(); renderEdges(); renderLeft(); save(); selectKey(nk, false); drawMinimap(); toast(`Copia ${copyNo(nk)} separada: conéctala por su cuenta`);
+  return nk;
+}
+function splitAllCopies() {
+  const m = map(); commit(); let made = 0;
+  for (const k of [...new Set(Object.keys(m.nodes).map(baseKey))]) { while (splitCopy(k, true)) made++; }
+  if (!made) { UNDO.pop(); return toast('No hay copias para separar en este mapa'); }
+  autoLayout(m, deck(), true); renderNodes(); renderEdges(); renderLeft(); save(); fit(); toast(`${made} copias separadas · ⌘Z para deshacer`);
+}
+function mergeCopies(bk) {
+  const m = map(), cs = copiesOnMap(bk, m); if (cs.length < 2) return; commit();
+  const keep = cs[0];
+  for (const e of m.edges) { if (baseKey(e.from) === bk) e.from = keep; if (baseKey(e.to) === bk) e.to = keep; }
+  const seen = new Set(); m.edges = m.edges.filter(e => { if (e.from === e.to) return false; const id = e.from + '>' + e.to + ':' + e.type; if (seen.has(id)) return false; seen.add(id); return true; });
+  for (const cb of m.combos) for (const s of cb.steps) if (baseKey(s.key) === bk) s.key = keep;
+  for (const k of cs.slice(1)) delete m.nodes[k];
+  sel.nodes = new Set([keep]); renderNodes(); renderEdges(); renderLeft(); onSelChange(); save(); toast('Copias juntadas en una sola carta');
+}
 function selectKey(key, center = true) {
   if (play) stopPlay();
   sel.nodes.clear(); sel.nodes.add(key); sel.edge = null; onSelChange();
@@ -1448,7 +1481,7 @@ function renderLeft() { if (leftTab === 'deck') renderDeckPanel(); else if (left
 function renderLeftSel() { document.querySelectorAll('#leftBody .row[data-key]').forEach(r => r.classList.toggle('sel', sel.nodes.has(r.dataset.key))); }
 const dots = c => (c.domains || []).map(d => `<span class="dot" style="background:${DOMAINS[d]?.c || '#888'}" title="${DOMAINS[d]?.es || d}"></span>`).join('');
 function deckRow(e) {
-  const c = getCard(e.key), on = !!map().nodes[e.key];
+  const c = getCard(e.key), on = copiesOnMap(e.key).length > 0;
   return `<div class="row${on ? '' : ' off'}${sel.nodes.has(e.key) ? ' sel' : ''}" data-key="${esc(e.key)}" draggable="true" title="${on ? 'Clic: ir a la carta' : 'Clic o arrastra: añadir al mapa'}">
     <span class="cost">${c.energy ?? '–'}</span>
     <span class="nm"><span class="dots">${dots(c)}</span>${esc(c.name)}${c.missing ? '<span class="warnchip">sin datos</span>' : ''}</span>
@@ -1473,7 +1506,7 @@ function renderDeckPanel() {
   h += `<p class="hint" style="margin-top:16px">Arrastra una carta al mapa o haz clic para ir a ella. Las cartas del <b>sideboard</b> no salen en el mapa hasta que las añades.</p>`;
   $('#leftBody').innerHTML = h;
   $('#leftBody').querySelectorAll('.row[data-key]').forEach(r => {
-    r.onclick = () => { const k = r.dataset.key; map().nodes[k] ? selectKey(k) : addToMap(k); };
+    r.onclick = () => { const k = r.dataset.key, on = copiesOnMap(k); on.length ? selectKey(on.includes(k) ? k : on[0]) : addToMap(k); };
     r.ondragstart = ev => { ev.dataTransfer.setData('text/x-card', r.dataset.key); ev.dataTransfer.effectAllowed = 'copy'; };
   });
 }
@@ -1608,21 +1641,23 @@ function renderInspector() {
   const c = getCard(key), onMap = !!m.nodes[key];
   const outs = m.edges.filter(e => e.from === key), ins = m.edges.filter(e => e.to === key);
   const connRow = (e, other, dir) => { const t = ET[e.type]; return `<div class="conn" data-k="${esc(other)}" data-e="${e.id}"><span class="sw" style="background:${t.c}"></span><span class="t">${dir === 'out' ? t.es + ' →' : '← ' + t.es}</span><span class="nm">${esc(getCard(other).name)}${e.note ? `<span class="nt">${esc(e.note)}</span>` : ''}</span></div>`; };
-  const zs = deck().cards.filter(x => x.key === key);
+  const bk = baseKey(key), zs = deck().cards.filter(x => x.key === bk);
+  const totalQ = copiesTotal(bk), onCopies = onMap ? copiesOnMap(bk).length : 0;
   el.innerHTML = `<div class="bigcard${c.type === 'Battlefield' ? ' bf' : ''}${c.img ? '' : ' noimg'}">${imgTag(c)}${phTag(c)}</div>
-    <h2>${esc(c.name)}</h2>
+    <h2>${esc(c.name)}${onCopies > 1 ? ` <span class="pill">Copia ${copyNo(key)}</span>` : ''}</h2>
     <div class="meta"><span class="pill">${esc(TYPES_ES[c.type] || c.type)}</span>${c.energy != null ? `<span class="pill">${c.energy} energía</span>` : ''}${c.power ? `<span class="pill">${c.power} runa${c.power > 1 ? 's' : ''} de poder</span>` : ''}${c.might != null ? `<span class="pill">${c.might} might</span>` : ''}${(c.domains || []).map(d => `<span class="pill"><span class="dot" style="background:${DOMAINS[d]?.c}"></span>${DOMAINS[d]?.es || d}</span>`).join('')}${c.rarity ? `<span class="pill">${esc(c.rarity)}</span>` : ''}</div>
     ${(c.tags || []).length ? `<div class="small muted">${c.tags.map(esc).join(' · ')}</div>` : ''}
     ${c.text ? `<div class="ctext">${fmtText(c.text)}</div>` : ''}
     ${c.missing || c.custom ? `<p class="hint">Esta carta no está en la base incluida (probablemente es de un set más nuevo). Prueba a buscarla en Riftcodex o rellena los datos tú mismo.</p><div class="btnrow"><button class="btn sm primary" id="cLook">Buscar en Riftcodex</button><button class="btn sm" id="cEdit">Editar datos</button></div>` : `<div class="btnrow" style="margin-top:0"><button class="btn sm ghost" id="cEdit">Editar datos / imagen</button></div>`}
-    <div class="small muted">${zs.length ? 'En el deck: ' + zs.map(z => `${z.qty}× ${ZONE_ES[z.zone]}`).join(', ') : 'No está en este deck'} · <span class="mono">${esc(key.startsWith('custom:') ? 'sin código' : key.toUpperCase())}</span></div>
+    <div class="small muted">${zs.length ? 'En el deck: ' + zs.map(z => `${z.qty}× ${ZONE_ES[z.zone]}`).join(', ') : 'No está en este deck'} · <span class="mono">${esc(bk.startsWith('custom:') ? 'sin código' : bk.toUpperCase())}</span></div>
     <div class="btnrow">
       ${onMap ? `<button class="btn sm primary" id="cConn">Conectar con… <kbd>C</kbd></button>` : `<button class="btn sm primary" id="cAdd">Añadir al mapa</button>`}
       ${map().combos.length ? `<select id="cCombo" class="btn sm"><option value="">Añadir a línea…</option>${map().combos.map(x => `<option value="${x.id}">${esc(x.name)}</option>`).join('')}<option value="__new">+ Nueva línea</option></select>` : `<button class="btn sm" id="cNewCombo">Empezar línea aquí</button>`}
       ${zs.length ? '' : `<button class="btn sm" id="cToMain">+ Main</button><button class="btn sm" id="cToSide">+ Side</button>`}
       ${onMap ? `<button class="btn sm danger" id="cRem">Quitar del mapa</button>` : ''}
     </div>
-    ${zs.length ? `<div class="field"><label for="cNote">Notas de la carta (se comparten entre mapas del deck)</label><textarea id="cNote" rows="3" placeholder="Cuándo jugarla, contra qué, mulligan…">${esc(deck().notes[key] || '')}</textarea></div>` : ''}
+    ${onMap && totalQ > 1 ? `<div class="btnrow" style="margin-top:-4px">${onCopies < totalQ ? `<button class="btn sm" id="cSplit" title="Pone otra copia de esta carta como una carta aparte en el mapa">⧉ Separar copia (${onCopies} de ${totalQ} en el mapa)</button>` : `<span class="small muted">Las ${totalQ} copias están separadas en el mapa.</span>`}${onCopies > 1 ? `<button class="btn sm ghost" id="cMerge" title="Deja una sola carta y pasa sus conexiones a la copia 1">Juntar copias</button>` : ''}</div>` : ''}
+    ${zs.length ? `<div class="field"><label for="cNote">Notas de la carta (se comparten entre mapas del deck)</label><textarea id="cNote" rows="3" placeholder="Cuándo jugarla, contra qué, mulligan…">${esc(deck().notes[bk] || '')}</textarea></div>` : ''}
     ${onMap ? `<div class="sec"><h3>Conexiones</h3><span class="n">${outs.length + ins.length}</span></div>${outs.map(e => connRow(e, e.to, 'out')).join('')}${ins.map(e => connRow(e, e.from, 'in')).join('') || ''}${!outs.length && !ins.length ? '<p class="empty">Todavía nada. Arrastra el ● del borde de la carta hasta otra.</p>' : ''}` : ''}`;
   el.querySelectorAll('.conn[data-k]').forEach(r => { r.onclick = () => selectKey(r.dataset.k); r.ondblclick = () => { sel.edge = r.dataset.e; sel.nodes.clear(); onSelChange(); renderEdges(); }; });
   $('#cConn') && ($('#cConn').onclick = () => setMode({ type: 'connect', from: key }));
@@ -1630,11 +1665,13 @@ function renderInspector() {
   $('#cRem') && ($('#cRem').onclick = () => removeFromMap([key]));
   $('#cNewCombo') && ($('#cNewCombo').onclick = () => { if (!onMap) addToMap(key); const cb = newCombo(); addStep(cb.id, key); setMode({ type: 'record', comboId: cb.id }); });
   $('#cCombo') && ($('#cCombo').onchange = ev => { let id = ev.target.value; if (!id) return; if (!onMap) addToMap(key); if (id === '__new') id = newCombo().id; activeCombo = id; addStep(id, key); setLeftTab('combos'); });
-  $('#cToMain') && ($('#cToMain').onclick = () => addToDeck(key, 'main'));
-  $('#cToSide') && ($('#cToSide').onclick = () => addToDeck(key, 'side'));
-  $('#cEdit') && ($('#cEdit').onclick = () => editCard(key));
-  $('#cLook') && ($('#cLook').onclick = () => lookupRiftcodex(key));
-  const cn = $('#cNote'); if (cn) { cn.addEventListener('focus', () => commit(), { once: true }); cn.oninput = () => { deck().notes[key] = cn.value; save(); }; }
+  $('#cToMain') && ($('#cToMain').onclick = () => addToDeck(bk, 'main'));
+  $('#cToSide') && ($('#cToSide').onclick = () => addToDeck(bk, 'side'));
+  $('#cEdit') && ($('#cEdit').onclick = () => editCard(bk));
+  $('#cLook') && ($('#cLook').onclick = () => lookupRiftcodex(bk));
+  const cn = $('#cNote'); if (cn) { cn.addEventListener('focus', () => commit(), { once: true }); cn.oninput = () => { deck().notes[bk] = cn.value; save(); }; }
+  $('#cSplit') && ($('#cSplit').onclick = () => splitCopy(key));
+  $('#cMerge') && ($('#cMerge').onclick = () => mergeCopies(bk));
 }
 function addToDeck(key, zone) { commit(); const d = deck(); const ex = d.cards.find(c => c.key === key && c.zone === zone); if (ex) ex.qty++; else d.cards.push({ key, qty: 1, zone }); save(); renderAll(); toast(`Añadida al ${zone === 'side' ? 'sideboard' : 'main deck'}`); }
 
@@ -1756,6 +1793,7 @@ function showHelp() {
     ${K('<kbd>⌘</kbd>/<kbd>Ctrl</kbd> + <kbd>K</kbd>', 'Paleta: busca cartas, mapas, combos y comandos')}
     ${K('<kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd>', 'Cambiar de vista: Mi deck · Combos · Mapa · Partidas')}
     ${K('<kbd>H</kbd>', 'Robar una mano de prueba (fuera del mapa)')}
+    ${K('<kbd>D</kbd>', 'Separar otra copia de la carta seleccionada')}
     ${K('<kbd>/</kbd>', 'Buscar una carta del mapa')}
     ${K('Arrastrar el fondo · dos dedos', 'Moverte por el mapa')}
     ${K('Pellizcar · <kbd>⌘</kbd>+rueda · <kbd>+</kbd> <kbd>−</kbd>', 'Zoom')}
@@ -1789,6 +1827,7 @@ function commands() {
     ['Ajustar vista a todo el mapa', 'F', () => fit()],
     ['Zoom al 100%', '0', () => { const r = stage().getBoundingClientRect(); animateTo(...centerTarget(r.width / 2, r.height / 2, 1)); }],
     ['Auto-organizar cartas por tipo y coste', 'L', relayout],
+    ['Separar todas las copias en este mapa', '', () => { setView('map'); splitAllCopies(); }],
     ['Nueva línea de combo', 'N', () => { const c = newCombo(); setMode({ type: 'record', comboId: c.id }); }],
     ['Nuevo mapa', '', addMap], ['Renombrar mapa', '', renameMap], ['Duplicar mapa', '', dupMap], ['Borrar mapa', '', delMap],
     ['Importar deck (pegar lista)', 'I', importDeckUI], ['Renombrar deck', '', renameDeck], ['Borrar deck', '', delDeck],
@@ -1948,6 +1987,7 @@ function onKey(ev) {
   if (k === 'n' || k === 'N') { const c = newCombo(); setMode({ type: 'record', comboId: c.id }); return; }
   if ((k === 'r' || k === 'R') && activeCombo) { mode?.type === 'record' ? setMode(null) : setMode({ type: 'record', comboId: activeCombo }); return; }
   if ((k === 'p' || k === 'P') && activeCombo) { startPlay(activeCombo); return; }
+  if ((k === 'd' || k === 'D') && sel.nodes.size === 1) { splitCopy([...sel.nodes][0]); return; }
   if ((k === 'c' || k === 'C') && sel.nodes.size === 1) { setMode({ type: 'connect', from: [...sel.nodes][0] }); return; }
   if (k === 'Enter' && sel.nodes.size === 1) { centerOn([...sel.nodes][0], Math.max(V.k, 1.15)); return; }
   if (/^[1-5]$/.test(k) && sel.edge) { const e = map().edges.find(x => x.id === sel.edge); if (e) setEdgeType(e, EDGE_TYPES[+k - 1].id); return; }
@@ -2161,7 +2201,7 @@ function cardSheet(key) {
   $('#csRole').onchange = ev => { commit(); d.roles[key] = ev.target.value; save(); renderView(); };
   $('#csFlex').onchange = ev => { commit(); if (ev.target.checked) d.flex[key] = true; else delete d.flex[key]; save(); renderView(); };
   const n = $('#csNote'); n.addEventListener('focus', () => commit(), { once: true }); n.oninput = () => { d.notes[key] = n.value; save(); };
-  $('#csMap').onclick = () => { closeModal(); setView('map'); if (map().nodes[key]) selectKey(key); else addToMap(key); };
+  $('#csMap').onclick = () => { closeModal(); setView('map'); const on = copiesOnMap(key); if (on.length) selectKey(on[0]); else addToMap(key); };
 }
 
 /* ---------- Combos (recetas) ---------- */
@@ -2177,8 +2217,8 @@ function recipeStats(d, r) {
 function suggestions(d) {
   const have = new Set(d.recipes.map(r => [...r.pieces].sort().join('|')));
   const out = [];
-  const add = (a, b, why, kind) => { const k = [a, b].sort().join('|'); if (have.has(k) || d.dismissed[k] || out.some(x => x.k === k)) return; out.push({ k, a, b, why, kind }); };
-  for (const m of d.maps) for (const e of m.edges) if (e.type === 'combo' || e.type === 'habilita') add(e.from, e.to, e.note || `${ET[e.type].es} (de tu mapa)`, 'mapa');
+  const add = (a, b, why, kind) => { if (a === b) return; const k = [a, b].sort().join('|'); if (have.has(k) || d.dismissed[k] || out.some(x => x.k === k)) return; out.push({ k, a, b, why, kind }); };
+  for (const m of d.maps) for (const e of m.edges) if (e.type === 'combo' || e.type === 'habilita') add(baseKey(e.from), baseKey(e.to), e.note || `${ET[e.type].es} (de tu mapa)`, 'mapa');
   const keys = [...new Set(d.cards.filter(e => e.zone !== 'rune').map(e => e.key))];
   for (const a of keys) for (const b of keys) {
     if (a === b) continue; const A = getCard(a), B = getCard(b), ta = (A.text || '').toLowerCase(), tb = (B.text || '').toLowerCase();
@@ -2214,7 +2254,7 @@ function renderCombosView(d) {
     const r = d.recipes.find(x => x.id === el.dataset.r);
     el.querySelectorAll('[data-a]').forEach(b => b.onclick = async () => {
       if (b.dataset.a === 'edit') editRecipe(r);
-      if (b.dataset.a === 'map') { setView('map'); const ks = r.pieces.filter(k => map().nodes[k]); if (ks.length) { sel.nodes = new Set(ks); onSelChange(); fit(ks, 1); } }
+      if (b.dataset.a === 'map') { setView('map'); const ks = Object.keys(map().nodes).filter(k => r.pieces.includes(baseKey(k))); if (ks.length) { sel.nodes = new Set(ks); onSelChange(); fit(ks, 1); } }
       if (b.dataset.a === 'del' && await askConfirm(`¿Borrar la receta “${r.name}”?`)) { commit(); d.recipes = d.recipes.filter(x => x !== r); save(); renderView(); }
     });
   });
