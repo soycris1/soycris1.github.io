@@ -121,7 +121,7 @@ svg.layer { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overfl
 .edge .hit { stroke: transparent; stroke-width: 18; fill: none; pointer-events: stroke; cursor: pointer; }
 .edge .ln { fill: none; stroke-width: 3; stroke-linecap: round; transition: opacity .15s; }
 .edge.sel .ln { stroke-width: 5; }
-.edge.dim { opacity: .35; }
+.edge.dim { opacity: var(--dim-edge, .77); }
 .edge.dim .hit { pointer-events: none; }
 .edge .lbl rect { fill: var(--surface); stroke-width: 1.5; }
 .edge .lbl text { font: 600 12px var(--f-body); fill: var(--fg); }
@@ -150,7 +150,7 @@ svg.layer { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overfl
 .node .port:hover { transform: scale(1.25); }
 .node.sel .cimg { outline-color: var(--accent); }
 .node.nb .cimg { outline-color: color-mix(in srgb, var(--accent) 45%, transparent); }
-.node.dim { opacity: .72; filter: saturate(.75); }
+.node.dim { opacity: var(--dim-node, .78); filter: saturate(var(--dim-sat, .82)); }
 .node.fdim { opacity: .25; }
 .node.hit-search .cimg { outline-color: var(--gold); }
 .node.dragging { z-index: 5; }
@@ -187,6 +187,9 @@ svg.layer { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overfl
 #filters { left: 12px; top: 12px; display: flex; gap: 4px; padding: 5px; flex-wrap: wrap; max-width: calc(100% - 24px); }
 #filters .chip { padding: 2px 9px 2px 6px; }
 #filters .chip .dot { width: 10px; height: 10px; }
+.dimctl { gap: 6px; color: var(--muted); }
+.dimctl input { width: 90px; accent-color: var(--accent); margin: 0; }
+.dimctl b { font-size: 11.5px; min-width: 32px; text-align: right; color: var(--fg); }
 
 /* playback bar */
 #play { left: 50%; bottom: 64px; transform: translateX(-50%); width: min(620px, calc(100% - 24px)); padding: 12px 14px; display: none; border-color: var(--gold); }
@@ -828,7 +831,7 @@ async function connectDb() {
       S = d.state; S.custom = S.custom || {}; migrateState(S);
       if (keepDeck && S.decks.some(x => x.id === keepDeck)) S.deckId = keepDeck;
       try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch (e) { }
-      if (S.theme) document.documentElement.dataset.theme = S.theme;
+      if (S.theme) document.documentElement.dataset.theme = S.theme; applyDim();
       sel.nodes.clear(); sel.edge = null; if (play) stopPlay();
       renderAll(first);
       if (!first) toast('Mapa actualizado con los últimos cambios');
@@ -1763,9 +1766,13 @@ function renderLegend() {
   $('#legend').querySelectorAll('[data-t]').forEach(b => b.onclick = () => { const t = b.dataset.t; hiddenTypes.has(t) ? hiddenTypes.delete(t) : hiddenTypes.add(t); renderLegend(); renderEdges(); drawMinimap(); });
   const doms = new Set(); Object.keys(map().nodes).forEach(k => (getCard(k).domains || []).forEach(d => doms.add(d)));
   $('#filters').innerHTML = `<button class="chip${focusMode ? ' on' : ''}" id="fFocus" title="Atenuar lo que no está conectado a la carta elegida (E)">◎ Enfoque</button>` + [...doms].map(d => `<button class="chip${domFilter.has(d) ? ' on' : ''}" data-d="${d}"><span class="dot" style="background:${DOMAINS[d]?.c}"></span>${DOMAINS[d]?.es || d}</button>`).join('');
+  $('#filters').insertAdjacentHTML('beforeend', `<label class="chip dimctl" title="Qué tanto se sombrean las cartas que no están conectadas a la que eliges"><span>Sombreado</span><input type="range" id="fDim" min="0" max="100" step="5" value="${dimLevel()}" aria-label="Intensidad del sombreado"><b class="mono" id="fDimV">${dimLevel()}%</b></label>`);
+  $('#fDim').oninput = ev => { S.dim = +ev.target.value; $('#fDimV').textContent = S.dim + '%'; applyDim(); clearTimeout(applyDim.t); applyDim.t = setTimeout(save, 400); };
   $('#fFocus').onclick = toggleFocus;
   $('#filters').querySelectorAll('[data-d]').forEach(b => b.onclick = () => { const d = b.dataset.d; domFilter.has(d) ? domFilter.delete(d) : domFilter.add(d); renderLegend(); applyClasses(); });
 }
+const dimLevel = () => S && S.dim != null ? S.dim : 25;
+function applyDim() { const s = dimLevel() / 100, r = document.documentElement.style; r.setProperty('--dim-node', (1 - s * 0.88).toFixed(3)); r.setProperty('--dim-edge', (1 - s * 0.92).toFixed(3)); r.setProperty('--dim-sat', (1 - s * 0.7).toFixed(3)); }
 function toggleFocus() { focusMode = !focusMode; renderLegend(); applyClasses(); toast(focusMode ? 'Modo enfoque activado' : 'Modo enfoque desactivado'); }
 function renderAll(refit) {
   renderTabs(); renderNodes(); renderEdges(); renderLegend(); renderLeft(); renderInspector(); renderView();
@@ -2039,7 +2046,7 @@ function seedState() {
 function init() {
   S = load();
   if (!S) { S = seedState(); save(); }
-  if (S.theme) document.documentElement.dataset.theme = S.theme;
+  if (S.theme) document.documentElement.dataset.theme = S.theme; applyDim();
   renderDefs();
   if (innerWidth <= 1100) $('#work').classList.add('no-left', 'no-right');
   const st = stage();
