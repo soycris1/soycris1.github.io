@@ -150,6 +150,24 @@ svg.layer { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overfl
 .node .port:hover { transform: scale(1.25); }
 .node.sel .cimg { outline-color: var(--accent); }
 .node.nb .cimg { outline-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.grp { position: absolute; border: 2px dashed var(--gc); border-radius: 18px; background: color-mix(in srgb, var(--gc) 7%, transparent); pointer-events: none; transition: opacity .18s, box-shadow .15s; }
+.grp.sel { border-style: solid; box-shadow: 0 0 0 4px color-mix(in srgb, var(--gc) 25%, transparent); }
+.grp.nb { border-style: solid; }
+.grp.drop { background: color-mix(in srgb, var(--gc) 18%, transparent); border-style: solid; }
+.grp.dim { opacity: var(--dim-node, .78); }
+.grp-hd { position: absolute; left: 14px; top: -1px; transform: translateY(-50%); display: flex; align-items: center; gap: 8px; background: var(--gc); color: #160d22; padding: 5px 12px 5px 14px; border-radius: 999px; pointer-events: auto; cursor: grab; white-space: nowrap; box-shadow: var(--shadow); }
+.grp-hd b { font: 700 18px/1 var(--f-display); text-transform: uppercase; letter-spacing: .03em; }
+.grp-hd span { font-size: 12px; font-weight: 600; opacity: .75; }
+.grp-port { width: 16px; height: 16px; border-radius: 50%; background: #160d22; border: 3px solid #fff; cursor: crosshair; flex: none; font-style: normal; }
+.grp-nt { position: absolute; left: 18px; top: 26px; right: 18px; font-size: 13px; color: var(--muted); pointer-events: none; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.grp-sz { position: absolute; right: -2px; bottom: -2px; width: 22px; height: 22px; pointer-events: auto; cursor: nwse-resize; border-right: 4px solid var(--gc); border-bottom: 4px solid var(--gc); border-bottom-right-radius: 18px; }
+.gsw { width: 26px; height: 26px; border-radius: 50%; border: 2px solid transparent; padding: 0; }
+.gsw.on { border-color: var(--fg); box-shadow: inset 0 0 0 2px var(--surface); }
+.node.proxy .cimg { outline: 3px dashed var(--gold); outline-offset: 3px; }
+.node.twin .cimg { outline: 3px solid var(--gold); outline-offset: 3px; }
+.node.proxy.sel .cimg { outline-color: var(--accent); }
+.node .uses { position: absolute; left: 6px; bottom: 30px; background: var(--gold); color: #1a1200; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 6px; white-space: nowrap; }
+.twinln { stroke: var(--gold); stroke-width: 2.5; stroke-dasharray: 3 7; stroke-linecap: round; fill: none; opacity: .9; pointer-events: none; }
 .node.dim { opacity: var(--dim-node, .78); filter: saturate(var(--dim-sat, .82)); }
 .node.fdim { opacity: .25; }
 .node.hit-search .cimg { outline-color: var(--gold); }
@@ -471,6 +489,7 @@ button.tr:hover { background: var(--sunk); }
     <section id="stage" tabindex="0" aria-label="Mapa">
       <div id="world">
         <div id="zlabels"></div>
+        <div id="groups"></div>
         <svg class="layer" id="edges"><defs id="defs"></defs><g id="edgeG"></g><g id="cpathG"></g><path id="tmpLine" class="tmp-line" d=""/></svg>
         <div id="nodes"></div>
       </div>
@@ -741,9 +760,16 @@ const NAME_IDX = new Map();
 for (const c of DB.values()) { const k = norm(c.name); if (!NAME_IDX.has(k)) NAME_IDX.set(k, c.id); }
 
 const SEP = '~';
-const baseKey = k => String(k || '').split(SEP)[0];
-const copyNo = k => +(String(k || '').split(SEP)[1] || 1);
-const copiesOnMap = (base, m = map()) => Object.keys(m.nodes).filter(k => baseKey(k) === base).sort((a, b) => copyNo(a) - copyNo(b));
+const baseKey = k => String(k || '').split(/[~@]/)[0];
+const instKey = k => String(k || '').split('@')[0];
+const isProxy = k => String(k || '').includes('@');
+const copyNo = k => +(instKey(k).split(SEP)[1] || 1);
+const copiesOnMap = (base, m = map()) => Object.keys(m.nodes).filter(k => baseKey(k) === base && !isProxy(k)).sort((a, b) => copyNo(a) - copyNo(b));
+const isGrp = k => String(k || '').startsWith('grp:');
+const grpOf = (k, m = map()) => (m.groups || []).find(g => 'grp:' + g.id === k);
+const endExists = (m, k) => isGrp(k) ? !!grpOf(k, m) : !!m.nodes[k];
+const nameOf = k => isGrp(k) ? 'Grupo: ' + (grpOf(k)?.name || '') : getCard(k).name;
+const focusKeyOf = () => sel.nodes.size === 1 ? [...sel.nodes][0] : sel.group ? 'grp:' + sel.group : null;
 function getCard(key) {
   key = baseKey(key);
   const base0 = DB.get(key) || (CARD_ALIAS[key] && DB.get(CARD_ALIAS[key]));
@@ -894,7 +920,7 @@ function newMap(name, d, fill) {
   return m;
 }
 const isBF = key => getCard(key).type === 'Battlefield';
-const nodeSize = key => isBF(key) ? [BW, BH] : [NW, NH];
+const nodeSize = key => { if (isGrp(key)) { const g = grpOf(key); return g ? [g.w, g.h] : [NW, NH]; } return isBF(key) ? [BW, BH] : [NW, NH]; };
 function lanesFor(d) {
   const seen = new Set(), lanes = { lc: [], unit: [], spell: [], gear: [], bf: [] };
   for (const e of d.cards) {
@@ -932,7 +958,7 @@ function autoLayout(m, d = deck(), onlyExisting = false) {
 }
 
 /* ============ Selección / modos ============ */
-const sel = { nodes: new Set(), edge: null };
+const sel = { nodes: new Set(), edge: null, group: null };
 let mode = null; // {type:'connect', from} | {type:'record', comboId}
 let focusMode = true;
 const hiddenTypes = new Set();
@@ -969,9 +995,10 @@ function animateTo(x, y, k, ms = 380) {
   anim = requestAnimationFrame(step);
 }
 function bounds(keys) {
-  const m = map(); keys = keys || Object.keys(m.nodes);
+  const m = map(); const all = !keys; keys = keys || Object.keys(m.nodes);
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-  for (const k of keys) { const n = m.nodes[k]; if (!n) continue; const [w, h] = nodeSize(k); x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x + w); y1 = Math.max(y1, n.y + h + 24); }
+  if (all) for (const g of m.groups || []) keys = keys.concat('grp:' + g.id);
+  for (const k of keys) { const n = isGrp(k) ? grpOf(k, m) : m.nodes[k]; if (!n) continue; const [w, h] = nodeSize(k); x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x + w); y1 = Math.max(y1, n.y + h + 24); }
   for (const l of (keys === undefined || keys.length === Object.keys(m.nodes).length ? m.labels : [])) { x0 = Math.min(x0, l.x); y0 = Math.min(y0, l.y); }
   if (x0 === Infinity) return null;
   return { x0, y0, x1, y1 };
@@ -1013,22 +1040,75 @@ function phTag(c) {
 function zoneOf(key) { key = baseKey(key); const zs = deck().cards.filter(c => c.key === key).map(c => c.zone); return zs.includes('legend') ? 'legend' : zs.includes('champion') ? 'champion' : zs.find(z => z !== 'side') || zs[0]; }
 function renderNodes() {
   const m = map(), el = $('#nodes');
-  let h = ''; const ncp = {}; for (const k of Object.keys(m.nodes)) ncp[baseKey(k)] = (ncp[baseKey(k)] || 0) + 1;
+  let h = ''; const ncp = {}, uses = {}; for (const k of Object.keys(m.nodes)) { if (!isProxy(k)) ncp[baseKey(k)] = (ncp[baseKey(k)] || 0) + 1; uses[instKey(k)] = (uses[instKey(k)] || 0) + 1; }
   for (const [key, n] of Object.entries(m.nodes)) {
     const c = getCard(key), z = zoneOf(key);
     const q = deckQty(key) - deckQty(key, 'side'), qs = deckQty(key, 'side');
     const badge = z === 'legend' ? 'Leyenda' : z === 'champion' ? 'Campeón' : (!q && qs ? 'Side' : '');
-    h += `<div class="node${c.type === 'Battlefield' ? ' bf' : ''}${c.img ? '' : ' noimg'}" data-key="${esc(key)}" style="left:${n.x}px;top:${n.y}px">
+    const nu = uses[instKey(key)] || 1, px = isProxy(key);
+    h += `<div class="node${c.type === 'Battlefield' ? ' bf' : ''}${c.img ? '' : ' noimg'}${px ? ' proxy' : ''}" data-key="${esc(key)}" style="left:${n.x}px;top:${n.y}px">
       <div class="cimg">${imgTag(c)}${phTag(c)}</div>
       ${ncp[baseKey(key)] > 1 ? `<span class="qty" title="Copia ${copyNo(key)} de ${copiesTotal(baseKey(key))}">${copyNo(key)}/${copiesTotal(baseKey(key))}</span>` : q > 1 || (qs && q) ? `<span class="qty" title="Copias en el deck. Selecciona la carta y usa “Separar copia” para tenerlas por separado">×${q}${qs ? '+' + qs : ''}</span>` : ''}
       ${badge ? `<span class="zone">${badge}</span>` : ''}
+      ${nu > 1 ? `<span class="uses" title="${px ? 'Proxy: es la misma carta física que la original' : 'Esta misma carta física'} aparece en ${nu} lugares del mapa">${px ? '↺ Proxy · ' : '↺ '}${nu} lugares</span>` : ''}
       <div class="port" title="Arrastra hasta otra carta para conectar"></div>
       <div class="stepb"></div>
       <div class="nm">${esc(c.name)}</div></div>`;
   }
   el.innerHTML = h;
+  renderGroups();
   $('#zlabels').innerHTML = m.labels.map(l => `<div class="zlabel" style="left:${l.x}px;top:${l.y}px">${esc(l.t)}<small>${l.n} cartas</small></div>`).join('');
   applyClasses();
+}
+/* ============ Grupos ============ */
+const GCOLORS = ['#b07cf5', '#2ec4b6', '#ffb627', '#ff4fa3', '#4c8dff', '#ff6b4a', '#8bc34a'];
+function grpMembers(g, m = map()) { if (!g) return []; return Object.keys(m.nodes).filter(k => { const [cx, cy] = center(k); return cx > g.x && cx < g.x + g.w && cy > g.y && cy < g.y + g.h; }); }
+function renderGroups() {
+  const m = map(); m.groups = m.groups || [];
+  $('#groups').innerHTML = m.groups.map(g => { const n = grpMembers(g, m).length; return `<div class="grp" data-g="${g.id}" style="left:${g.x}px;top:${g.y}px;width:${g.w}px;height:${g.h}px;--gc:${g.color}">
+    <div class="grp-hd" title="Arrastra para mover el grupo con sus cartas · doble clic para renombrar"><b>${esc(g.name)}</b><span>${n} carta${n === 1 ? '' : 's'}</span><i class="grp-port" title="Arrastra hasta una carta para conectar el grupo"></i></div>
+    ${g.note ? `<div class="grp-nt">${esc(g.note)}</div>` : ''}<div class="grp-sz" title="Arrastra para cambiar el tamaño"></div></div>`; }).join('');
+}
+function groupAt(wx, wy) { const gs = (map().groups || []).filter(g => wx > g.x && wx < g.x + g.w && wy > g.y - 24 && wy < g.y + g.h); gs.sort((p, q) => p.w * p.h - q.w * q.h); return gs[0] || null; }
+async function newGroup(keys) {
+  const m = map(); m.groups = m.groups || []; keys = (keys || []).filter(k => m.nodes[k]);
+  const name = await askText('Nombre del grupo', 'Grupo ' + (m.groups.length + 1), 'Crear grupo', 'Ej.: Hechizos que Fizz puede rejugar'); if (name == null) return;
+  let x, y, w, h;
+  if (keys.length) { const b = bounds(keys); x = b.x0 - 30; y = b.y0 - 64; w = b.x1 - b.x0 + 60; h = b.y1 - b.y0 + 64 + 20; const mw = name.length * 11 + 150; if (w < mw) { x -= (mw - w) / 2; w = mw; } }
+  else { const r = stage().getBoundingClientRect(); w = 640; h = 420; x = (r.width / 2 - V.x) / V.k - w / 2; y = (r.height / 2 - V.y) / V.k - h / 2; }
+  commit(); const g = { id: uid('g'), name: name.trim() || 'Grupo ' + (m.groups.length + 1), color: GCOLORS[m.groups.length % GCOLORS.length], x: Math.round(x), y: Math.round(y), w: Math.round(w), h: Math.round(h), note: '' };
+  m.groups.push(g); selectGroup(g.id); renderGroups(); renderEdges(); save(); drawMinimap(); toast('Grupo creado: arrastra su título para moverlo, o su ● para conectarlo');
+}
+function selectGroup(id) { if (play) stopPlay(); sel.nodes.clear(); sel.edge = null; sel.group = id; onSelChange(); }
+function deleteGroup(id) { commit(); const m = map(); m.groups = (m.groups || []).filter(g => g.id !== id); m.edges = m.edges.filter(e => e.from !== 'grp:' + id && e.to !== 'grp:' + id); sel.group = null; renderGroups(); renderEdges(); onSelChange(); save(); toast('Grupo borrado (las cartas se quedan) · ⌘Z para deshacer'); }
+async function renameGroup(id) { const g = grpOf('grp:' + id); if (!g) return; const n = await askText('Nombre del grupo', g.name); if (n) { commit(); g.name = n; renderGroups(); renderInspector(); save(); } }
+function renderGroupInsp(el) {
+  const m = map(), g = grpOf('grp:' + sel.group, m); if (!g) { sel.group = null; return renderInspector(); }
+  const gk = 'grp:' + g.id, mem = grpMembers(g, m), outs = m.edges.filter(e => e.from === gk), ins = m.edges.filter(e => e.to === gk);
+  const row = (e, other, dir) => { const t = ET[e.type]; return `<div class="conn" data-k="${esc(other)}" data-e="${e.id}"><span class="sw" style="background:${t.c}"></span><span class="t">${dir === 'out' ? t.es + ' →' : '← ' + t.es}</span><span class="nm">${esc(nameOf(other))}${e.note ? `<span class="nt">${esc(e.note)}</span>` : ''}</span></div>`; };
+  el.innerHTML = `<div class="sec"><h3>Grupo</h3></div>
+    <div class="field"><label for="gName">Nombre</label><input type="text" id="gName" value="${esc(g.name)}"></div>
+    <div class="field"><label>Color</label><div class="typepick">${GCOLORS.map(c => `<button class="gsw${c === g.color ? ' on' : ''}" data-c="${c}" style="background:${c}" aria-label="Color"></button>`).join('')}</div></div>
+    <div class="field"><label for="gNote">Nota</label><textarea id="gNote" rows="3" placeholder="Ej.: Fizz rejuega cualquiera de estos desde el trash">${esc(g.note || '')}</textarea></div>
+    <div class="btnrow"><button class="btn sm primary" id="gConn">Conectar con… <kbd>C</kbd></button><button class="btn sm" id="gFit">Encuadrar</button><button class="btn sm" id="gSel">Seleccionar sus cartas</button><button class="btn sm danger" id="gDel">Borrar grupo</button></div>
+    <div class="sec"><h3>Cartas dentro</h3><span class="n">${mem.length}</span></div>${mem.map(k => `<div class="conn" data-k="${esc(k)}"><span class="nm">${esc(getCard(k).name)}</span></div>`).join('') || '<p class="empty">Arrastra cartas dentro del cuadro.</p>'}
+    <div class="sec"><h3>Conexiones</h3><span class="n">${outs.length + ins.length}</span></div>${outs.map(e => row(e, e.to, 'out')).join('')}${ins.map(e => row(e, e.from, 'in')).join('')}${!outs.length && !ins.length ? '<p class="empty">Arrastra el ● del título hasta una carta, o arrastra el ● de una carta hasta el cuadro.</p>' : ''}`;
+  const nm = $('#gName'); nm.addEventListener('focus', () => commit(), { once: true }); nm.oninput = () => { g.name = nm.value; renderGroups(); applyClasses(); save(); };
+  const nt = $('#gNote'); nt.addEventListener('focus', () => commit(), { once: true }); nt.oninput = () => { g.note = nt.value; renderGroups(); applyClasses(); save(); };
+  el.querySelectorAll('.gsw').forEach(b => b.onclick = () => { commit(); g.color = b.dataset.c; renderGroups(); applyClasses(); drawMinimap(); renderInspector(); save(); });
+  el.querySelectorAll('.conn[data-k]').forEach(r => { r.onclick = () => isGrp(r.dataset.k) ? selectGroup(r.dataset.k.slice(4)) : selectKey(r.dataset.k); if (r.dataset.e) r.ondblclick = () => { sel.edge = r.dataset.e; sel.group = null; onSelChange(); }; });
+  $('#gConn').onclick = () => setMode({ type: 'connect', from: gk });
+  $('#gFit').onclick = () => fit([gk]); $('#gSel').onclick = () => { sel.group = null; sel.nodes = new Set(mem); onSelChange(); };
+  $('#gDel').onclick = () => deleteGroup(g.id);
+}
+/* ============ Proxies: la misma carta en otro lugar ============ */
+function addProxy(key) {
+  const m = map(); if (!m.nodes[key]) return; const inst = instKey(key); let n = 1; while (m.nodes[inst + '@' + n]) n++;
+  const nk = inst + '@' + n, src = m.nodes[key], [w] = nodeSize(key);
+  commit(); m.nodes[nk] = { x: src.x + w + 24, y: src.y + 30 };
+  let tries = 0; while (Object.entries(m.nodes).some(([k, o]) => k !== nk && Math.abs(o.x - m.nodes[nk].x) < 60 && Math.abs(o.y - m.nodes[nk].y) < 60) && tries++ < 30) m.nodes[nk].x += 40;
+  renderNodes(); renderEdges(); renderLeft(); save(); selectKey(nk, false); drawMinimap(); toast('Proxy creado: es la misma carta, puedes usarla en otro combo');
+  return nk;
 }
 function nodeEl(key) { return $('#nodes').querySelector(`.node[data-key="${CSS.escape(key)}"]`); }
 
@@ -1037,7 +1117,7 @@ function renderDefs() {
   $('#defs').innerHTML = EDGE_TYPES.map(t => `<marker id="ar-${t.id}" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${t.c}"/></marker>`).join('') +
     `<marker id="ar-gold" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f2c14e"/></marker>`;
 }
-function center(key) { const n = map().nodes[key]; const [w, h] = nodeSize(key); return [n.x + w / 2, n.y + h / 2]; }
+function center(key) { const n = isGrp(key) ? grpOf(key) : map().nodes[key]; const [w, h] = nodeSize(key); return [n.x + w / 2, n.y + h / 2]; }
 function clip(key, cx, cy, tx, ty) {
   const [w, h] = nodeSize(key); const hw = w / 2 + 8, hh = h / 2 + 8;
   const dx = tx - cx, dy = ty - cy; if (!dx && !dy) return [cx, cy];
@@ -1056,17 +1136,21 @@ function edgeGeom(e, idx) {
 }
 function renderEdges() {
   const m = map(); const pairCount = {};
-  const focusKey = sel.nodes.size === 1 ? [...sel.nodes][0] : null;
+  const focusKey = focusKeyOf();
   let h = '';
   for (const e of m.edges) {
-    if (!m.nodes[e.from] || !m.nodes[e.to]) continue;
+    if (!endExists(m, e.from) || !endExists(m, e.to)) continue;
     const pk = [e.from, e.to].sort().join('|'); const idx = pairCount[pk] = (pairCount[pk] ?? -1) + 1;
     const t = ET[e.type] || ET.sinergia; const g = edgeGeom(e, idx);
     const hidden = hiddenTypes.has(e.type);
     if (hidden) continue;
     const showLbl = sel.edge === e.id || (focusKey && (e.from === focusKey || e.to === focusKey));
     const lbl = showLbl ? (() => { const txt = t.es + (e.note ? ' ✎' : ''); const w = txt.length * 7 + 16; return `<g class="lbl" transform="translate(${g.mx.toFixed(1)},${g.my.toFixed(1)})"><rect x="${-w / 2}" y="-11" width="${w}" height="22" rx="11" stroke="${t.c}"/><text text-anchor="middle" y="4">${esc(txt)}</text></g>`; })() : '';
-    h += `<g class="edge${sel.edge === e.id ? ' sel' : ''}" data-id="${e.id}" data-from="${esc(e.from)}" data-to="${esc(e.to)}"><title>${esc(t.es + ': ' + getCard(e.from).name + ' → ' + getCard(e.to).name + (e.note ? '\n' + e.note : ''))}</title><path class="hit" d="${g.d}" style="pointer-events:stroke"/><path class="ln" d="${g.d}" stroke="${t.c}" ${t.dash ? `stroke-dasharray="${t.dash}"` : ''} marker-end="url(#ar-${t.id})"/>${lbl}</g>`;
+    h += `<g class="edge${sel.edge === e.id ? ' sel' : ''}" data-id="${e.id}" data-from="${esc(e.from)}" data-to="${esc(e.to)}"><title>${esc(t.es + ': ' + nameOf(e.from) + ' → ' + nameOf(e.to) + (e.note ? '\n' + e.note : ''))}</title><path class="hit" d="${g.d}" style="pointer-events:stroke"/><path class="ln" d="${g.d}" stroke="${t.c}" ${t.dash ? `stroke-dasharray="${t.dash}"` : ''} marker-end="url(#ar-${t.id})"/>${lbl}</g>`;
+  }
+  if (focusKey && !isGrp(focusKey) && m.nodes[focusKey]) {
+    const fi = instKey(focusKey); const [ax, ay] = center(focusKey);
+    for (const k of Object.keys(m.nodes)) if (k !== focusKey && instKey(k) === fi) { const [bx, by] = center(k); h += `<path class="twinln" d="M${ax},${ay} L${bx},${by}"/>`; }
   }
   $('#edgeG').innerHTML = h;
   renderComboPath();
@@ -1088,10 +1172,13 @@ function renderComboPath() {
   $('#cpathG').innerHTML = h;
 }
 function applyClasses() {
-  const m = map(); const focusKey = sel.nodes.size === 1 ? [...sel.nodes][0] : null;
+  const m = map(); const focusKey = focusKeyOf();
   const nb = new Set(); const incident = new Set();
   if (focusKey) for (const e of m.edges) if (!hiddenTypes.has(e.type) && (e.from === focusKey || e.to === focusKey)) { nb.add(e.from); nb.add(e.to); incident.add(e.id); }
   if (sel.edge) { const e = m.edges.find(x => x.id === sel.edge); if (e) { nb.add(e.from); nb.add(e.to); incident.add(e.id); } }
+  for (const k of [...nb]) if (isGrp(k)) for (const x of grpMembers(grpOf(k, m), m)) nb.add(x);
+  const fInst = focusKey && !isGrp(focusKey) ? instKey(focusKey) : null;
+  if (fInst) for (const k of Object.keys(m.nodes)) if (instKey(k) === fInst) nb.add(k);
   const playing = play && comboById(play.comboId);
   const stepsMap = {};
   const combo = playing || (activeCombo && comboById(activeCombo));
@@ -1103,6 +1190,7 @@ function applyClasses() {
     const k = el.dataset.key, c = getCard(k);
     el.classList.toggle('sel', sel.nodes.has(k));
     el.classList.toggle('nb', nb.has(k) && !sel.nodes.has(k));
+    el.classList.toggle('twin', !!fInst && instKey(k) === fInst && k !== focusKey);
     let dim = false;
     if (playing) dim = !(k === cur || past.has(k));
     else if (dimming) dim = !nb.has(k) && !sel.nodes.has(k);
@@ -1114,7 +1202,9 @@ function applyClasses() {
     el.classList.toggle('has-step', !!st);
     const sb = el.querySelector('.stepb'); sb.innerHTML = st ? st.map(i => `<i>${i + 1}</i>`).join('') : '';
   }
+  for (const el of $('#groups').children) { const gk = 'grp:' + el.dataset.g; el.classList.toggle('sel', sel.group === el.dataset.g); el.classList.toggle('nb', nb.has(gk) && sel.group !== el.dataset.g); el.classList.toggle('dim', !!((focusMode && (focusKey || sel.edge)) && !nb.has(gk) && sel.group !== el.dataset.g)); }
   for (const g of $('#edgeG').children) {
+    if (!g.dataset.id) continue;
     let dim = false;
     if (playing) dim = true;
     else if (dimming) dim = !incident.has(g.dataset.id);
@@ -1139,7 +1229,9 @@ function drawMinimap() {
     drawMinimap.tf = { X0, Y0, s, ox, oy };
     const cs = getComputedStyle(document.documentElement);
     ctx.globalAlpha = .5; ctx.lineWidth = 1;
-    for (const e of m.edges) { if (!m.nodes[e.from] || !m.nodes[e.to] || hiddenTypes.has(e.type)) continue; const [ax, ay] = center(e.from), [bx, by] = center(e.to); ctx.strokeStyle = (ET[e.type] || ET.sinergia).c; ctx.beginPath(); ctx.moveTo(tx(ax), ty(ay)); ctx.lineTo(tx(bx), ty(by)); ctx.stroke(); }
+    for (const g of m.groups || []) { ctx.strokeStyle = g.color; ctx.globalAlpha = .7; ctx.strokeRect(tx(g.x), ty(g.y), g.w * s, g.h * s); }
+    ctx.globalAlpha = .5;
+    for (const e of m.edges) { if (!endExists(m, e.from) || !endExists(m, e.to) || hiddenTypes.has(e.type)) continue; const [ax, ay] = center(e.from), [bx, by] = center(e.to); ctx.strokeStyle = (ET[e.type] || ET.sinergia).c; ctx.beginPath(); ctx.moveTo(tx(ax), ty(ay)); ctx.lineTo(tx(bx), ty(by)); ctx.stroke(); }
     ctx.globalAlpha = 1;
     for (const [k, n] of Object.entries(m.nodes)) { const [w, h] = nodeSize(k); ctx.fillStyle = dcol(getCard(k)); ctx.globalAlpha = sel.nodes.has(k) ? 1 : .8; ctx.fillRect(tx(n.x), ty(n.y), Math.max(2, w * s), Math.max(2, h * s)); }
     ctx.globalAlpha = 1; ctx.strokeStyle = cs.getPropertyValue('--accent').trim() || '#a970f0'; ctx.lineWidth = 1.5;
@@ -1157,6 +1249,16 @@ function onDown(ev) {
   ptrs.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
   if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; drag = { type: 'pinch', d0: Math.hypot(a.x - b.x, a.y - b.y), k0: V.k, cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, x0: V.x, y0: V.y }; return; }
   const port = ev.target.closest('.port'), node = ev.target.closest('.node'), edge = ev.target.closest('.edge');
+  const gEl = !node && ev.target.closest('.grp'), gid = gEl && gEl.dataset.g, g = gid && grpOf('grp:' + gid);
+  if (!node && !edge && mode && mode.type === 'connect') { const [wx, wy] = toWorld(ev.clientX, ev.clientY); const tg = groupAt(wx, wy); if (tg && 'grp:' + tg.id !== mode.from) { createEdgeUI(mode.from, 'grp:' + tg.id, ev.clientX, ev.clientY); setMode(null); return; } }
+  if (g && ev.target.closest('.grp-port') && !mode) { drag = { type: 'connect', from: 'grp:' + gid, moved: false }; st.setPointerCapture(ev.pointerId); ev.preventDefault(); return; }
+  if (g && ev.target.closest('.grp-sz')) { commit(); drag = { type: 'gresize', g, sx: ev.clientX, sy: ev.clientY, w0: g.w, h0: g.h }; st.setPointerCapture(ev.pointerId); ev.preventDefault(); return; }
+  if (g && ev.target.closest('.grp-hd')) {
+    if (sel.group !== gid) selectGroup(gid);
+    const m = map(); const mem = grpMembers(g, m);
+    drag = { type: 'group', g, sx: ev.clientX, sy: ev.clientY, g0: { x: g.x, y: g.y }, start: Object.fromEntries(mem.map(k => [k, { ...m.nodes[k] }])), moved: false };
+    st.setPointerCapture(ev.pointerId); return;
+  }
   if (port && node && !mode) {
     drag = { type: 'connect', from: node.dataset.key, moved: false };
     st.setPointerCapture(ev.pointerId); ev.preventDefault(); return;
@@ -1167,11 +1269,12 @@ function onDown(ev) {
     if (mode && mode.type === 'record') { addStep(mode.comboId, key); return; }
     if (ev.shiftKey || ev.metaKey || ev.ctrlKey) { sel.nodes.has(key) ? sel.nodes.delete(key) : sel.nodes.add(key); sel.edge = null; }
     else if (!sel.nodes.has(key)) { sel.nodes.clear(); sel.nodes.add(key); sel.edge = null; }
+    sel.group = null;
     const m = map(); const keys = [...sel.nodes];
     drag = { type: 'node', key, sx: ev.clientX, sy: ev.clientY, start: Object.fromEntries(keys.map(k => [k, { ...m.nodes[k] }])), moved: false, wasSel: sel.nodes.has(key) };
     st.setPointerCapture(ev.pointerId); onSelChange(); return;
   }
-  if (edge) { sel.edge = edge.dataset.id; sel.nodes.clear(); onSelChange(); renderEdges(); return; }
+  if (edge) { sel.edge = edge.dataset.id; sel.nodes.clear(); sel.group = null; onSelChange(); renderEdges(); return; }
   if (ev.shiftKey) { const [wx, wy] = toWorld(ev.clientX, ev.clientY); drag = { type: 'marquee', wx, wy, sx: ev.clientX, sy: ev.clientY }; st.setPointerCapture(ev.pointerId); return; }
   drag = { type: 'pan', sx: ev.clientX, sy: ev.clientY, x0: V.x, y0: V.y, moved: false };
   st.classList.add('panning'); st.setPointerCapture(ev.pointerId);
@@ -1196,11 +1299,25 @@ function onMove(ev) {
     }
     renderEdges(); drawMinimap(); return;
   }
+  if (drag.type === 'group' || drag.type === 'gresize') {
+    const dx = (ev.clientX - drag.sx) / V.k, dy = (ev.clientY - drag.sy) / V.k; const snap = v => ev.altKey ? v : Math.round(v / 10) * 10;
+    if (!drag.moved && Math.abs(dx) + Math.abs(dy) < 4 / V.k) return;
+    if (!drag.moved) { if (drag.type === 'group') commit(); drag.moved = true; hidePreview(); }
+    const g = drag.g, m = map();
+    if (drag.type === 'gresize') { g.w = Math.max(220, snap(drag.w0 + dx)); g.h = Math.max(160, snap(drag.h0 + dy)); }
+    else {
+      g.x = snap(drag.g0.x + dx); g.y = snap(drag.g0.y + dy); const ddx = g.x - drag.g0.x, ddy = g.y - drag.g0.y;
+      for (const [k, p] of Object.entries(drag.start)) { if (!m.nodes[k]) continue; m.nodes[k].x = p.x + ddx; m.nodes[k].y = p.y + ddy; const el = nodeEl(k); if (el) { el.style.left = m.nodes[k].x + 'px'; el.style.top = m.nodes[k].y + 'px'; } }
+    }
+    const el = $('#groups').querySelector(`.grp[data-g="${g.id}"]`); if (el) Object.assign(el.style, { left: g.x + 'px', top: g.y + 'px', width: g.w + 'px', height: g.h + 'px' });
+    renderEdges(); drawMinimap(); return;
+  }
   if (drag.type === 'connect') {
     drag.moved = true; const [wx, wy] = toWorld(ev.clientX, ev.clientY); const [ax, ay] = center(drag.from);
     $('#tmpLine').setAttribute('d', `M${ax},${ay} L${wx},${wy}`);
     const over = document.elementFromPoint(ev.clientX, ev.clientY)?.closest('.node');
     for (const el of $('#nodes').children) el.classList.toggle('nb', el === over && over.dataset.key !== drag.from);
+    const tg = !over && groupAt(wx, wy); for (const el of $('#groups').children) el.classList.toggle('drop', !!tg && el.dataset.g === tg.id && 'grp:' + tg.id !== drag.from);
     return;
   }
   if (drag.type === 'marquee') {
@@ -1217,15 +1334,18 @@ function onUp(ev) {
   if (!drag) return;
   const d = drag; drag = null;
   if (d.type === 'pinch') { ptrs.clear(); return; }
-  if (d.type === 'pan' && !d.moved) { if (sel.nodes.size || sel.edge) { sel.nodes.clear(); sel.edge = null; onSelChange(); renderEdges(); } }
+  if (d.type === 'pan' && !d.moved) { if (sel.nodes.size || sel.edge || sel.group) { sel.nodes.clear(); sel.edge = null; sel.group = null; onSelChange(); renderEdges(); } }
   if (d.type === 'node') {
     for (const el of $('#nodes').querySelectorAll('.dragging')) el.classList.remove('dragging');
     if (d.moved) { save(); renderNodes(); }
   }
+  if (d.type === 'group' || d.type === 'gresize') { if (d.moved) { save(); renderGroups(); applyClasses(); renderInspector(); } }
   if (d.type === 'connect') {
-    $('#tmpLine').setAttribute('d', '');
+    $('#tmpLine').setAttribute('d', ''); for (const el of $('#groups').children) el.classList.remove('drop');
     const over = document.elementFromPoint(ev.clientX, ev.clientY)?.closest('.node');
+    const [ux, uy] = toWorld(ev.clientX, ev.clientY); const tg = !over && groupAt(ux, uy);
     if (over && over.dataset.key !== d.from) createEdgeUI(d.from, over.dataset.key, ev.clientX, ev.clientY);
+    else if (tg && 'grp:' + tg.id !== d.from && d.moved) createEdgeUI(d.from, 'grp:' + tg.id, ev.clientX, ev.clientY);
     else if (!d.moved) { setMode({ type: 'connect', from: d.from }); }
     applyClasses();
   }
@@ -1247,6 +1367,7 @@ function onWheel(ev) {
 }
 let wheelIsMouse = false;
 function onDbl(ev) {
+  const gh = ev.target.closest('.grp-hd'); if (gh) { renameGroup(gh.parentNode.dataset.g); return; }
   const node = ev.target.closest('.node'), edge = ev.target.closest('.edge');
   if (node) { centerOn(node.dataset.key, Math.max(V.k, 1.15)); return; }
   if (edge) { const e = map().edges.find(x => x.id === edge.dataset.id); if (e) showEdgePop(e, ev.clientX, ev.clientY); return; }
@@ -1299,7 +1420,7 @@ function createEdgeUI(from, to, cx, cy) {
 }
 function showEdgePop(e, cx, cy, fresh) {
   const p = $('#edgepop');
-  p.innerHTML = `<div class="small muted" style="margin-bottom:6px">${esc(getCard(e.from).name)} → ${esc(getCard(e.to).name)}</div>
+  p.innerHTML = `<div class="small muted" style="margin-bottom:6px">${esc(nameOf(e.from))} → ${esc(nameOf(e.to))}</div>
     <div class="typepick">${EDGE_TYPES.map((t, i) => `<button class="chip${e.type === t.id ? ' on' : ''}" data-t="${t.id}"><span class="sw" style="background:${t.c}"></span>${t.es} <kbd>${i + 1}</kbd></button>`).join('')}</div>
     <input type="text" id="epNote" placeholder="Nota (opcional): cómo o cuándo se usa" value="${esc(e.note)}" style="width:100%;margin-top:8px">
     <div class="btnrow" style="margin-bottom:0"><button class="btn sm primary" id="epOk">Listo</button><button class="btn sm" id="epRev">Invertir ⇄</button><button class="btn sm danger" id="epDel">Borrar</button></div>`;
@@ -1413,7 +1534,7 @@ function addToMap(key, wx, wy) {
 function removeFromMap(keys) {
   commit(); const m = map();
   for (const k of keys) { delete m.nodes[k]; }
-  m.edges = m.edges.filter(e => m.nodes[e.from] && m.nodes[e.to]);
+  m.edges = m.edges.filter(e => endExists(m, e.from) && endExists(m, e.to));
   sel.nodes.clear(); renderNodes(); renderEdges(); renderLeft(); onSelChange(); save(); toast('Quitada del mapa · ⌘Z para deshacer');
 }
 function copiesTotal(bk) { const zs = deck().cards.filter(x => x.key === bk && x.zone !== 'rune'); const q = zs.filter(z => z.zone !== 'side').reduce((s, z) => s + z.qty, 0); return q || zs.reduce((s, z) => s + z.qty, 0); }
@@ -1437,16 +1558,21 @@ function splitAllCopies() {
 }
 function mergeCopies(bk) {
   const m = map(), cs = copiesOnMap(bk, m); if (cs.length < 2) return; commit();
-  const keep = cs[0];
-  for (const e of m.edges) { if (baseKey(e.from) === bk) e.from = keep; if (baseKey(e.to) === bk) e.to = keep; }
+  const keep = cs[0], gone = new Set(cs.slice(1)), ren = {};
+  let pn = 1; const nextP = () => { while (m.nodes[keep + '@' + pn] || Object.values(ren).includes(keep + '@' + pn)) pn++; return keep + '@' + pn; };
+  for (const k of Object.keys(m.nodes)) if (isProxy(k) && gone.has(instKey(k))) ren[k] = nextP();
+  for (const k of gone) ren[k] = keep;
+  for (const [o, nk] of Object.entries(ren)) if (nk !== keep) { m.nodes[nk] = m.nodes[o]; delete m.nodes[o]; }
+  const rk = k => ren[k] || k;
+  for (const e of m.edges) { e.from = rk(e.from); e.to = rk(e.to); }
   const seen = new Set(); m.edges = m.edges.filter(e => { if (e.from === e.to) return false; const id = e.from + '>' + e.to + ':' + e.type; if (seen.has(id)) return false; seen.add(id); return true; });
-  for (const cb of m.combos) for (const s of cb.steps) if (baseKey(s.key) === bk) s.key = keep;
-  for (const k of cs.slice(1)) delete m.nodes[k];
+  for (const cb of m.combos) for (const s of cb.steps) s.key = rk(s.key);
+  for (const k of gone) delete m.nodes[k];
   sel.nodes = new Set([keep]); renderNodes(); renderEdges(); renderLeft(); onSelChange(); save(); toast('Copias juntadas en una sola carta');
 }
 function selectKey(key, center = true) {
   if (play) stopPlay();
-  sel.nodes.clear(); sel.nodes.add(key); sel.edge = null; onSelChange();
+  sel.nodes.clear(); sel.nodes.add(key); sel.edge = null; sel.group = null; onSelChange();
   if (center && map().nodes[key] && !inView(key)) centerOn(key);
   else if (center && map().nodes[key]) centerOn(key, V.k);
 }
@@ -1622,18 +1748,19 @@ let libPreview = null;
 /* ============ Inspector ============ */
 function renderInspector() {
   const el = $('#insp'); const m = map();
+  if (sel.group && !sel.edge) return renderGroupInsp(el);
   if (sel.edge) {
     const e = m.edges.find(x => x.id === sel.edge); if (!e) { sel.edge = null; return renderInspector(); }
     const t = ET[e.type];
     el.innerHTML = `<div class="sec"><h3>Conexión</h3></div>
-      <div class="conn" data-k="${esc(e.from)}"><span class="nm">${esc(getCard(e.from).name)}</span></div>
+      <div class="conn" data-k="${esc(e.from)}"><span class="nm">${esc(nameOf(e.from))}</span></div>
       <div style="padding:0 6px;color:${t.c};font-weight:600">↓ ${t.es}</div>
-      <div class="conn" data-k="${esc(e.to)}"><span class="nm">${esc(getCard(e.to).name)}</span></div>
+      <div class="conn" data-k="${esc(e.to)}"><span class="nm">${esc(nameOf(e.to))}</span></div>
       <div class="field"><label>Tipo</label><div class="typepick">${EDGE_TYPES.map((x, i) => `<button class="chip${x.id === e.type ? ' on' : ''}" data-t="${x.id}"><span class="sw" style="background:${x.c}"></span>${x.es} <kbd>${i + 1}</kbd></button>`).join('')}</div></div>
       <div class="field"><label for="eNote">Nota</label><textarea id="eNote" rows="4" placeholder="Ej.: jugar en showdown con 2 runas de Caos libres">${esc(e.note)}</textarea></div>
       <div class="btnrow"><button class="btn sm" id="eRev">Invertir dirección ⇄</button><button class="btn sm danger" id="eDel">Borrar <kbd>Supr</kbd></button></div>`;
     el.querySelectorAll('[data-t]').forEach(b => b.onclick = () => setEdgeType(e, b.dataset.t));
-    el.querySelectorAll('.conn[data-k]').forEach(c => c.onclick = () => selectKey(c.dataset.k));
+    el.querySelectorAll('.conn[data-k]').forEach(c => c.onclick = () => isGrp(c.dataset.k) ? selectGroup(c.dataset.k.slice(4)) : selectKey(c.dataset.k));
     const n = $('#eNote'); n.addEventListener('focus', () => commit(), { once: true }); n.oninput = () => { e.note = n.value; save(); clearTimeout(n._t); n._t = setTimeout(renderEdges, 300); };
     $('#eRev').onclick = () => { commit(); [e.from, e.to] = [e.to, e.from]; renderEdges(); renderInspector(); save(); };
     $('#eDel').onclick = () => deleteEdge(e.id);
@@ -1641,9 +1768,9 @@ function renderInspector() {
   }
   if (sel.nodes.size > 1) {
     el.innerHTML = `<div class="sec"><h3>${sel.nodes.size} cartas seleccionadas</h3></div>${[...sel.nodes].map(k => `<div class="conn" data-k="${esc(k)}"><span class="nm">${esc(getCard(k).name)}</span></div>`).join('')}
-      <div class="btnrow"><button class="btn sm" id="mFit">Encuadrar</button><button class="btn sm danger" id="mRem">Quitar del mapa</button></div><p class="hint">Arrastra cualquiera para mover el grupo. <kbd>Shift</kbd>+clic suma o quita cartas; <kbd>Shift</kbd>+arrastrar en el fondo selecciona por área.</p>`;
+      <div class="btnrow"><button class="btn sm primary" id="mGrp">▢ Agrupar <kbd>G</kbd></button><button class="btn sm" id="mFit">Encuadrar</button><button class="btn sm danger" id="mRem">Quitar del mapa</button></div><p class="hint">Arrastra cualquiera para mover el grupo. <kbd>Shift</kbd>+clic suma o quita cartas; <kbd>Shift</kbd>+arrastrar en el fondo selecciona por área.</p>`;
     el.querySelectorAll('.conn[data-k]').forEach(c => c.onclick = () => selectKey(c.dataset.k));
-    $('#mFit').onclick = () => fit([...sel.nodes]); $('#mRem').onclick = () => removeFromMap([...sel.nodes]);
+    $('#mGrp').onclick = () => newGroup([...sel.nodes]); $('#mFit').onclick = () => fit([...sel.nodes]); $('#mRem').onclick = () => removeFromMap([...sel.nodes]);
     return;
   }
   const key = sel.nodes.size === 1 ? [...sel.nodes][0] : libPreview;
@@ -1659,9 +1786,9 @@ function renderInspector() {
   }
   const c = getCard(key), onMap = !!m.nodes[key];
   const outs = m.edges.filter(e => e.from === key), ins = m.edges.filter(e => e.to === key);
-  const connRow = (e, other, dir) => { const t = ET[e.type]; return `<div class="conn" data-k="${esc(other)}" data-e="${e.id}"><span class="sw" style="background:${t.c}"></span><span class="t">${dir === 'out' ? t.es + ' →' : '← ' + t.es}</span><span class="nm">${esc(getCard(other).name)}${e.note ? `<span class="nt">${esc(e.note)}</span>` : ''}</span></div>`; };
+  const connRow = (e, other, dir) => { const t = ET[e.type]; return `<div class="conn" data-k="${esc(other)}" data-e="${e.id}"><span class="sw" style="background:${t.c}"></span><span class="t">${dir === 'out' ? t.es + ' →' : '← ' + t.es}</span><span class="nm">${esc(nameOf(other))}${e.note ? `<span class="nt">${esc(e.note)}</span>` : ''}</span></div>`; };
   const bk = baseKey(key), zs = deck().cards.filter(x => x.key === bk);
-  const totalQ = copiesTotal(bk), onCopies = onMap ? copiesOnMap(bk).length : 0;
+  const twinsN = Object.keys(m.nodes).filter(k => instKey(k) === instKey(key)).length, totalQ = copiesTotal(bk), onCopies = onMap ? copiesOnMap(bk).length : 0;
   el.innerHTML = `<div class="bigcard${c.type === 'Battlefield' ? ' bf' : ''}${c.img ? '' : ' noimg'}">${imgTag(c)}${phTag(c)}</div>
     <h2>${esc(c.name)}${onCopies > 1 ? ` <span class="pill">Copia ${copyNo(key)}</span>` : ''}</h2>
     <div class="meta"><span class="pill">${esc(TYPES_ES[c.type] || c.type)}</span>${c.energy != null ? `<span class="pill">${c.energy} energía</span>` : ''}${c.power ? `<span class="pill">${c.power} runa${c.power > 1 ? 's' : ''} de poder</span>` : ''}${c.might != null ? `<span class="pill">${c.might} might</span>` : ''}${(c.domains || []).map(d => `<span class="pill"><span class="dot" style="background:${DOMAINS[d]?.c}"></span>${DOMAINS[d]?.es || d}</span>`).join('')}${c.rarity ? `<span class="pill">${esc(c.rarity)}</span>` : ''}</div>
@@ -1675,10 +1802,12 @@ function renderInspector() {
       ${zs.length ? '' : `<button class="btn sm" id="cToMain">+ Main</button><button class="btn sm" id="cToSide">+ Side</button>`}
       ${onMap ? `<button class="btn sm danger" id="cRem">Quitar del mapa</button>` : ''}
     </div>
+    ${onMap ? `<div class="btnrow" style="margin-top:-4px"><button class="btn sm" id="cProxy" title="Pone la MISMA carta en otro lugar del mapa para usarla en otro combo, marcada como proxy">↺ Proxy (misma carta) <kbd>P</kbd></button><button class="btn sm ghost" id="cGrp" title="Crear un grupo con esta carta">▢ Agrupar <kbd>G</kbd></button></div>` : ''}
+    ${onMap && twinsN > 1 ? `<p class="hint" style="margin-top:0">${isProxy(key) ? '<b>Proxy.</b> Es la misma carta física que la original: ' : 'Esta misma carta física '}aparece en <b>${twinsN} lugares</b> del mapa. Todos se marcan en dorado al seleccionarla.${isProxy(key) ? ' <a href="#" id="cOrig">Ir a la original</a>' : ''}</p>` : ''}
     ${onMap && totalQ > 1 ? `<div class="btnrow" style="margin-top:-4px">${onCopies < totalQ ? `<button class="btn sm" id="cSplit" title="Pone otra copia de esta carta como una carta aparte en el mapa">⧉ Separar copia (${onCopies} de ${totalQ} en el mapa)</button>` : `<span class="small muted">Las ${totalQ} copias están separadas en el mapa.</span>`}${onCopies > 1 ? `<button class="btn sm ghost" id="cMerge" title="Deja una sola carta y pasa sus conexiones a la copia 1">Juntar copias</button>` : ''}</div>` : ''}
     ${zs.length ? `<div class="field"><label for="cNote">Notas de la carta (se comparten entre mapas del deck)</label><textarea id="cNote" rows="3" placeholder="Cuándo jugarla, contra qué, mulligan…">${esc(deck().notes[bk] || '')}</textarea></div>` : ''}
     ${onMap ? `<div class="sec"><h3>Conexiones</h3><span class="n">${outs.length + ins.length}</span></div>${outs.map(e => connRow(e, e.to, 'out')).join('')}${ins.map(e => connRow(e, e.from, 'in')).join('') || ''}${!outs.length && !ins.length ? '<p class="empty">Todavía nada. Arrastra el ● del borde de la carta hasta otra.</p>' : ''}` : ''}`;
-  el.querySelectorAll('.conn[data-k]').forEach(r => { r.onclick = () => selectKey(r.dataset.k); r.ondblclick = () => { sel.edge = r.dataset.e; sel.nodes.clear(); onSelChange(); renderEdges(); }; });
+  el.querySelectorAll('.conn[data-k]').forEach(r => { r.onclick = () => isGrp(r.dataset.k) ? selectGroup(r.dataset.k.slice(4)) : selectKey(r.dataset.k); r.ondblclick = () => { sel.edge = r.dataset.e; sel.nodes.clear(); onSelChange(); renderEdges(); }; });
   $('#cConn') && ($('#cConn').onclick = () => setMode({ type: 'connect', from: key }));
   $('#cAdd') && ($('#cAdd').onclick = () => addToMap(key));
   $('#cRem') && ($('#cRem').onclick = () => removeFromMap([key]));
@@ -1690,6 +1819,8 @@ function renderInspector() {
   $('#cLook') && ($('#cLook').onclick = () => lookupRiftcodex(bk));
   const cn = $('#cNote'); if (cn) { cn.addEventListener('focus', () => commit(), { once: true }); cn.oninput = () => { deck().notes[bk] = cn.value; save(); }; }
   $('#cSplit') && ($('#cSplit').onclick = () => splitCopy(key));
+  $('#cProxy') && ($('#cProxy').onclick = () => addProxy(key)); $('#cGrp') && ($('#cGrp').onclick = () => newGroup([key]));
+  $('#cOrig') && ($('#cOrig').onclick = ev => { ev.preventDefault(); const o = instKey(key); if (m.nodes[o]) selectKey(o); else toast('La original no está en este mapa'); });
   $('#cMerge') && ($('#cMerge').onclick = () => mergeCopies(bk));
 }
 function addToDeck(key, zone) { commit(); const d = deck(); const ex = d.cards.find(c => c.key === key && c.zone === zone); if (ex) ex.qty++; else d.cards.push({ key, qty: 1, zone }); save(); renderAll(); toast(`Añadida al ${zone === 'side' ? 'sideboard' : 'main deck'}`); }
@@ -1784,9 +1915,9 @@ function toggleLeft(force) { const w = $('#work'); const show = force ?? w.class
 function toggleRight(force) { const w = $('#work'); const show = force ?? w.classList.contains('no-right'); w.classList.toggle('no-right', !show); if (show && innerWidth <= 1100) w.classList.add('no-left'); setTimeout(drawMinimap, 50); }
 
 /* ============ Diálogos ============ */
-function askText(title, value = '', ok = 'Guardar') {
+function askText(title, value = '', ok = 'Guardar', ph = '') {
   return new Promise(res => {
-    openModal(`<h2>${esc(title)}</h2><div class="field"><input type="text" id="askIn" value="${esc(value)}"></div><div class="btnrow"><button class="btn primary" id="askOk">${esc(ok)}</button><button class="btn" id="askNo">Cancelar</button></div>`);
+    openModal(`<h2>${esc(title)}</h2><div class="field"><input type="text" id="askIn" value="${esc(value)}" placeholder="${esc(ph)}"></div><div class="btnrow"><button class="btn primary" id="askOk">${esc(ok)}</button><button class="btn" id="askNo">Cancelar</button></div>`);
     const done = v => { closeModal(); res(v); };
     $('#askOk').onclick = () => done($('#askIn').value.trim() || null);
     $('#askNo').onclick = () => done(null);
@@ -1817,6 +1948,8 @@ function showHelp() {
     ${K('<kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd>', 'Cambiar de vista: Mi deck · Combos · Mapa · Partidas')}
     ${K('<kbd>H</kbd>', 'Robar una mano de prueba (fuera del mapa)')}
     ${K('<kbd>D</kbd>', 'Separar otra copia de la carta seleccionada')}
+    ${K('<kbd>P</kbd>', 'Proxy: la misma carta en otro lugar, para usarla en varios combos')}
+    ${K('<kbd>G</kbd>', 'Agrupar las cartas seleccionadas en un cuadro (o crear un cuadro vacío)')}
     ${K('Mantén <kbd>⌘</kbd> / <kbd>Ctrl</kbd>', 'Ampliar la carta que está bajo el cursor (en el mapa, el deck, los combos y la biblioteca)')}
     ${K('<kbd>/</kbd>', 'Buscar una carta del mapa')}
     ${K('Arrastrar el fondo · dos dedos', 'Moverte por el mapa')}
@@ -1852,6 +1985,8 @@ function commands() {
     ['Zoom al 100%', '0', () => { const r = stage().getBoundingClientRect(); animateTo(...centerTarget(r.width / 2, r.height / 2, 1)); }],
     ['Auto-organizar cartas por tipo y coste', 'L', relayout],
     ['Separar todas las copias en este mapa', '', () => { setView('map'); splitAllCopies(); }],
+    ['Nuevo grupo (cuadro para englobar cartas)', 'G', () => { setView('map'); newGroup([...sel.nodes]); }],
+    ['Crear proxy de la carta seleccionada', 'P', () => { const k = [...sel.nodes][0]; k ? addProxy(k) : toast('Selecciona una carta primero'); }],
     ['Nueva línea de combo', 'N', () => { const c = newCombo(); setMode({ type: 'record', comboId: c.id }); }],
     ['Nuevo mapa', '', addMap], ['Renombrar mapa', '', renameMap], ['Duplicar mapa', '', dupMap], ['Borrar mapa', '', delMap],
     ['Importar deck (pegar lista)', 'I', importDeckUI], ['Renombrar deck', '', renameDeck], ['Borrar deck', '', delDeck],
@@ -1996,7 +2131,7 @@ function onKey(ev) {
     if (k === 'p' || k === 'P') { toggleAuto(); return; }
     if (k === 'Escape') { stopPlay(); return; }
   }
-  if (k === 'Escape') { if (mode) setMode(null); else if (sel.nodes.size || sel.edge || libPreview) { sel.nodes.clear(); sel.edge = null; libPreview = null; onSelChange(); renderEdges(); } return; }
+  if (k === 'Escape') { if (mode) setMode(null); else if (sel.nodes.size || sel.edge || sel.group || libPreview) { sel.nodes.clear(); sel.edge = null; sel.group = null; libPreview = null; onSelChange(); renderEdges(); } return; }
   if (k === '/') { ev.preventDefault(); openPalette('@'); return; }
   if (k === '?') { showHelp(); return; }
   if (k === 'f' || k === 'F') { sel.nodes.size > 1 ? fit([...sel.nodes]) : fit(); return; }
@@ -2011,12 +2146,15 @@ function onKey(ev) {
   if (k === 'n' || k === 'N') { const c = newCombo(); setMode({ type: 'record', comboId: c.id }); return; }
   if ((k === 'r' || k === 'R') && activeCombo) { mode?.type === 'record' ? setMode(null) : setMode({ type: 'record', comboId: activeCombo }); return; }
   if ((k === 'p' || k === 'P') && activeCombo) { startPlay(activeCombo); return; }
+  if ((k === 'g' || k === 'G')) { newGroup([...sel.nodes]); return; }
+  if ((k === 'p' || k === 'P') && sel.nodes.size === 1) { addProxy([...sel.nodes][0]); return; }
+  if ((k === 'c' || k === 'C') && sel.group) { setMode({ type: 'connect', from: 'grp:' + sel.group }); return; }
   if ((k === 'd' || k === 'D') && sel.nodes.size === 1) { splitCopy([...sel.nodes][0]); return; }
   if ((k === 'c' || k === 'C') && sel.nodes.size === 1) { setMode({ type: 'connect', from: [...sel.nodes][0] }); return; }
   if (k === 'Enter' && sel.nodes.size === 1) { centerOn([...sel.nodes][0], Math.max(V.k, 1.15)); return; }
   if (/^[1-5]$/.test(k) && sel.edge) { const e = map().edges.find(x => x.id === sel.edge); if (e) setEdgeType(e, EDGE_TYPES[+k - 1].id); return; }
   if (k === 'Tab') { ev.preventDefault(); cycleNeighbor(ev.shiftKey); return; }
-  if (k === 'Delete' || k === 'Backspace') { if (sel.edge) deleteEdge(sel.edge); else if (sel.nodes.size) removeFromMap([...sel.nodes]); return; }
+  if (k === 'Delete' || k === 'Backspace') { if (sel.edge) deleteEdge(sel.edge); else if (sel.group) deleteGroup(sel.group); else if (sel.nodes.size) removeFromMap([...sel.nodes]); return; }
   const dirs = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
   if (dirs[k]) { ev.preventDefault(); navDir(...dirs[k]); }
 }
