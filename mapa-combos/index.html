@@ -121,7 +121,7 @@ svg.layer { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overfl
 .edge .hit { stroke: transparent; stroke-width: 18; fill: none; pointer-events: stroke; cursor: pointer; }
 .edge .ln { fill: none; stroke-width: 3; stroke-linecap: round; transition: opacity .15s; }
 .edge.sel .ln { stroke-width: 5; }
-.edge.dim { opacity: .1; }
+.edge.dim { opacity: .35; }
 .edge.dim .hit { pointer-events: none; }
 .edge .lbl rect { fill: var(--surface); stroke-width: 1.5; }
 .edge .lbl text { font: 600 12px var(--f-body); fill: var(--fg); }
@@ -150,7 +150,7 @@ svg.layer { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overfl
 .node .port:hover { transform: scale(1.25); }
 .node.sel .cimg { outline-color: var(--accent); }
 .node.nb .cimg { outline-color: color-mix(in srgb, var(--accent) 45%, transparent); }
-.node.dim { opacity: .18; filter: grayscale(.7); }
+.node.dim { opacity: .72; filter: saturate(.75); }
 .node.fdim { opacity: .25; }
 .node.hit-search .cimg { outline-color: var(--gold); }
 .node.dragging { z-index: 5; }
@@ -1253,13 +1253,29 @@ function onDbl(ev) {
 /* hover preview */
 let hovT = 0, hovKey = null, previewBlockUntil = 0;
 function hoverPreview(ev) {
+  if (modPeek) return;
   const node = ev.target.closest && ev.target.closest('.node');
   const key = node && node.dataset.key;
   if (key === hovKey) { if (key) placePreview(ev); return; }
   hovKey = key; clearTimeout(hovT); hidePreview();
   if (!key || V.k > 1.3 || ev.pointerType === 'touch' || performance.now() < previewBlockUntil || sel.nodes.has(key) || $('#edgepop').classList.contains('show')) return;
-  hovT = setTimeout(() => { const c = getCard(key); const p = $('#preview'); p.innerHTML = `<div class="bigcard${c.type === 'Battlefield' ? ' bf' : ''}${c.img ? '' : ' noimg'}">${imgTag(c)}${phTag(c)}</div>`; if (c.type === 'Battlefield') p.style.width = '400px'; else p.style.width = '300px'; p.classList.add('show'); placePreview(ev); }, 450);
+  hovT = setTimeout(() => showPreviewFor(key, ev), 450);
 }
+function showPreviewFor(key, ev) { const c = getCard(key); const p = $('#preview'); p.innerHTML = `<div class="bigcard${c.type === 'Battlefield' ? ' bf' : ''}${c.img ? '' : ' noimg'}">${imgTag(c)}${phTag(c)}</div>`; p.style.width = (c.type === 'Battlefield' ? Math.min(460, innerWidth - 40) : Math.min(340, innerWidth - 40)) + 'px'; p.classList.add('show'); placePreview(ev); }
+/* ⌘ / Ctrl sostenido: ampliar cualquier carta bajo el cursor al instante */
+let modPeek = false, peekKey = null, lastPt = null;
+function peekAt(x, y) {
+  const el = document.elementFromPoint(x, y); const host = el && el.closest && el.closest('[data-key]');
+  const key = host && !host.closest('#preview') && !host.closest('.scrim .pal') ? host.dataset.key : null;
+  if (!key) { peekKey = null; hidePreview(); return; }
+  if (key === peekKey && $('#preview').classList.contains('show')) { placePreview({ clientX: x, clientY: y }); return; }
+  peekKey = key; showPreviewFor(key, { clientX: x, clientY: y });
+}
+function endPeek() { if (!modPeek) return; modPeek = false; peekKey = null; hovKey = null; hidePreview(); }
+document.addEventListener('mousemove', ev => { lastPt = [ev.clientX, ev.clientY]; if (ev.metaKey || (ev.ctrlKey && !/Mac/.test(navigator.platform))) { modPeek = true; peekAt(ev.clientX, ev.clientY); } else if (modPeek) endPeek(); }, true);
+document.addEventListener('keydown', ev => { if (ev.key === 'Meta' || ev.key === 'Control') { modPeek = true; if (lastPt) peekAt(...lastPt); } else if (modPeek) endPeek(); }, true);
+document.addEventListener('keyup', ev => { if (ev.key === 'Meta' || ev.key === 'Control') endPeek(); }, true);
+window.addEventListener('blur', endPeek);
 function placePreview(ev) {
   const p = $('#preview'); if (!p.classList.contains('show')) return;
   const w = p.offsetWidth, h = p.offsetHeight; let x = ev.clientX + 24, y = ev.clientY - h / 2;
@@ -1794,6 +1810,7 @@ function showHelp() {
     ${K('<kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd>', 'Cambiar de vista: Mi deck · Combos · Mapa · Partidas')}
     ${K('<kbd>H</kbd>', 'Robar una mano de prueba (fuera del mapa)')}
     ${K('<kbd>D</kbd>', 'Separar otra copia de la carta seleccionada')}
+    ${K('Mantén <kbd>⌘</kbd> / <kbd>Ctrl</kbd>', 'Ampliar la carta que está bajo el cursor (en el mapa, el deck, los combos y la biblioteca)')}
     ${K('<kbd>/</kbd>', 'Buscar una carta del mapa')}
     ${K('Arrastrar el fondo · dos dedos', 'Moverte por el mapa')}
     ${K('Pellizcar · <kbd>⌘</kbd>+rueda · <kbd>+</kbd> <kbd>−</kbd>', 'Zoom')}
@@ -2039,7 +2056,7 @@ function init() {
     if (f && f.type.startsWith('image/')) { ev.preventDefault(); const node = document.elementFromPoint(ev.clientX, ev.clientY)?.closest('.node'); if (node) setCardImage(node.dataset.key, f); else toast('Suelta la imagen encima de una carta'); return; }
     const k = ev.dataTransfer.getData('text/x-card'); if (!k) return; ev.preventDefault(); const [wx, wy] = toWorld(ev.clientX, ev.clientY); addToMap(k, wx - NW / 2, wy - NH / 2); });
   document.addEventListener('keydown', onKey);
-  document.addEventListener('mousemove', ev => { if (!(ev.target.closest && ev.target.closest('#stage'))) { if (hovKey) { hovKey = null; hidePreview(); } } });
+  document.addEventListener('mousemove', ev => { if (modPeek) return; if (!(ev.target.closest && ev.target.closest('#stage'))) { if (hovKey) { hovKey = null; hidePreview(); } } });
   // detectar rueda de ratón vs trackpad
   window.addEventListener('wheel', ev => { if (ev.deltaMode === 1 || (Math.abs(ev.deltaY) >= 100 && ev.deltaX === 0)) wheelIsMouse = true; else if (ev.deltaX !== 0 || Math.abs(ev.deltaY) < 20) wheelIsMouse = false; }, { passive: true, capture: true });
   window.addEventListener('resize', () => drawMinimap());
@@ -2137,7 +2154,7 @@ function renderView() {
 const pct = p => p * 100 >= 99.5 ? '>99%' : Math.round(p * 100) + '%';
 function thumb(key, cls = '') {
   const c = getCard(key);
-  return `<span class="th ${cls}${c.img ? '' : ' noimg'}${c.type === 'Battlefield' ? ' bf' : ''}" style="--dc:${dcol(c)}">${c.img ? `<img src="${esc(c.img)}" alt="" loading="lazy" onerror="this.parentNode.classList.add('noimg')">` : ''}<b>${esc(c.name)}</b></span>`;
+  return `<span data-key="${esc(key)}" class="th ${cls}${c.img ? '' : ' noimg'}${c.type === 'Battlefield' ? ' bf' : ''}" style="--dc:${dcol(c)}">${c.img ? `<img src="${esc(c.img)}" alt="" loading="lazy" onerror="this.parentNode.classList.add('noimg')">` : ''}<b>${esc(c.name)}</b></span>`;
 }
 
 /* ---------- Mi deck ---------- */
