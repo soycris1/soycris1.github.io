@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>window.FIREBASE_CONFIG={"apiKey":"AIzaSyBucriv5n3PWqz4twN1OBvGVLe1KO2Laxg","authDomain":"mapa-combos.firebaseapp.com","projectId":"mapa-combos","storageBucket":"mapa-combos.firebasestorage.app","messagingSenderId":"1066135163539","appId":"1:1066135163539:web:b0b1aa3f5e1bc820fdb366"};</script>
 </head><body>
 <title>Mapa de Combos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -851,7 +852,20 @@ input.stt { border-radius: 8px; }
 .spbox .stg { box-shadow: 0 24px 60px rgba(0,0,0,.6); border-color: var(--line-strong); }
 .spbox .zrow { grid-template-columns: 104px minmax(0, 1fr); }
 .spbox .zl { font-size: 13px; }
+.acct { padding: 0; width: 32px; height: 32px; border-radius: 50%; overflow: hidden; border: 2px solid var(--accent); }
+.acct img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.acct b { font-weight: 800; }
+.acct-in { background: #fff; color: #000; border-color: #fff; gap: 7px; }
+.acct-in:hover { background: #e9e9ec; border-color: #e9e9ec; }
+.acctbox { display: flex; align-items: center; gap: 12px; margin: 4px 0 12px; }
+.acctbox img { width: 48px; height: 48px; border-radius: 50%; }
+#btnAcct[hidden] { display: none; }
+.olist { display: grid; gap: 6px; margin: 10px 0; }
+.olrow { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--raise); cursor: pointer; }
+.olrow input { accent-color: var(--accent); width: 16px; height: 16px; }
 @media (max-width: 640px) {
+  .acct-in span { display: none; }
+  .acct-in { padding: 6px 8px; }
   .zrow { grid-template-columns: 66px minmax(0, 1fr); }
   .zl { font-size: 10px; padding-left: 9px; }
   .stitle input { font-size: 22px; }
@@ -875,6 +889,7 @@ input.stt { border-radius: 8px; }
     <button class="btn icon only-narrow" id="btnPal2" aria-label="Buscar">⌕</button>
     <div class="undoctl"><button class="btn icon ghost" id="btnUndo" title="Deshacer (⌘Z)" aria-label="Deshacer" disabled></button><button class="btn icon ghost" id="btnRedo" title="Rehacer (⇧⌘Z)" aria-label="Rehacer" disabled></button></div>
     <span class="save-ind hide-narrow" id="saveInd">Guardado</span>
+    <button class="btn sm" id="btnAcct" hidden></button>
     <button class="btn icon ghost" id="btnMore" title="Más opciones" aria-label="Más opciones">⋯</button>
     <button class="btn icon ghost only-map" id="tglRight" title="Inspector (])" aria-label="Inspector">◧</button>
   </header>
@@ -1261,7 +1276,8 @@ function save() {
     if (DBREF && dbReady) {
       try { await DBREF.set({ state: JSON.parse(JSON.stringify(S)), by: WRITER, at: Date.now() }); $('#saveInd').textContent = 'Guardado en la nube'; }
       catch (e) { $('#saveInd').textContent = e && e.code === 'not_granted' ? 'Solo lectura' : 'Sin conexión: guardado en este navegador'; }
-    } else $('#saveInd').textContent = 'Guardado en este navegador';
+    } else if (typeof CLOUD !== 'undefined' && CLOUD.user) cloudSave();
+    else $('#saveInd').textContent = 'Guardado en este navegador';
   }, 600);
 }
 async function connectDb() {
@@ -1297,7 +1313,7 @@ const deckQty = (key, zone) => (key = baseKey(key), deck().cards.filter(c => c.k
 /* undo / redo */
 const UNDO = [], REDO = [];
 function snapshot() { return JSON.stringify({ decks: S.decks, custom: S.custom, deckId: S.deckId }); }
-function commit() { UNDO.push(snapshot()); if (UNDO.length > 100) UNDO.shift(); REDO.length = 0; histBtns(); }
+function commit() { if (S && S.pristine) delete S.pristine; UNDO.push(snapshot()); if (UNDO.length > 100) UNDO.shift(); REDO.length = 0; histBtns(); }
 function restore(str) { const o = JSON.parse(str); S.decks = o.decks; S.custom = o.custom; S.deckId = o.deckId; sel.nodes.clear(); sel.edge = null; sel.group = null; sel.ann = null; stopPlay(); renderAll(); if (storyOpen()) renderStory(); save(); histBtns(); }
 function undo() { if (!UNDO.length) return toast('Nada que deshacer'); REDO.push(snapshot()); restore(UNDO.pop()); toast('Deshecho'); }
 function redo() { if (!REDO.length) return toast('Nada que rehacer'); UNDO.push(snapshot()); restore(REDO.pop()); toast('Rehecho'); }
@@ -2796,6 +2812,7 @@ function toggleTheme() {
 }
 function moreMenu(ev) {
   const items = [['Importar un deck nuevo', importDeckUI], ['Auto-organizar mapa', relayout], ['Renombrar mapa', renameMap], ['Duplicar mapa', dupMap], ['Borrar mapa', delMap], ['Renombrar deck', renameDeck], ['Copiar decklist', copyDecklist], ['Exportar todo (JSON)', () => exportJSON(false)], ['Importar JSON (archivo)', () => $('#fileIn').click()], ['Importar JSON (pegar)', importJSONPaste], ['Borrar deck', delDeck], ['Atajos de teclado', showHelp]];
+  if (typeof CLOUD !== 'undefined' && CLOUD.on) items.unshift(['Compartir este deck por link', () => shareItem('deck', deck())]);
   openModal(`<h2>Opciones</h2><div style="display:grid;gap:6px">${items.map(([l], i) => `<button class="btn" data-i="${i}" style="justify-content:flex-start">${l}</button>`).join('')}</div>`);
   $('#modal').querySelectorAll('[data-i]').forEach(b => b.onclick = () => { closeModal(); items[+b.dataset.i][1](); });
 }
@@ -2875,7 +2892,7 @@ function onKey(ev) {
 /* ============ Arranque ============ */
 function $(s) { return document.querySelector(s); }
 function seedState() {
-  const st = { v: 1, custom: {}, decks: [], deckId: null, theme: null };
+  const st = { v: 1, custom: {}, decks: [], deckId: null, theme: null, pristine: true };
   S = st;
   for (const sd of SEED_DECKS) {
     const { d } = buildDeck(sd.name, sd.list);
@@ -2947,6 +2964,7 @@ function init() {
   renderAll(true);
   setView(['deck', 'combos', 'map', 'games'].includes(v0) ? v0 : 'deck');
   connectDb();
+  cloudInit();
   let seen = null; try { seen = localStorage.getItem(LS_KEY + '.seen'); } catch (e) { }
   if (!seen) { try { localStorage.setItem(LS_KEY + '.seen', '1'); } catch (e) { } setTimeout(() => toast('Tip: ⌘K para buscar cualquier cosa · ? para ver los atajos'), 800); }
 }
@@ -3043,7 +3061,7 @@ function renderDeckView(d) {
   const side = d.cards.filter(c => c.zone === 'side'), runes = d.cards.filter(c => c.zone === 'rune');
   $('#view').innerHTML = `<div class="vwrap">
     <div class="vhead"><div><h1>${esc(d.name)}</h1><p class="muted">${N} cartas en el main · ${units} unidades · ${spells} hechizos · coste medio <b class="mono">${avg.toFixed(1)}</b></p></div>
-      <div class="btnrow"><button class="btn primary" id="vDraw">🂠 Robar mano</button><button class="btn" id="vToMap">Ver mapa</button></div></div>
+      <div class="btnrow"><button class="btn primary" id="vDraw">🂠 Robar mano</button><button class="btn" id="vToMap">Ver mapa</button>${CLOUD.on ? '<button class="btn" id="vShare">Compartir deck</button>' : ''}</div></div>
     <div class="vgrid">
       <div class="vmain">
         ${ROLES.filter(r => groups[r.id]).map(r => `<section class="rsec"><div class="sec"><h3>${r.es}</h3><span class="n">${groups[r.id].reduce((a, e) => a + (e.zone === 'main' ? e.qty : 0), 0) || ''}</span></div>${r.hint ? `<p class="small muted rh">${r.hint}</p>` : ''}<div class="tiles">${groups[r.id].sort((a, b) => (getCard(a.key).energy ?? 0) - (getCard(b.key).energy ?? 0)).map(tile).join('')}</div></section>`).join('')}
@@ -3062,7 +3080,7 @@ function renderDeckView(d) {
           <div class="field"><label for="gToss">Mulligan: cambio</label><textarea id="gToss" rows="2">${esc(d.guide.toss)}</textarea></div></div>
       </aside>
     </div></div>`;
-  $('#vDraw').onclick = () => openHand(); $('#vToMap').onclick = () => setView('map');
+  $('#vDraw').onclick = () => openHand(); $('#vToMap').onclick = () => setView('map'); if ($('#vShare')) $('#vShare').onclick = () => shareItem('deck', d);
   $('#view').querySelectorAll('.tile').forEach(b => b.onclick = () => cardSheet(b.dataset.key));
   for (const [id, f] of [['gPlan', 'plan'], ['gKeep', 'keep'], ['gToss', 'toss']]) { const t = $('#' + id); t.addEventListener('focus', () => commit(), { once: true }); t.oninput = () => { d.guide[f] = t.value; save(); }; }
 }
@@ -3121,7 +3139,7 @@ function renderCombosView(d) {
         ${s.nDeck ? `<span title="Probabilidad de tener en mano todas las piezas que salen del mazo (sin contar mulligan)">Piezas en mano: ${[3, 5, 7].map(t => `T${t} <b class="mono">${pct(s.P(t))}</b>`).join(' · ')}</span>` : '<span>Piezas siempre disponibles</span>'}</div>
         ${s.missing.length ? `<p class="small" style="color:var(--danger)">No está en el deck: ${s.missing.map(p => esc(getCard(p.k).name)).join(', ')}</p>` : ''}
         ${r.stages && r.stages.length > 1 ? `<div class="mstrip" data-a="story" title="Ver paso a paso">${r.stages.map((st, i) => `<span class="ms"><i>${i + 1}</i>${st.play ? thumb(st.play, 'sm') : '<span class="th sm gen"><b>Inicio</b></span>'}<em>${esc(st.title || '')}</em></span>`).join('<span class="msa">›</span>')}</div>` : ''}
-        <div class="btnrow"><button class="btn sm primary" data-a="story">${r.stages && r.stages.length > 1 ? `▶ Paso a paso (${r.stages.length})` : '＋ Armar paso a paso'}</button><button class="btn sm" data-a="edit">Editar</button><button class="btn sm" data-a="map">Ver en mapa</button><button class="btn sm ghost danger" data-a="del">Borrar</button></div></div></article>`;
+        <div class="btnrow"><button class="btn sm primary" data-a="story">${r.stages && r.stages.length > 1 ? `▶ Paso a paso (${r.stages.length})` : '＋ Armar paso a paso'}</button><button class="btn sm" data-a="edit">Editar</button><button class="btn sm" data-a="map">Ver en mapa</button>${CLOUD.on ? '<button class="btn sm" data-a="share">Compartir</button>' : ''}<button class="btn sm ghost danger" data-a="del">Borrar</button></div></div></article>`;
   };
   $('#view').innerHTML = `<div class="vwrap">
     <div class="vhead"><div><h1>Combos</h1><p class="muted">Recetas: qué cartas se juntan, qué consiguen, cuánto cuestan y qué tan seguido las tendrás.</p></div>
@@ -3138,6 +3156,7 @@ function renderCombosView(d) {
       if (b.dataset.a === 'edit') editRecipe(r);
       if (b.dataset.a === 'story') openStory(r.id);
       if (b.dataset.a === 'map') showComboOnMap(r);
+      if (b.dataset.a === 'share') shareItem('recipe', r);
       if (b.dataset.a === 'del' && await askConfirm(`¿Borrar la receta “${r.name}”?`)) { commit(); d.recipes = d.recipes.filter(x => x !== r); save(); renderView(); }
     });
   });
@@ -3682,6 +3701,203 @@ function showComboOnMap(r) {
   const ks = Object.keys(m.nodes).filter(n => keys.includes(baseKey(n)) && !isEnemy(n));
   sel.nodes = new Set(ks); sel.edge = null; sel.group = null; sel.ann = null; onSelChange(); if (ks.length) fit(ks, 1);
   toast(missing.length ? `Agregué ${missing.length} carta${missing.length > 1 ? 's' : ''} del combo que no estaba${missing.length > 1 ? 'n' : ''} en el mapa · ⌘Z para deshacer` : `“${r.name}”: ${ks.length} carta${ks.length > 1 ? 's' : ''} marcadas en el mapa`);
+}
+
+/* ================= Nube: login con Google (Firebase) y compartir por link =================
+   Solo se activa en la página pública (GitHub Pages) cuando hay FIREBASE_CONFIG.
+   Dentro del artifact de Claude se sigue usando su propia base (connectDb). */
+const FB_VER = '10.12.2';
+const FB_URL = m => `https://www.gstatic.com/firebasejs/${FB_VER}/firebase-${m}.js`;
+const CLOUD = { on: false, fb: null, auth: null, db: null, user: null, ready: false, unsub: null, last: '', parts: 0, saving: false, again: false };
+const PART = 300000; // caracteres por documento (cabe holgado en el límite de 1 MB)
+
+async function cloudInit() {
+  const cfg = window.FIREBASE_CONFIG;
+  if (!cfg || !cfg.apiKey || window.claude) return;
+  try {
+    const [app, auth, fs] = await Promise.all([import(FB_URL('app')), import(FB_URL('auth')), import(FB_URL('firestore'))]);
+    CLOUD.fb = { ...app, ...auth, ...fs };
+    const a = app.initializeApp(cfg);
+    CLOUD.auth = auth.getAuth(a); CLOUD.db = fs.getFirestore(a);
+  } catch (e) { console.warn('Firebase no cargó', e); return; }
+  CLOUD.on = true;
+  acctBtn();
+  CLOUD.fb.onAuthStateChanged(CLOUD.auth, u => onUser(u));
+  const sid = new URLSearchParams(location.search).get('c');
+  if (sid) openShared(sid);
+  if (typeof renderView === 'function' && document.body.dataset.view !== 'map') renderView();
+}
+
+/* ---------- cuenta ---------- */
+const G_ICON = '<svg viewBox="0 0 48 48" width="16" height="16" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>';
+function acctBtn() {
+  const b = $('#btnAcct'); if (!b) return;
+  b.hidden = !CLOUD.on;
+  const u = CLOUD.user;
+  if (u) {
+    b.className = 'btn icon ghost acct'; b.title = 'Tu cuenta'; b.setAttribute('aria-label', 'Tu cuenta');
+    const ini = esc((u.displayName || u.email || '?').trim()[0].toUpperCase());
+    b.innerHTML = u.photoURL ? `<img src="${esc(u.photoURL)}" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('b'),{textContent:'${ini}'}))">` : `<b>${ini}</b>`;
+  } else {
+    b.className = 'btn sm acct-in'; b.title = 'Entra con Google para guardar en la nube y compartir'; b.setAttribute('aria-label', 'Entrar con Google');
+    b.innerHTML = `${G_ICON}<span>Entrar</span>`;
+  }
+  b.onclick = () => u ? acctMenu() : signIn();
+}
+async function signIn() {
+  if (!CLOUD.on) return;
+  const F = CLOUD.fb, p = new F.GoogleAuthProvider(); p.setCustomParameters({ prompt: 'select_account' });
+  try { await F.signInWithPopup(CLOUD.auth, p); }
+  catch (e) {
+    const c = e && e.code || '';
+    if (c === 'auth/popup-blocked' || c === 'auth/operation-not-supported-in-this-environment') { try { await F.signInWithRedirect(CLOUD.auth, p); } catch (e2) { toast('No pude abrir el login de Google'); } }
+    else if (c === 'auth/unauthorized-domain') toast('Falta autorizar este dominio en Firebase (Authentication → Dominios autorizados)');
+    else if (c !== 'auth/popup-closed-by-user' && c !== 'auth/cancelled-popup-request') toast('No se pudo entrar: ' + (c || 'error'));
+  }
+}
+function acctMenu() {
+  const u = CLOUD.user; if (!u) return;
+  openModal(`<h2>Tu cuenta</h2><div class="acctbox">${u.photoURL ? `<img src="${esc(u.photoURL)}" alt="" referrerpolicy="no-referrer">` : ''}<div><b>${esc(u.displayName || '')}</b><div class="muted small">${esc(u.email || '')}</div></div></div>
+    <p class="hint">Tus decks, combos y partidas se guardan en tu cuenta y se sincronizan en cualquier compu o celular donde entres.</p>
+    <div class="btnrow"><button class="btn" id="acOut">Cerrar sesión</button><button class="btn ghost" onclick="closeModal()">Cerrar</button></div>`);
+  $('#acOut').onclick = async () => { closeModal(); try { await CLOUD.fb.signOut(CLOUD.auth); toast('Sesión cerrada'); } catch (e) { } };
+}
+
+/* ---------- sincronización ---------- */
+const userRef = uid => CLOUD.fb.doc(CLOUD.db, 'users', uid);
+const partRef = (uid, i) => CLOUD.fb.doc(CLOUD.db, 'users', uid, 'parts', String(i));
+const cloudStr = () => { const o = { ...S }; delete o.theme; delete o.pristine; return JSON.stringify(o); };
+function onUser(u) {
+  if (CLOUD.unsub) { CLOUD.unsub(); CLOUD.unsub = null; }
+  CLOUD.user = u || null; CLOUD.ready = false; CLOUD.last = ''; CLOUD.parts = 0;
+  acctBtn();
+  if (!u) { $('#saveInd').textContent = 'Guardado en este navegador'; return; }
+  $('#saveInd').textContent = 'Conectando con tu cuenta…';
+  let first = true;
+  CLOUD.unsub = CLOUD.fb.onSnapshot(userRef(u.uid), async snap => {
+    if (CLOUD.user !== u) return;
+    const wasFirst = first; first = false;
+    if (!snap.exists()) {
+      if (wasFirst) { CLOUD.ready = true; await cloudSave(true); toast('Listo: tus decks quedaron guardados en tu cuenta'); }
+      return;
+    }
+    const m = snap.data(); CLOUD.parts = m.n || 0;
+    if (m.by === WRITER && !wasFirst) return;
+    const str = await readParts(u.uid, m);
+    if (str == null) { CLOUD.ready = true; return; }
+    let remote; try { remote = JSON.parse(str); } catch (e) { CLOUD.ready = true; return; }
+    if (!remote || !Array.isArray(remote.decks) || !remote.decks.length) { CLOUD.ready = true; if (wasFirst) cloudSave(true); return; }
+    const extra = wasFirst && !S.pristine ? S.decks.filter(d => !remote.decks.some(x => x.id === d.id)) : [];
+    const localCustom = S.custom || {};
+    applyRemote(remote, !wasFirst);
+    CLOUD.last = str; CLOUD.ready = true;
+    $('#saveInd').textContent = 'Guardado en tu cuenta';
+    if (extra.length) offerLocalDecks(extra, localCustom);
+  }, err => { console.warn(err); CLOUD.ready = true; $('#saveInd').textContent = 'Sin conexión: guardado en este navegador'; });
+}
+async function readParts(uid, m) {
+  for (let t = 0; t < 2; t++) {
+    try {
+      const n = m.n || 0; if (!n) return null;
+      const ps = await Promise.all([...Array(n)].map((_, i) => CLOUD.fb.getDoc(partRef(uid, i))));
+      if (ps.every(p => p.exists() && p.data().at === m.at)) return ps.map(p => p.data().s).join('');
+      const fresh = await CLOUD.fb.getDoc(userRef(uid)); if (!fresh.exists()) return null; m = fresh.data();
+    } catch (e) { console.warn(e); return null; }
+  }
+  return null;
+}
+function applyRemote(remote, notify) {
+  const keepDeck = S && S.deckId, theme = S && S.theme;
+  S = remote; S.custom = S.custom || {}; S.theme = theme; migrateState(S);
+  if (keepDeck && S.decks.some(x => x.id === keepDeck)) S.deckId = keepDeck;
+  if (!S.decks.some(x => x.id === S.deckId)) S.deckId = S.decks[0].id;
+  try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch (e) { }
+  UNDO.length = 0; REDO.length = 0; histBtns();
+  sel.nodes.clear(); sel.edge = null; if (play) stopPlay();
+  renderAll(true); if (typeof renderView === 'function') renderView(); if (typeof storyOpen === 'function' && storyOpen()) renderStory();
+  if (notify) toast('Actualizado con los cambios de tu otro dispositivo');
+}
+function offerLocalDecks(extra, custom) {
+  openModal(`<h2>Decks de este navegador</h2><p>En este navegador tienes decks que no están en tu cuenta. Marca los que quieras agregar:</p>
+    <div class="olist">${extra.map((d, i) => `<label class="olrow"><input type="checkbox" data-i="${i}" checked> <b>${esc(d.name)}</b> <span class="muted small">${(d.recipes || []).length} combos</span></label>`).join('')}</div>
+    <div class="btnrow"><button class="btn primary" id="olAdd">Agregar a mi cuenta</button><button class="btn" onclick="closeModal()">No, gracias</button></div>`);
+  $('#olAdd').onclick = () => {
+    const pick = [...document.querySelectorAll('#modal .olrow input:checked')].map(c => extra[+c.dataset.i]); closeModal(); if (!pick.length) return;
+    commit(); for (const d of pick) { if (S.decks.some(x => x.id === d.id)) d.id = uid('d'); S.decks.push(d); } for (const [k, v] of Object.entries(custom)) if (!S.custom[k]) S.custom[k] = v; save(); renderAll(); toast(pick.length > 1 ? 'Decks agregados' : 'Deck agregado');
+  };
+}
+async function cloudSave(force) {
+  const u = CLOUD.user; if (!u || !CLOUD.ready) return;
+  if (CLOUD.saving) { CLOUD.again = true; return; }
+  const str = cloudStr();
+  if (!force && str === CLOUD.last) { $('#saveInd').textContent = 'Guardado en tu cuenta'; return; }
+  CLOUD.saving = true;
+  try {
+    const F = CLOUD.fb, b = F.writeBatch(CLOUD.db), at = Date.now(), n = Math.max(1, Math.ceil(str.length / PART));
+    for (let i = 0; i < n; i++) b.set(partRef(u.uid, i), { s: str.slice(i * PART, (i + 1) * PART), at });
+    for (let i = n; i < CLOUD.parts; i++) b.delete(partRef(u.uid, i));
+    b.set(userRef(u.uid), { n, at, by: WRITER, v: 1, name: u.displayName || '' });
+    await b.commit();
+    CLOUD.last = str; CLOUD.parts = n;
+    if (CLOUD.user === u) $('#saveInd').textContent = 'Guardado en tu cuenta';
+  } catch (e) { console.warn(e); $('#saveInd').textContent = 'Sin conexión: guardado en este navegador'; }
+  CLOUD.saving = false;
+  if (CLOUD.again) { CLOUD.again = false; cloudSave(); }
+}
+
+/* ---------- compartir por link ---------- */
+const customIn = o => { const out = {}; for (const m of JSON.stringify(o).match(/"custom:[^"]+"/g) || []) { const k = JSON.parse(m); if (S.custom[k]) out[k] = S.custom[k]; } return out; };
+async function shareItem(kind, obj) {
+  if (!CLOUD.on) return;
+  if (!CLOUD.user) {
+    openModal(`<h2>Compartir</h2><p>Para compartir por link entra con tu cuenta de Google. Quien reciba el link no necesita cuenta para verlo.</p><div class="btnrow"><button class="btn primary" id="shIn">${G_ICON} Entrar con Google</button><button class="btn" onclick="closeModal()">Cancelar</button></div>`);
+    $('#shIn').onclick = async () => { closeModal(); await signIn(); if (CLOUD.user) shareItem(kind, obj); };
+    return;
+  }
+  const u = CLOUD.user, id = Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 8);
+  const payload = { item: JSON.parse(JSON.stringify(obj)), custom: customIn(obj) };
+  if (kind === 'deck') for (const m of payload.item.maps || []) for (const s of m.snaps || []) delete s.thumb;
+  const j = JSON.stringify(payload);
+  if (j.length > 900000) return toast('Es demasiado grande para compartir por link');
+  toast('Creando link…');
+  try {
+    await CLOUD.fb.setDoc(CLOUD.fb.doc(CLOUD.db, 'shares', id), { owner: u.uid, ownerName: (u.displayName || '').split(' ')[0], kind, name: obj.name || '', j, at: Date.now() });
+  } catch (e) { console.warn(e); return toast('No pude crear el link (¿ya publicaste las reglas de Firestore?)'); }
+  const url = location.origin + location.pathname + '?c=' + id;
+  openModal(`<h2>Link para compartir</h2><p class="muted">${kind === 'deck' ? 'Deck' : 'Combo'} “${esc(obj.name || '')}”. Quien lo abra lo puede ver y copiar a su cuenta, sin tocar el tuyo.</p>
+    <input type="text" id="shUrl" readonly value="${esc(url)}" style="width:100%">
+    <div class="btnrow"><button class="btn primary" id="shCopy">Copiar link</button>${navigator.share ? '<button class="btn" id="shNat">Compartir…</button>' : ''}<button class="btn ghost" onclick="closeModal()">Cerrar</button></div>`);
+  $('#shUrl').onclick = ev => ev.target.select();
+  $('#shCopy').onclick = async () => { try { await navigator.clipboard.writeText(url); toast('Link copiado'); } catch (e) { $('#shUrl').select(); toast('Cópialo con ⌘C'); } };
+  if ($('#shNat')) $('#shNat').onclick = () => navigator.share({ title: obj.name || 'Mapa de Combos', url }).catch(() => { });
+}
+async function openShared(id) {
+  const clean = () => { try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) { } };
+  let d;
+  try { const s = await CLOUD.fb.getDoc(CLOUD.fb.doc(CLOUD.db, 'shares', id)); if (!s.exists()) { clean(); return toast('Ese link ya no existe'); } d = s.data(); }
+  catch (e) { console.warn(e); return toast('No pude abrir el link compartido'); }
+  let p; try { p = JSON.parse(d.j); } catch (e) { clean(); return toast('El link está dañado'); }
+  const it = p.item, who = d.ownerName ? esc(d.ownerName) : 'Alguien';
+  const addCustom = () => { for (const [k, v] of Object.entries(p.custom || {})) if (!S.custom[k]) S.custom[k] = v; };
+  if (d.kind === 'deck') {
+    const n = (it.cards || []).filter(c => c.zone === 'main').reduce((a, c) => a + c.qty, 0);
+    openModal(`<h2>${who} te compartió un deck</h2><p><b>${esc(it.name)}</b></p><p class="muted">${n} cartas en el main · ${(it.recipes || []).length} combos · ${(it.maps || []).length} mapas</p>
+      <div class="btnrow"><button class="btn primary" id="sdAdd">Agregar a mis decks</button><button class="btn" id="sdNo">Ahora no</button></div>`);
+    $('#sdNo').onclick = () => { clean(); closeModal(); };
+    $('#sdAdd').onclick = () => { clean(); closeModal(); commit(); addCustom(); it.id = uid('d'); it.name = S.decks.some(x => x.name === it.name) ? it.name + ' (de ' + (d.ownerName || 'amigo') + ')' : it.name; S.decks.push(it); switchDeck(it.id); setView('deck'); toast('Deck agregado'); };
+  } else {
+    const pcs = (it.pieces || []).slice(0, 4);
+    openModal(`<h2>${who} te compartió un combo</h2><div class="rp" style="margin:6px 0 10px">${pcs.map(k => thumb(k, 'sm')).join('<span class="plus">+</span>')}</div><p><b>${esc(it.name)}</b></p>${it.result ? `<p class="muted">${esc(it.result)}</p>` : ''}
+      <div class="field"><label for="srDeck">Agregarlo al deck</label><select id="srDeck">${S.decks.map(x => `<option value="${esc(x.id)}"${x.id === S.deckId ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select></div>
+      <div class="btnrow"><button class="btn primary" id="srAdd">Agregar combo</button><button class="btn" id="srNo">Ahora no</button></div>`);
+    $('#srNo').onclick = () => { clean(); closeModal(); };
+    $('#srAdd').onclick = () => {
+      const tgt = S.decks.find(x => x.id === $('#srDeck').value) || deck(); clean(); closeModal(); commit(); addCustom();
+      it.id = uid('r'); (tgt.recipes = tgt.recipes || []).push(it);
+      if (tgt.id !== S.deckId) switchDeck(tgt.id); else save();
+      setView('combos'); toast('Combo agregado');
+    };
+  }
 }
 
 </script>
