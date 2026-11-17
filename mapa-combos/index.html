@@ -3829,10 +3829,18 @@ function acctMenu() {
   openModal(`<h2>Tu cuenta</h2><div class="acctbox">${u.photoURL ? `<img src="${esc(u.photoURL)}" alt="" referrerpolicy="no-referrer">` : ''}<div><b>${esc(u.displayName || '')}</b><div class="muted small">${esc(u.email || '')}</div></div></div>
     <p class="hint">Tus decks, combos y partidas se guardan en tu cuenta y se sincronizan en cualquier compu o celular donde entres.</p>
     <div class="btnrow"><button class="btn" id="acOut">Cerrar sesión</button><button class="btn ghost" onclick="closeModal()">Cerrar</button></div>`);
-  $('#acOut').onclick = async () => { closeModal(); try { await CLOUD.fb.signOut(CLOUD.auth); toast('Sesión cerrada'); } catch (e) { } };
+  $('#acOut').onclick = async () => { closeModal(); try { await CLOUD.fb.signOut(CLOUD.auth); wipeLocal(); toast('Sesión cerrada. Tus datos siguen en tu cuenta'); } catch (e) { } };
 }
 
 /* ---------- sincronización ---------- */
+function wipeLocal() {
+  S = { v: 1, custom: {}, decks: [], deckId: null, theme: S && S.theme, pristine: true };
+  try { localStorage.removeItem(LS_KEY); } catch (e) { }
+  UNDO.length = 0; REDO.length = 0; histBtns();
+  if (typeof storyOpen === 'function' && storyOpen()) closeStory();
+  try { closeModal(); } catch (e) { }
+  showWelcome();
+}
 const userRef = uid => CLOUD.fb.doc(CLOUD.db, 'users', uid);
 const partRef = (uid, i) => CLOUD.fb.doc(CLOUD.db, 'users', uid, 'parts', String(i));
 const cloudStr = () => { const o = { ...S }; delete o.theme; delete o.pristine; return JSON.stringify(o); };
@@ -3851,6 +3859,7 @@ function onUser(u) {
       return;
     }
     const m = snap.data(); CLOUD.parts = m.n || 0;
+    if (m.reset) { CLOUD.parts = 0; CLOUD.last = ''; CLOUD.ready = true; if (S.decks.length) { wipeLocal(); toast('Tus datos se reiniciaron. Importa tu deck para empezar'); } return; }
     if (m.by === WRITER && !wasFirst) return;
     const str = await readParts(u.uid, m);
     if (str == null) { CLOUD.ready = true; return; }
