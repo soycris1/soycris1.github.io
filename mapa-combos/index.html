@@ -248,6 +248,10 @@ input.stt:hover, input.stt:focus { border-color: var(--line); background: var(--
 .zrow.z-mb { background: color-mix(in srgb, var(--accent) 9%, var(--sunk)); }
 .zrow.z-hand { min-height: 60px; }
 .zrow.over { outline: 2px dashed var(--accent); outline-offset: -2px; }
+.tok.ins::before { content: ''; position: absolute; left: -5px; top: 0; height: calc(var(--tw) * 1.3965); width: 4px; border-radius: 2px; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+.tok.ins.end::before { left: auto; right: -5px; }
+.zcol .tok.ins::before { left: 0; right: 0; top: -5px; width: auto; height: 4px; }
+.zcol .tok.ins.end::before { top: auto; bottom: -5px; }
 .zl { overflow-wrap: anywhere; font: 700 11.5px/1.1 var(--f-display); text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 8px 6px; display: flex; align-items: center; border-right: 1px solid var(--line); }
 .ztoks { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; align-items: flex-start; }
 .zadd { width: 30px; height: 30px; border: 1px dashed var(--line-strong); border-radius: 8px; background: none; color: var(--muted); font-weight: 700; align-self: center; }
@@ -3328,27 +3332,41 @@ function bindStory(r) {
       });
     });
     sec.querySelectorAll('.zrow').forEach(zr => {
-      zr.ondragover = ev => { if (ev.dataTransfer.types.includes('text/x-tok')) { ev.preventDefault(); zr.classList.add('over'); } };
-      zr.ondragleave = () => zr.classList.remove('over');
-      zr.ondrop = ev => { zr.classList.remove('over'); const v = ev.dataTransfer.getData('text/x-tok'); if (!v) return; ev.preventDefault(); const [si, tid] = v.split('|'); if (+si !== i) return toast('Mueve las cartas dentro de la misma etapa'); moveTok(r, i, tid, zr.dataset.z); };
+      // dónde cae: antes de la primera carta que queda después del puntero
+      const slot = ev => { const col = zr.classList.contains('zcol'); const toks = [...zr.querySelectorAll('.tok:not(.ghost)')];
+        return toks.find(tk => { const b = tk.getBoundingClientRect(); return col ? ev.clientY < b.top + Math.min(b.height / 2, 24) : (ev.clientY < b.top || (ev.clientY <= b.bottom && ev.clientX < b.left + b.width / 2)); }) || null; };
+      const clr = () => zr.querySelectorAll('.ins').forEach(x => x.classList.remove('ins', 'end'));
+      zr.ondragover = ev => { if (!ev.dataTransfer.types.includes('text/x-tok')) return; ev.preventDefault(); zr.classList.add('over'); clr(); const b = slot(ev); if (b) b.classList.add('ins'); else { const all = zr.querySelectorAll('.tok:not(.ghost)'); if (all.length) all[all.length - 1].classList.add('ins', 'end'); } };
+      zr.ondragleave = ev => { if (!zr.contains(ev.relatedTarget)) { zr.classList.remove('over'); clr(); } };
+      zr.ondrop = ev => { zr.classList.remove('over'); clr(); const v = ev.dataTransfer.getData('text/x-tok'); if (!v) return; ev.preventDefault(); const [si, tid] = v.split('|'); if (+si !== i) return toast('Mueve las cartas dentro de la misma etapa'); const b = slot(ev); moveTok(r, i, tid, zr.dataset.z, b ? b.dataset.t : null); };
     });
   });
 }
-function moveTok(r, i, tid, z) {
-  const s = r.stages[i]; const [t, from] = findTok(s, tid); if (!t || from === z) return;
-  commit(); s.board[from] = s.board[from].filter(x => x !== t); (s.board[z] = s.board[z] || []).push(t); if (z === 'chain') r.chain = true; save(); renderStory();
+function moveTok(r, i, tid, z, beforeId) {
+  const s = r.stages[i]; const [t, from] = findTok(s, tid); if (!t || beforeId === tid) return;
+  const cur = s.board[from].indexOf(t), list = s.board[z] = s.board[z] || [];
+  if (from === z && (beforeId ? list.indexOf(list.find(x => x.id === beforeId)) === cur + 1 : cur === list.length - 1)) return; // no cambia nada
+  commit(); s.board[from] = s.board[from].filter(x => x !== t); const L = s.board[z];
+  const at = beforeId ? L.findIndex(x => x.id === beforeId) : -1; if (at >= 0) L.splice(at, 0, t); else L.push(t);
+  if (z === 'chain') r.chain = true; save(); renderStory();
+}
+function shiftTok(r, i, tid, d) {
+  const s = r.stages[i]; const [t, z] = findTok(s, tid); if (!t) return; const L = s.board[z], k = L.indexOf(t), j = k + d; if (j < 0 || j >= L.length) return;
+  commit(); [L[k], L[j]] = [L[j], L[k]]; save(); renderStory();
 }
 function tokMenu(r, i, tid) {
   const s = r.stages[i]; const [t, z] = findTok(s, tid); if (!t) return; const c = t.key ? getCard(t.key) : null;
   const zs = SZONES.filter(x => x.id !== z && (x.id !== 'bf2' || r.bf2 || r.stages.some(st => (st.board.bf2 || []).length)));
   openModal(`<h2>${esc(c ? c.name : t.label || 'Unidad')}</h2><p class="small muted" style="margin-top:0">${t.side === 'enemy' ? 'Rival' : 'Aliada'} · en ${esc(SZ_ES[z])} · etapa ${i + 1}</p>
     <div class="field"><label>Mover a</label><div class="btnrow" style="margin:0">${zs.map(x => `<button class="btn sm" data-mv="${x.id}">${esc(x.es)}</button>`).join('')}</div></div>
+    <div class="field"><label>Orden en ${esc(SZ_ES[z])}</label><div class="btnrow" style="margin:0"><button class="btn sm" data-sh="-1" ${s.board[z].indexOf(t) ? '' : 'disabled'}>${z === 'chain' ? '▲ Arriba' : '◀ Antes'}</button><button class="btn sm" data-sh="1" ${s.board[z].indexOf(t) < s.board[z].length - 1 ? '' : 'disabled'}>${z === 'chain' ? 'Abajo ▼' : 'Después ▶'}</button></div></div>
     <div class="field"><label>Estado</label><div class="btnrow" style="margin:0"><button class="btn sm${t.st === 'exh' ? ' primary' : ''}" data-st="exh">↻ Agotada</button><button class="btn sm${t.st === 'dead' ? ' primary' : ''}" data-st="dead">✝ Muerta</button><button class="btn sm${!t.st ? ' primary' : ''}" data-st="">Lista</button></div></div>
     <div class="field"><label>Flecha</label><div class="btnrow" style="margin:0"><button class="btn sm" id="tmArrow">➝ Apuntar a otra carta…</button></div></div>
     <div class="field"><label>Might en esta etapa</label><div class="btnrow" style="margin:0;align-items:center"><button class="btn sm" data-mi="-1">−</button><b class="mono">${t.might ?? c?.might ?? 0}</b><button class="btn sm" data-mi="1">+</button>${t.might != null && c ? '<button class="btn sm ghost" data-mi="reset">Original</button>' : ''}</div></div>
     <div class="field"><label>Lado</label><div class="btnrow" style="margin:0"><button class="btn sm${t.side === 'ally' ? ' primary' : ''}" data-sd="ally">Aliada</button><button class="btn sm${t.side === 'enemy' ? ' primary' : ''}" data-sd="enemy">Rival</button></div></div>
     <div class="btnrow"><button class="btn primary" id="tmOk">Listo</button><button class="btn danger" id="tmDel">Quitar de esta etapa</button><button class="btn ghost" id="tmDelAll" title="Quitarla de esta etapa y de las siguientes">Quitar de aquí en adelante</button></div>`);
   const done = () => { save(); closeModal(); STORY.tsel = null; renderStory(); };
+  $('#modal').querySelectorAll('[data-sh]').forEach(b => b.onclick = () => { shiftTok(r, i, tid, +b.dataset.sh); tokMenu(r, i, tid); });
   $('#modal').querySelectorAll('[data-mv]').forEach(b => b.onclick = () => { closeModal(); STORY.tsel = null; moveTok(r, i, tid, b.dataset.mv); });
   $('#modal').querySelectorAll('[data-st]').forEach(b => b.onclick = () => { commit(); t.st = b.dataset.st; done(); });
   $('#tmArrow').onclick = () => { closeModal(); STORY.arrow = { i, from: tid }; STORY.tsel = null; renderStory(); toast('Ahora toca la carta a la que apunta · Esc para cancelar'); };
