@@ -6,36 +6,24 @@
 </head><body>
 <title>Mapa de Combos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
 <style>
-:root {
-  --bg: #eeecf2; --canvas: #e6e3ec; --dot: #cfc8da;
-  --surface: #ffffff; --sunk: #f1eef5; --raise: #ffffff;
-  --fg: #1d1724; --muted: #6a6175; --line: #dad3e3; --line-strong: #c3b9d0;
-  --accent: #6a2bb8; --accent-ink: #ffffff; --accent-soft: #ece2fa;
-  --gold: #b07d12; --danger: #c0392b; --ok: #1f8a4c; --on-strong: #ffffff;
-  --shadow: 0 1px 2px rgba(20,10,30,.08), 0 8px 24px rgba(20,10,30,.10);
-  --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
-  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
-  color-scheme: light;
+/* Tema único: negro con rojo y detalles blancos */
+:root, :root[data-theme="light"], :root[data-theme="dark"] {
+  --bg: #0a0a0c; --canvas: #070709; --dot: #222228;
+  --surface: #131316; --sunk: #19191d; --raise: #1f1f24; --field: #0e0e11;
+  --fg: #f6f6f7; --muted: #8f8f99; --line: #26262c; --line-strong: #3a3a43;
+  --accent: #e8192c; --accent-hi: #ff3a4b; --accent-ink: #ffffff; --accent-soft: #3a0f16;
+  --accent-glow: rgba(232,25,44,.38); --accent-ring: rgba(232,25,44,.25);
+  --gold: #f5b70a; --danger: #ff4d5a; --ok: #2fd47a; --on-strong: #0a0a0c;
+  --rival: #f2f2f4; --chain: #ffffff;
+  --shadow: 0 1px 2px rgba(0,0,0,.5), 0 10px 28px rgba(0,0,0,.5);
+  --f-display: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
 }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #120e17; --canvas: #0d0a11; --dot: #2a2333;
-  --surface: #1b1622; --sunk: #231d2c; --raise: #262030;
-  --fg: #eee9f4; --muted: #a197ad; --line: #322a3c; --line-strong: #463b53;
-  --accent: #b07cf5; --accent-ink: #160d22; --accent-soft: #2e2142;
-  --gold: #f2c14e; --danger: #ff6b5e; --ok: #4cd38a; --on-strong: #120e17;
-  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
-  color-scheme: dark; } }
-:root[data-theme="dark"] {
-  --bg: #120e17; --canvas: #0d0a11; --dot: #2a2333;
-  --surface: #1b1622; --sunk: #231d2c; --raise: #262030;
-  --fg: #eee9f4; --muted: #a197ad; --line: #322a3c; --line-strong: #463b53;
-  --accent: #b07cf5; --accent-ink: #160d22; --accent-soft: #2e2142;
-  --gold: #f2c14e; --danger: #ff6b5e; --ok: #4cd38a; --on-strong: #120e17;
-  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
-  color-scheme: dark; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark; } }
 
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
@@ -687,6 +675,191 @@ button.tr:hover { background: var(--sunk); }
   .hrow { grid-template-columns: 26px minmax(0, 1fr) auto auto; }
   .hrow > .small:nth-of-type(2) { display: none; }
 }
+/* ================= Skin: negro, rojo y blanco ================= */
+body { font: 500 14px/1.45 var(--f-body); letter-spacing: -.003em; }
+::selection { background: var(--accent); color: #fff; }
+* { scrollbar-width: thin; scrollbar-color: #33333a transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #2c2c33; border-radius: 99px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-track { background: transparent; }
+kbd { background: #000; border-color: var(--line-strong); border-radius: 5px; color: var(--muted); }
+
+/* barra superior */
+header.bar { background: #000; border-bottom: 1px solid var(--line); padding: 9px 14px; gap: 12px; }
+.brand { display: flex; align-items: center; gap: 9px; font: 800 18px/1 var(--f-display); text-transform: none; letter-spacing: -.02em; }
+.brand::before { content: ''; flex: none; width: 28px; height: 28px; border-radius: 8px; background: var(--accent) center / 18px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M6 7l12 5M6 17l12-5'/%3E%3Ccircle cx='5' cy='6.5' r='2.4' fill='white' stroke='none'/%3E%3Ccircle cx='5' cy='17.5' r='2.4' fill='white' stroke='none'/%3E%3Ccircle cx='19' cy='12' r='3' fill='white' stroke='none'/%3E%3C/svg%3E"); box-shadow: 0 4px 14px var(--accent-glow); }
+.brand span { color: var(--accent); }
+.views { background: var(--sunk); border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
+.views button { border-radius: 999px; padding: 6px 14px; font-weight: 700; font-size: 13px; transition: background .12s, color .12s; }
+.views button.on { background: #fff; color: #000; box-shadow: none; }
+.tab { border-radius: 999px; padding: 6px 12px; font-weight: 700; font-size: 13px; }
+.tab.on { background: var(--accent-soft); color: #fff; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent); }
+.search-trigger { border-radius: 999px; background: var(--sunk); padding: 6px 8px 6px 14px; }
+.save-ind { font-weight: 600; }
+
+/* botones y campos */
+.btn { border-radius: 8px; padding: 7px 12px; font-weight: 700; font-size: 13px; background: var(--raise); border-color: var(--line); transition: background .12s, border-color .12s, transform .08s, box-shadow .12s; }
+.btn:hover { background: #26262c; border-color: var(--line-strong); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn.primary { background: var(--accent); color: #fff; border-color: transparent; box-shadow: 0 4px 14px var(--accent-glow); }
+.btn.primary:hover { background: var(--accent-hi); }
+.btn.ghost { background: none; border-color: transparent; }
+.btn.ghost:hover { background: var(--raise); }
+.btn.sm { padding: 4px 10px; font-size: 12.5px; border-radius: 7px; }
+.btn.icon { padding: 6px; border-radius: 8px; }
+.btn.danger { color: var(--danger); }
+select, input[type=text], input[type=number], input[type=search], textarea { background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; transition: border-color .12s, box-shadow .12s; }
+select:hover, input[type=text]:hover, input[type=number]:hover, input[type=search]:hover, textarea:hover { border-color: var(--line-strong); }
+select:focus, input:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+.pal input:focus { box-shadow: none; }
+
+/* paneles laterales */
+aside { background: var(--surface); }
+.ptabs { gap: 4px; padding: 8px 10px 0; }
+.ptabs button { font-weight: 700; font-size: 13px; border-bottom-width: 2px; }
+.ptabs button.on { color: #fff; border-bottom-color: var(--accent); }
+.sec h3 { font: 800 11.5px/1.2 var(--f-display); letter-spacing: .09em; color: var(--muted); }
+.row { border-radius: 8px; }
+.row.sel { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+.row .cost { background: #000; border-color: var(--line-strong); font-weight: 700; }
+.curve .b { border-radius: 5px 5px 0 0; opacity: 1; background: linear-gradient(var(--accent-hi), var(--accent)); }
+.pill { border-radius: 999px; padding: 3px 10px; font-weight: 600; background: var(--raise); border: 1px solid var(--line); }
+.chip { border-radius: 999px; font-weight: 600; }
+.chip.on { background: var(--accent-soft); border-color: var(--accent); color: #fff; }
+.hint { border-radius: 10px; box-shadow: inset 3px 0 0 var(--accent); }
+.ctext { border-radius: 10px; border: 1px solid var(--line); }
+.ctext .kw { color: #fff; background: var(--accent-soft); border-radius: 4px; padding: 0 4px; }
+.insp h2 { font: 800 22px/1.1 var(--f-display); text-transform: none; letter-spacing: -.02em; }
+.bigcard { border-radius: 14px; }
+.conn { border-radius: 8px; }
+
+/* lienzo */
+#stage { background-color: var(--canvas); }
+.float { background: var(--surface); border-color: var(--line); border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.55); }
+#zoomctl button { border-radius: 8px; }
+#zoomctl button:hover { background: var(--raise); }
+#zoomctl button.on { background: var(--accent); color: #fff; }
+#tools button { border-radius: 10px; }
+#tools button:hover { background: var(--raise); }
+#tools button span { font-weight: 700; }
+#modebar { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring), 0 10px 30px rgba(0,0,0,.55); }
+.node .cimg { border-radius: 10px; }
+.node .nm { font-weight: 700; }
+.node .qty { background: #fff; color: #000; font-weight: 700; }
+.node .zone, .node .rival { border-radius: 999px; font: 800 10.5px/1.5 var(--f-display); letter-spacing: .07em; padding: 1px 9px; }
+.node.enemy .cimg { box-shadow: 0 0 0 3px var(--rival), var(--shadow); }
+.node .rival { background: var(--rival); color: #000; }
+.pill.rivalp { background: var(--rival); color: #000; border-color: transparent; }
+.node .nnote { border-radius: 10px; border-color: var(--line-strong); background: #000; }
+.node .port, .ann-port { border-color: #000; }
+.zlabel { font: 800 24px/1 var(--f-display); letter-spacing: .05em; color: #fff; opacity: .16; }
+.zlabel small { font-family: var(--f-mono); }
+.ph .pt { font: 800 16px/1.05 var(--f-display); letter-spacing: 0; }
+.th b { font: 800 12px/1.1 var(--f-display); }
+.grp-hd { color: #000; }
+.grp-hd b { font: 800 16px/1 var(--f-display); text-transform: none; letter-spacing: -.01em; }
+.grp-port { background: #000; }
+.ann-sticky { color: #111; }
+#play { border-color: var(--line-strong); box-shadow: inset 0 3px 0 var(--gold), 0 10px 30px rgba(0,0,0,.55); }
+#play .title { font: 800 16px var(--f-display); text-transform: none; letter-spacing: -.01em; }
+
+/* vistas */
+.view { background: var(--bg); }
+.vhead h1 { font: 800 32px/1.05 var(--f-display); text-transform: none; letter-spacing: -.03em; }
+.panel, .recipe, .tbl { border-radius: 14px; border-color: var(--line); }
+.recipe { transition: border-color .12s; }
+.recipe:hover { border-color: var(--line-strong); }
+.sug { border-radius: 14px; }
+.rb h3 { font: 800 19px/1.15 var(--f-display); text-transform: none; letter-spacing: -.015em; }
+.plus { font: 800 18px var(--f-display); }
+.combo { border-radius: 12px; }
+.combo.on { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+.th { border-radius: 8px; }
+.tq:not(.tok .tq) { background: rgba(0,0,0,.85); }
+.seg { border-radius: 999px; padding: 3px; gap: 2px; background: var(--sunk); }
+.seg button { border-radius: 999px; background: none; font-weight: 700; }
+.seg button + button { border-left: 0; }
+.seg button.on { background: #fff; color: #000; }
+.tr.thd { font-weight: 800; letter-spacing: .08em; background: #000; }
+.tr.on { box-shadow: inset 3px 0 0 var(--accent); }
+.kpis b { font-weight: 800; letter-spacing: -.02em; }
+.res { border-radius: 7px; }
+.vbar { background: #000; }
+.vbar button.on { color: #fff; background: var(--accent); }
+.lib-card { border-radius: 8px; }
+.lib-card.indeck::after { background: var(--accent); color: #fff; }
+
+/* modales */
+.scrim { background: rgba(0,0,0,.72); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.modal { border-radius: 18px; border-color: var(--line-strong); box-shadow: 0 24px 60px rgba(0,0,0,.6); }
+.modal h2 { font: 800 22px/1.15 var(--f-display); text-transform: none; letter-spacing: -.02em; }
+.pal li { border-radius: 10px; }
+.pal li.on { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+.pal li .k { font-weight: 800; letter-spacing: .08em; }
+#toast { background: #fff; color: #000; border-radius: 999px; font-weight: 700; padding: 10px 18px; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+
+/* mapa de combos (etapas) */
+.story { background: var(--bg); }
+.stitle input { font: 800 30px/1.1 var(--f-display); text-transform: none; letter-spacing: -.03em; border-radius: 10px; }
+.stot b { font-weight: 700; }
+.stg { background: var(--surface); border-color: var(--line); border-radius: 18px; padding: 14px; }
+.sn { border-radius: 9px; background: var(--accent); color: #fff; font: 800 16px/1 var(--f-display); box-shadow: 0 4px 12px var(--accent-glow); }
+.stt { font: 800 17px/1.15 var(--f-display); text-transform: none; letter-spacing: -.015em; }
+input.stt { border-radius: 8px; }
+.sarrow { color: var(--line-strong); }
+.saddst { border-radius: 18px; border-color: var(--line-strong); }
+.saddst b { color: var(--accent); }
+.saddst.resp b { color: #fff; }
+.spc { border-radius: 12px; background: var(--raise); }
+.cst { border-radius: 8px; background: var(--raise); border: 1px solid var(--line); }
+.rstep, .rchip { border-radius: 999px; }
+.board { gap: 6px; border-radius: 12px; }
+.bwrap { gap: 6px; }
+.zrow { --zc: var(--line-strong); grid-template-columns: 84px minmax(0, 1fr); background: var(--sunk); border-radius: 12px; box-shadow: inset 4px 0 0 var(--zc); overflow: hidden; }
+.zrow.z-eb { --zc: var(--rival); background: color-mix(in srgb, var(--rival) 3%, var(--sunk)); }
+.zrow.z-bf1, .zrow.z-bf2 { --zc: var(--gold); background: color-mix(in srgb, var(--gold) 5%, var(--sunk)); }
+.zrow.z-mb { --zc: var(--accent); background: color-mix(in srgb, var(--accent) 7%, var(--sunk)); }
+.zrow.z-hand { --zc: var(--muted); }
+.zrow.over { outline-color: var(--accent); }
+.zl { font: 800 11.5px/1.15 var(--f-display); text-transform: none; letter-spacing: -.005em; color: #fff; padding: 8px 6px 8px 12px; border-right-color: var(--line); overflow-wrap: normal; }
+.zrow.zcol { --zc: var(--chain); background: color-mix(in srgb, var(--chain) 4%, var(--sunk)); box-shadow: inset 0 4px 0 var(--zc); }
+.zcol .zl { padding: 10px 2px 8px; text-transform: uppercase; letter-spacing: .08em; font-size: 10px; }
+.lane.enemy { background: color-mix(in srgb, var(--rival) 4%, transparent); border-bottom: 2px dashed var(--line-strong); }
+.lane.ally { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.lnl { font: 800 9px/1.2 var(--f-display); letter-spacing: .1em; }
+.lane.enemy .lnl { color: var(--rival); }
+.lane.ally .lnl { color: var(--accent-hi); }
+.zadd { border-radius: 8px; border-color: var(--line-strong); }
+.zadd:hover { border-color: var(--accent); color: #fff; background: var(--accent-soft); }
+.tok .th { border-radius: 6px; }
+.tok .th.gen { background: linear-gradient(160deg, #4a4a53, #121215); }
+.tok.ally .th { outline-color: color-mix(in srgb, var(--accent) 85%, transparent); }
+.tok.enemy .th { outline-color: var(--rival); }
+.tok.enemy .tmi { background: var(--rival); color: #000; }
+.tmi { background: var(--accent); color: #fff; }
+.tok.dead::after { color: var(--accent-hi); }
+.tb { border-radius: 999px; font-weight: 800; }
+.tb.dead { background: var(--accent); color: #fff; }
+.tord { background: #fff; color: #000; font-weight: 800; }
+.tq { background: rgba(0,0,0,.86); }
+.alab { border-color: #000; font-weight: 800; }
+.tnm { font-weight: 700; }
+.pk { border-radius: 12px; }
+.pkgen { border-radius: 12px; border: 1px solid var(--line); }
+.ms i { border-radius: 6px; font-family: var(--f-display); font-weight: 800; }
+.splayer { background: color-mix(in srgb, #000 88%, transparent); backdrop-filter: blur(2px); }
+.spbox .stg { box-shadow: 0 24px 60px rgba(0,0,0,.6); border-color: var(--line-strong); }
+.spbox .zrow { grid-template-columns: 104px minmax(0, 1fr); }
+.spbox .zl { font-size: 13px; }
+@media (max-width: 640px) {
+  .zrow { grid-template-columns: 66px minmax(0, 1fr); }
+  .zl { font-size: 10px; padding-left: 9px; }
+  .stitle input { font-size: 22px; }
+  .vhead h1 { font-size: 26px; }
+  .brand { font-size: 0; gap: 0; }
+  .brand span { display: none; }
+  .deckpick select { max-width: 150px; }
+}
 </style>
 <div id="app">
   <header class="bar">
@@ -1108,7 +1281,7 @@ async function connectDb() {
       S = d.state; S.custom = S.custom || {}; migrateState(S);
       if (keepDeck && S.decks.some(x => x.id === keepDeck)) S.deckId = keepDeck;
       try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch (e) { }
-      if (S.theme) document.documentElement.dataset.theme = S.theme; applyDim();
+      applyDim();
       sel.nodes.clear(); sel.edge = null; if (play) stopPlay();
       renderAll(first);
       if (!first) toast('Mapa actualizado con los últimos cambios');
@@ -2082,7 +2255,7 @@ function snapData(m) { const o = {}; for (const f of SNAP_FIELDS) o[f] = JSON.pa
 function snapThumb(m) {
   try {
     const W = 320, H = 200, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const ctx = cv.getContext('2d');
-    const cs = getComputedStyle(document.documentElement); ctx.fillStyle = cs.getPropertyValue('--canvas').trim() || '#e6e3ec'; ctx.fillRect(0, 0, W, H);
+    const cs = getComputedStyle(document.documentElement); ctx.fillStyle = cs.getPropertyValue('--canvas').trim() || '#070709'; ctx.fillRect(0, 0, W, H);
     const b = bounds(); if (!b || !isFinite(b.x0)) return cv.toDataURL('image/jpeg', .7);
     const s = Math.min((W - 20) / (b.x1 - b.x0), (H - 20) / (b.y1 - b.y0)); const ox = (W - (b.x1 - b.x0) * s) / 2, oy = (H - (b.y1 - b.y0) * s) / 2;
     const tx = x => ox + (x - b.x0) * s, ty = y => oy + (y - b.y0) * s;
@@ -2094,7 +2267,7 @@ function snapThumb(m) {
     ctx.globalAlpha = 1;
     for (const [k, n] of Object.entries(m.nodes)) { const [w, h] = nodeSize(k); const img = nodeEl(k)?.querySelector('img'); const x = tx(n.x), y = ty(n.y), ww = Math.max(3, w * s), hh = Math.max(3, h * s);
       try { if (img && img.complete && img.naturalWidth) ctx.drawImage(img, x, y, ww, hh); else throw 0; } catch (e) { ctx.fillStyle = dcol(getCard(k)); ctx.fillRect(x, y, ww, hh); }
-      if (isEnemy(k)) { ctx.strokeStyle = '#e5484d'; ctx.lineWidth = 2; ctx.strokeRect(x, y, ww, hh); } }
+      if (isEnemy(k)) { ctx.strokeStyle = '#f2f2f4'; ctx.lineWidth = 2; ctx.strokeRect(x, y, ww, hh); } }
     return cv.toDataURL('image/jpeg', .72);
   } catch (e) { return ''; }
 }
@@ -2524,7 +2697,6 @@ function commands() {
     ['Exportar todo a JSON', '', () => exportJSON(false)], ['Exportar solo este deck a JSON', '', () => exportJSON(true)], ['Importar JSON (archivo)', '', () => $('#fileIn').click()], ['Importar JSON (pegar texto)', '', importJSONPaste],
     ['Copiar decklist', '', copyDecklist],
     [(focusMode ? 'Desactivar' : 'Activar') + ' modo enfoque', 'E', toggleFocus],
-    ['Cambiar tema claro / oscuro', '', toggleTheme],
     ['Mostrar atajos de teclado', '?', showHelp],
     ['Ver cartas sin conexiones', '', () => { sel.nodes.clear(); sel.edge = null; onSelChange(); toggleRight(true); }],
   ].map(([l, k, run]) => ({ kind: 'cmd', k: 'Comando', l, h: k ? `<kbd>${k}</kbd>` : '', run }));
@@ -2623,7 +2795,7 @@ function toggleTheme() {
   const nx = cur === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = nx; S.theme = nx; save(); drawMinimap();
 }
 function moreMenu(ev) {
-  const items = [['Importar un deck nuevo', importDeckUI], ['Auto-organizar mapa', relayout], ['Renombrar mapa', renameMap], ['Duplicar mapa', dupMap], ['Borrar mapa', delMap], ['Renombrar deck', renameDeck], ['Copiar decklist', copyDecklist], ['Exportar todo (JSON)', () => exportJSON(false)], ['Importar JSON (archivo)', () => $('#fileIn').click()], ['Importar JSON (pegar)', importJSONPaste], ['Borrar deck', delDeck], ['Tema claro / oscuro', toggleTheme], ['Atajos de teclado', showHelp]];
+  const items = [['Importar un deck nuevo', importDeckUI], ['Auto-organizar mapa', relayout], ['Renombrar mapa', renameMap], ['Duplicar mapa', dupMap], ['Borrar mapa', delMap], ['Renombrar deck', renameDeck], ['Copiar decklist', copyDecklist], ['Exportar todo (JSON)', () => exportJSON(false)], ['Importar JSON (archivo)', () => $('#fileIn').click()], ['Importar JSON (pegar)', importJSONPaste], ['Borrar deck', delDeck], ['Atajos de teclado', showHelp]];
   openModal(`<h2>Opciones</h2><div style="display:grid;gap:6px">${items.map(([l], i) => `<button class="btn" data-i="${i}" style="justify-content:flex-start">${l}</button>`).join('')}</div>`);
   $('#modal').querySelectorAll('[data-i]').forEach(b => b.onclick = () => { closeModal(); items[+b.dataset.i][1](); });
 }
@@ -2725,7 +2897,7 @@ function seedState() {
 function init() {
   S = load();
   if (!S) { S = seedState(); save(); }
-  if (S.theme) document.documentElement.dataset.theme = S.theme; applyDim();
+  applyDim();
   renderDefs();
   if (innerWidth <= 1100) $('#work').classList.add('no-left', 'no-right');
   const st = stage();
