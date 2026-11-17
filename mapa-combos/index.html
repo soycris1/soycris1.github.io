@@ -150,6 +150,58 @@ svg.layer { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overfl
 .node .port:hover { transform: scale(1.25); }
 .node.sel .cimg { outline-color: var(--accent); }
 .node.nb .cimg { outline-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.ann { position: absolute; pointer-events: auto; cursor: move; display: flex; align-items: center; justify-content: center; text-align: center; color: var(--fg); }
+.ann-tx { width: 100%; max-height: 100%; overflow: hidden; padding: 10px 14px; white-space: pre-wrap; word-break: break-word; line-height: 1.25; font-weight: 600; outline: none; }
+.ann-tx.ph { color: var(--muted); font-weight: 400; font-style: italic; font-size: 13px; }
+.ann-tx[contenteditable="true"] { cursor: text; background: color-mix(in srgb, var(--surface) 70%, transparent); border-radius: 8px; overflow: auto; }
+.ann-text { justify-content: flex-start; text-align: left; }
+.ann-text .ann-tx { font-family: var(--f-display); font-weight: 700; color: var(--ac); padding: 4px 6px; }
+.ann-rect { border: 3px solid var(--ac); border-radius: 14px; background: color-mix(in srgb, var(--ac) 10%, transparent); }
+.ann-ellipse { border: 3px solid var(--ac); border-radius: 50%; background: color-mix(in srgb, var(--ac) 10%, transparent); }
+.ann-sticky { background: color-mix(in srgb, var(--ac) 80%, #fff); color: #1d1724; border-radius: 4px 4px 18px 4px; box-shadow: 0 2px 4px rgba(0,0,0,.18), 0 10px 22px rgba(0,0,0,.16); align-items: flex-start; text-align: left; }
+.ann-sticky .ann-tx { font-weight: 500; }
+.ann.sel { outline: 2px solid var(--accent); outline-offset: 4px; }
+.ann.nb { outline: 2px dashed var(--accent); outline-offset: 4px; }
+.ann.dim { opacity: var(--dim-node, .78); }
+.ann-port { position: absolute; right: -10px; top: 50%; width: 18px; height: 18px; margin-top: -9px; border-radius: 50%; background: var(--accent); border: 3px solid var(--surface); box-shadow: var(--shadow); cursor: crosshair; opacity: 0; transition: opacity .12s; font-style: normal; }
+.ann:hover .ann-port, .ann.sel .ann-port { opacity: 1; }
+.ann-sz { position: absolute; right: -4px; bottom: -4px; width: 16px; height: 16px; cursor: nwse-resize; opacity: 0; border-right: 3px solid var(--accent); border-bottom: 3px solid var(--accent); }
+.ann:hover .ann-sz, .ann.sel .ann-sz { opacity: 1; }
+#tools { left: 12px; top: 62px; display: flex; flex-direction: column; padding: 4px; gap: 2px; }
+#tools button { border: 0; background: none; border-radius: 8px; width: 52px; padding: 5px 2px; display: flex; flex-direction: column; align-items: center; gap: 1px; color: var(--fg); }
+#tools button b { font-size: 17px; line-height: 1.1; }
+#tools button span { font-size: 10.5px; color: var(--muted); font-weight: 600; }
+#tools button:hover { background: var(--accent-soft); }
+#tools button:first-child b { color: var(--accent); }
+.node .nnote { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); margin-top: 6px; width: max-content; max-width: 280px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 9px; padding: 5px 9px; white-space: pre-wrap; line-height: 1.25; font-weight: 600; text-align: center; color: var(--fg); box-shadow: var(--shadow); pointer-events: none; }
+.node.enemy .cimg { box-shadow: 0 0 0 4px #e5484d, var(--shadow); }
+.node .rival { position: absolute; top: -9px; left: -6px; padding: 2px 8px; border-radius: 6px; background: #e5484d; color: #fff; font: 700 11px var(--f-display); letter-spacing: .06em; text-transform: uppercase; box-shadow: var(--shadow); }
+.pill.rivalp { background: #e5484d; color: #fff; font-family: var(--f-body); font-size: 12px; vertical-align: middle; }
+.modal:has(.finder) { width: min(1060px, 100%); max-height: 88vh; }
+.scrim:has(.finder) { padding-top: 5vh; }
+.fhd { display: flex; justify-content: space-between; align-items: center; }
+.fbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+.fbar input[type=search] { flex: 1; min-width: 200px; }
+.rng { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.rng input { width: 58px; }
+.fgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 12px; margin-top: 10px; }
+.fcard { border: 0; padding: 0; background: none; text-align: left; display: flex; flex-direction: column; gap: 4px; position: relative; min-width: 0; }
+.fcard .th { width: 100%; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .12s; }
+.fcard:hover .th { transform: translateY(-3px); }
+.fcard.added .th { outline: 3px solid var(--ok); outline-offset: 2px; }
+.fn { font-size: 12.5px; font-weight: 600; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fm { display: flex; gap: 6px; font-size: 11.5px; color: var(--muted); }
+.fm i { font-style: normal; font-family: var(--f-mono); }
+.fm i.d { color: var(--accent); font-family: var(--f-body); font-weight: 600; }
+@media (max-width: 640px) { #tools { top: 118px; left: 8px; } #tools button { width: 40px; padding: 6px 2px; } #tools button span { display: none; } }
+.snaps { display: grid; gap: 10px; }
+.snap { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 10px; padding: 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--raise); }
+.snap.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.sthumb { border: 0; padding: 0; border-radius: 7px; overflow: hidden; background: var(--sunk); aspect-ratio: 16 / 10; align-self: start; }
+.sthumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sinfo { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.sinfo b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sinfo .btn.sm { padding: 2px 6px; font-size: 12px; }
 .grp { position: absolute; border: 2px dashed var(--gc); border-radius: 18px; background: color-mix(in srgb, var(--gc) 7%, transparent); pointer-events: none; transition: opacity .18s, box-shadow .15s; }
 .grp.sel { border-style: solid; box-shadow: 0 0 0 4px color-mix(in srgb, var(--gc) 25%, transparent); }
 .grp.nb { border-style: solid; }
@@ -483,6 +535,7 @@ button.tr:hover { background: var(--sunk); }
         <button data-t="deck" class="on">Deck</button>
         <button data-t="combos">Combos</button>
         <button data-t="lib">Biblioteca</button>
+        <button data-t="snaps">Jugadas</button>
       </div>
       <div class="pbody" id="leftBody"></div>
     </aside>
@@ -490,12 +543,22 @@ button.tr:hover { background: var(--sunk); }
       <div id="world">
         <div id="zlabels"></div>
         <div id="groups"></div>
+        <div id="annots"></div>
         <svg class="layer" id="edges"><defs id="defs"></defs><g id="edgeG"></g><g id="cpathG"></g><path id="tmpLine" class="tmp-line" d=""/></svg>
         <div id="nodes"></div>
       </div>
       <div class="float" id="filters" aria-label="Filtro por dominio"></div>
       <div class="float" id="modebar"><span id="modeText"></span><button class="btn sm" id="modeDone">Listo <kbd>Esc</kbd></button></div>
       <div class="float" id="legend" aria-label="Tipos de conexión"></div>
+      <div class="float" id="tools" aria-label="Herramientas">
+        <button data-tool="card" title="Agregar carta: buscar entre todas, aliada o rival (A)"><b>＋</b><span>Carta</span></button>
+        <button data-tool="text" title="Texto libre (T)"><b>T</b><span>Texto</span></button>
+        <button data-tool="sticky" title="Nota adhesiva"><b>🗒</b><span>Nota</span></button>
+        <button data-tool="rect" title="Cuadro"><b>▭</b><span>Cuadro</span></button>
+        <button data-tool="ellipse" title="Círculo"><b>◯</b><span>Círculo</span></button>
+        <button data-tool="group" title="Grupo: engloba las cartas seleccionadas (G)"><b>▢</b><span>Grupo</span></button>
+        <button data-tool="snap" title="Guardar jugada: foto del mapa con nombre (S)"><b>📸</b><span>Jugada</span></button>
+      </div>
       <div class="float" id="zoomctl">
         <button id="zIn" title="Acercar (+)">+</button>
         <div class="zv mono" id="zVal">100%</div>
@@ -760,16 +823,21 @@ const NAME_IDX = new Map();
 for (const c of DB.values()) { const k = norm(c.name); if (!NAME_IDX.has(k)) NAME_IDX.set(k, c.id); }
 
 const SEP = '~';
-const baseKey = k => String(k || '').split(/[~@]/)[0];
+const baseKey = k => String(k || '').split(/[~@!]/)[0];
+const isEnemy = k => /![0-9]/.test(String(k || ''));
 const instKey = k => String(k || '').split('@')[0];
 const isProxy = k => String(k || '').includes('@');
 const copyNo = k => +(instKey(k).split(SEP)[1] || 1);
-const copiesOnMap = (base, m = map()) => Object.keys(m.nodes).filter(k => baseKey(k) === base && !isProxy(k)).sort((a, b) => copyNo(a) - copyNo(b));
+const copiesOnMap = (base, m = map()) => Object.keys(m.nodes).filter(k => baseKey(k) === base && !isProxy(k) && !isEnemy(k)).sort((a, b) => copyNo(a) - copyNo(b));
 const isGrp = k => String(k || '').startsWith('grp:');
 const grpOf = (k, m = map()) => (m.groups || []).find(g => 'grp:' + g.id === k);
-const endExists = (m, k) => isGrp(k) ? !!grpOf(k, m) : !!m.nodes[k];
-const nameOf = k => isGrp(k) ? 'Grupo: ' + (grpOf(k)?.name || '') : getCard(k).name;
-const focusKeyOf = () => sel.nodes.size === 1 ? [...sel.nodes][0] : sel.group ? 'grp:' + sel.group : null;
+const isAnn = k => String(k || '').startsWith('ann:');
+const annOf = (k, m = map()) => (m.notes || []).find(x => 'ann:' + x.id === k);
+const boxOf = (k, m = map()) => isGrp(k) ? grpOf(k, m) : isAnn(k) ? annOf(k, m) : null;
+const endExists = (m, k) => isGrp(k) ? !!grpOf(k, m) : isAnn(k) ? !!annOf(k, m) : !!m.nodes[k];
+const ANN_ES = { text: 'Texto', rect: 'Cuadro', ellipse: 'Círculo', sticky: 'Nota' };
+const nameOf = k => { if (isGrp(k)) return 'Grupo: ' + (grpOf(k)?.name || ''); if (isAnn(k)) { const n = annOf(k); return (ANN_ES[n?.kind] || 'Nota') + ': ' + ((n?.text || '').split('\n')[0].slice(0, 40) || 'sin texto'); } return (isEnemy(k) ? 'Rival: ' : '') + getCard(k).name; };
+const focusKeyOf = () => sel.nodes.size === 1 ? [...sel.nodes][0] : sel.group ? 'grp:' + sel.group : sel.ann ? 'ann:' + sel.ann : null;
 function getCard(key) {
   key = baseKey(key);
   const base0 = DB.get(key) || (CARD_ALIAS[key] && DB.get(CARD_ALIAS[key]));
@@ -920,7 +988,7 @@ function newMap(name, d, fill) {
   return m;
 }
 const isBF = key => getCard(key).type === 'Battlefield';
-const nodeSize = key => { if (isGrp(key)) { const g = grpOf(key); return g ? [g.w, g.h] : [NW, NH]; } return isBF(key) ? [BW, BH] : [NW, NH]; };
+const nodeSize = key => { if (isGrp(key) || isAnn(key)) { const g = boxOf(key); return g ? [g.w, g.h] : [NW, NH]; } return isBF(key) ? [BW, BH] : [NW, NH]; };
 function lanesFor(d) {
   const seen = new Set(), lanes = { lc: [], unit: [], spell: [], gear: [], bf: [] };
   for (const e of d.cards) {
@@ -958,7 +1026,7 @@ function autoLayout(m, d = deck(), onlyExisting = false) {
 }
 
 /* ============ Selección / modos ============ */
-const sel = { nodes: new Set(), edge: null, group: null };
+const sel = { nodes: new Set(), edge: null, group: null, ann: null };
 let mode = null; // {type:'connect', from} | {type:'record', comboId}
 let focusMode = true;
 const hiddenTypes = new Set();
@@ -997,8 +1065,8 @@ function animateTo(x, y, k, ms = 380) {
 function bounds(keys) {
   const m = map(); const all = !keys; keys = keys || Object.keys(m.nodes);
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-  if (all) for (const g of m.groups || []) keys = keys.concat('grp:' + g.id);
-  for (const k of keys) { const n = isGrp(k) ? grpOf(k, m) : m.nodes[k]; if (!n) continue; const [w, h] = nodeSize(k); x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x + w); y1 = Math.max(y1, n.y + h + 24); }
+  if (all) { for (const g of m.groups || []) keys = keys.concat('grp:' + g.id); for (const g of m.notes || []) keys = keys.concat('ann:' + g.id); }
+  for (const k of keys) { const n = (isGrp(k) || isAnn(k)) ? boxOf(k, m) : m.nodes[k]; if (!n) continue; const [w, h] = nodeSize(k); x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x + w); y1 = Math.max(y1, n.y + h + 24); }
   for (const l of (keys === undefined || keys.length === Object.keys(m.nodes).length ? m.labels : [])) { x0 = Math.min(x0, l.x); y0 = Math.min(y0, l.y); }
   if (x0 === Infinity) return null;
   return { x0, y0, x1, y1 };
@@ -1040,25 +1108,129 @@ function phTag(c) {
 function zoneOf(key) { key = baseKey(key); const zs = deck().cards.filter(c => c.key === key).map(c => c.zone); return zs.includes('legend') ? 'legend' : zs.includes('champion') ? 'champion' : zs.find(z => z !== 'side') || zs[0]; }
 function renderNodes() {
   const m = map(), el = $('#nodes');
-  let h = ''; const ncp = {}, uses = {}; for (const k of Object.keys(m.nodes)) { if (!isProxy(k)) ncp[baseKey(k)] = (ncp[baseKey(k)] || 0) + 1; uses[instKey(k)] = (uses[instKey(k)] || 0) + 1; }
+  let h = ''; const ncp = {}, uses = {}; for (const k of Object.keys(m.nodes)) { if (!isProxy(k) && !isEnemy(k)) ncp[baseKey(k)] = (ncp[baseKey(k)] || 0) + 1; uses[instKey(k)] = (uses[instKey(k)] || 0) + 1; }
   for (const [key, n] of Object.entries(m.nodes)) {
     const c = getCard(key), z = zoneOf(key);
     const q = deckQty(key) - deckQty(key, 'side'), qs = deckQty(key, 'side');
     const badge = z === 'legend' ? 'Leyenda' : z === 'champion' ? 'Campeón' : (!q && qs ? 'Side' : '');
-    const nu = uses[instKey(key)] || 1, px = isProxy(key);
-    h += `<div class="node${c.type === 'Battlefield' ? ' bf' : ''}${c.img ? '' : ' noimg'}${px ? ' proxy' : ''}" data-key="${esc(key)}" style="left:${n.x}px;top:${n.y}px">
+    const nu = uses[instKey(key)] || 1, px = isProxy(key), en = isEnemy(key);
+    h += `<div class="node${c.type === 'Battlefield' ? ' bf' : ''}${c.img ? '' : ' noimg'}${px ? ' proxy' : ''}${en ? ' enemy' : ''}" data-key="${esc(key)}" style="left:${n.x}px;top:${n.y}px">
       <div class="cimg">${imgTag(c)}${phTag(c)}</div>
-      ${ncp[baseKey(key)] > 1 ? `<span class="qty" title="Copia ${copyNo(key)} de ${copiesTotal(baseKey(key))}">${copyNo(key)}/${copiesTotal(baseKey(key))}</span>` : q > 1 || (qs && q) ? `<span class="qty" title="Copias en el deck. Selecciona la carta y usa “Separar copia” para tenerlas por separado">×${q}${qs ? '+' + qs : ''}</span>` : ''}
-      ${badge ? `<span class="zone">${badge}</span>` : ''}
+      ${en ? '<span class="rival">Rival</span>' : ncp[baseKey(key)] > 1 ? `<span class="qty" title="Copia ${copyNo(key)} de ${Math.max(copiesTotal(baseKey(key)), ncp[baseKey(key)])}">${copyNo(key)}/${Math.max(copiesTotal(baseKey(key)), ncp[baseKey(key)])}</span>` : q > 1 || (qs && q) ? `<span class="qty" title="Copias en el deck. Selecciona la carta y usa “Separar copia” para tenerlas por separado">×${q}${qs ? '+' + qs : ''}</span>` : ''}
+      ${badge && !en ? `<span class="zone">${badge}</span>` : ''}
       ${nu > 1 ? `<span class="uses" title="${px ? 'Proxy: es la misma carta física que la original' : 'Esta misma carta física'} aparece en ${nu} lugares del mapa">${px ? '↺ Proxy · ' : '↺ '}${nu} lugares</span>` : ''}
       <div class="port" title="Arrastra hasta otra carta para conectar"></div>
       <div class="stepb"></div>
-      <div class="nm">${esc(c.name)}</div></div>`;
+      <div class="nm">${esc(c.name)}</div>${n.note ? `<div class="nnote" style="font-size:${n.fs || 14}px">${esc(n.note)}</div>` : ''}</div>`;
   }
   el.innerHTML = h;
-  renderGroups();
+  renderGroups(); renderAnnots();
   $('#zlabels').innerHTML = m.labels.map(l => `<div class="zlabel" style="left:${l.x}px;top:${l.y}px">${esc(l.t)}<small>${l.n} cartas</small></div>`).join('');
   applyClasses();
+}
+/* ============ Anotaciones: textos y formas ============ */
+const ACOLORS = ['#b07cf5', '#2ec4b6', '#ffb627', '#ff4fa3', '#4c8dff', '#ff6b4a', '#8bc34a', '#9a93a3'];
+const ADEF = { text: { w: 300, h: 70, fs: 22, color: '#9a93a3' }, rect: { w: 340, h: 210, fs: 18, color: '#4c8dff' }, ellipse: { w: 280, h: 190, fs: 18, color: '#2ec4b6' }, sticky: { w: 230, h: 170, fs: 16, color: '#ffb627' } };
+function renderAnnots() {
+  const m = map(); m.notes = m.notes || [];
+  $('#annots').innerHTML = m.notes.map(a => `<div class="ann ann-${a.kind}" data-a="${a.id}" style="left:${a.x}px;top:${a.y}px;width:${a.w}px;height:${a.h}px;--ac:${a.color};font-size:${a.fs}px"><div class="ann-tx${a.text ? '' : ' ph'}">${a.text ? esc(a.text) : 'Doble clic para escribir'}</div><i class="ann-port" title="Arrastra hasta una carta para conectar"></i><div class="ann-sz" title="Arrastra para cambiar el tamaño"></div></div>`).join('');
+}
+function addAnnot(kind, wx, wy) {
+  setView('map'); const m = map(); m.notes = m.notes || []; const d = ADEF[kind];
+  if (wx == null) { const r = stage().getBoundingClientRect(); wx = (r.width / 2 - V.x) / V.k - d.w / 2; wy = (r.height / 2 - V.y) / V.k - d.h / 2; }
+  let tries = 0; while (m.notes.some(o => Math.abs(o.x - wx) < 30 && Math.abs(o.y - wy) < 30) && tries++ < 20) { wx += 40; wy += 40; }
+  commit(); const a = { id: uid('a'), kind, x: Math.round(wx), y: Math.round(wy), w: d.w, h: d.h, fs: d.fs, color: d.color, text: '' };
+  m.notes.push(a); renderAnnots(); selectAnn(a.id); save(); drawMinimap(); setTimeout(() => editAnnot(a.id), 30);
+}
+function selectAnn(id) { if (play) stopPlay(); sel.nodes.clear(); sel.edge = null; sel.group = null; sel.ann = id; onSelChange(); }
+function editAnnot(id) {
+  const el = $('#annots').querySelector(`.ann[data-a="${id}"] .ann-tx`); const a = annOf('ann:' + id); if (!el || !a) return;
+  el.classList.remove('ph'); el.textContent = a.text || ''; el.contentEditable = 'true'; el.focus();
+  const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  let committed = false;
+  el.oninput = () => { if (!committed) { commit(); committed = true; } a.text = el.innerText.replace(/\n$/, ''); save(); };
+  el.onblur = () => { el.contentEditable = 'false'; renderAnnots(); applyClasses(); renderEdges(); if (sel.ann === id) renderInspector(); };
+  el.onkeydown = ev => { if (ev.key === 'Escape') { ev.preventDefault(); el.blur(); } ev.stopPropagation(); };
+}
+function deleteAnn(id) { commit(); const m = map(); m.notes = (m.notes || []).filter(a => a.id !== id); m.edges = m.edges.filter(e => e.from !== 'ann:' + id && e.to !== 'ann:' + id); sel.ann = null; renderAnnots(); renderEdges(); onSelChange(); save(); toast('Anotación borrada · ⌘Z para deshacer'); }
+function bumpFont(d) {
+  const m = map();
+  if (sel.ann) { const a = annOf('ann:' + sel.ann); if (!a) return; commit(); a.fs = Math.max(10, Math.min(120, (a.fs || 18) + d)); renderAnnots(); applyClasses(); renderInspector(); save(); toast('Tamaño de letra: ' + a.fs); return true; }
+  if (sel.nodes.size) { const ks = [...sel.nodes].filter(k => m.nodes[k]); if (!ks.some(k => m.nodes[k].note)) { toast('Escribe primero una nota en la carta (panel derecho)'); return true; } commit(); for (const k of ks) m.nodes[k].fs = Math.max(10, Math.min(72, (m.nodes[k].fs || 14) + d)); renderNodes(); renderInspector(); save(); toast('Tamaño de letra: ' + m.nodes[ks[0]].fs); return true; }
+  return false;
+}
+function renderAnnInsp(el) {
+  const m = map(), a = annOf('ann:' + sel.ann, m); if (!a) { sel.ann = null; return renderInspector(); }
+  const ak = 'ann:' + a.id, outs = m.edges.filter(e => e.from === ak), ins = m.edges.filter(e => e.to === ak);
+  const row = (e, other, dir) => { const t = ET[e.type]; return `<div class="conn" data-k="${esc(other)}" data-e="${e.id}"><span class="sw" style="background:${t.c}"></span><span class="t">${dir === 'out' ? t.es + ' →' : '← ' + t.es}</span><span class="nm">${esc(nameOf(other))}${e.note ? `<span class="nt">${esc(e.note)}</span>` : ''}</span></div>`; };
+  el.innerHTML = `<div class="sec"><h3>Anotación</h3></div>
+    <div class="field"><label>Forma</label><div class="seg" id="aKind">${Object.entries(ANN_ES).map(([k, v]) => `<button data-k="${k}" class="${a.kind === k ? 'on' : ''}">${v}</button>`).join('')}</div></div>
+    <div class="field"><label for="aText">Texto</label><textarea id="aText" rows="4" placeholder="Escribe aquí… (también con doble clic en el mapa)">${esc(a.text || '')}</textarea></div>
+    <div class="field"><label>Tamaño de letra</label><div class="btnrow" style="margin:0;align-items:center"><button class="btn sm" id="aFm">A−</button><b class="mono">${a.fs}</b><button class="btn sm" id="aFp">A+</button><span class="small muted">o <kbd>Shift</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd></span></div></div>
+    <div class="field"><label>Color</label><div class="typepick">${ACOLORS.map(c => `<button class="gsw${c === a.color ? ' on' : ''}" data-c="${c}" style="background:${c}" aria-label="Color"></button>`).join('')}</div></div>
+    <div class="btnrow"><button class="btn sm primary" id="aConn">Conectar con… <kbd>C</kbd></button><button class="btn sm" id="aDup">Duplicar</button><button class="btn sm danger" id="aDel">Borrar</button></div>
+    <div class="sec"><h3>Conexiones</h3><span class="n">${outs.length + ins.length}</span></div>${outs.map(e => row(e, e.to, 'out')).join('')}${ins.map(e => row(e, e.from, 'in')).join('')}${!outs.length && !ins.length ? '<p class="empty">Arrastra el ● de la anotación hasta una carta, otra forma o un grupo.</p>' : ''}`;
+  el.querySelectorAll('#aKind button').forEach(b => b.onclick = () => { commit(); a.kind = b.dataset.k; renderAnnots(); applyClasses(); renderInspector(); save(); });
+  const t = $('#aText'); t.addEventListener('focus', () => commit(), { once: true }); t.oninput = () => { a.text = t.value; renderAnnots(); applyClasses(); save(); };
+  $('#aFm').onclick = () => bumpFont(-2); $('#aFp').onclick = () => bumpFont(2);
+  el.querySelectorAll('.gsw').forEach(b => b.onclick = () => { commit(); a.color = b.dataset.c; renderAnnots(); applyClasses(); drawMinimap(); renderInspector(); save(); });
+  $('#aConn').onclick = () => setMode({ type: 'connect', from: ak });
+  $('#aDup').onclick = () => { commit(); const n = { ...a, id: uid('a'), x: a.x + 40, y: a.y + 40 }; m.notes.push(n); renderAnnots(); selectAnn(n.id); save(); };
+  $('#aDel').onclick = () => deleteAnn(a.id);
+  el.querySelectorAll('.conn[data-k]').forEach(r => { r.onclick = () => openEnd(r.dataset.k); if (r.dataset.e) r.ondblclick = () => { sel.edge = r.dataset.e; sel.ann = null; onSelChange(); }; });
+}
+function openEnd(k) { if (isGrp(k)) selectGroup(k.slice(4)); else if (isAnn(k)) selectAnn(k.slice(4)); else selectKey(k); }
+/* ============ Buscador de cartas: agregar aliadas o rivales ============ */
+const FIND = { q: '', type: 'Unit', dom: '', eMin: '', eMax: '', mMin: '', mMax: '', side: 'ally', deck: false, sort: 'energy' };
+function addCardSide(id, side) {
+  const m = map(); let key;
+  if (side === 'enemy') { let n = 1; while (m.nodes[id + '!' + n]) n++; key = id + '!' + n; }
+  else if (!m.nodes[id] && !copiesOnMap(id).length) key = id;
+  else { let n = 2; while (m.nodes[id + SEP + n]) n++; key = id + SEP + n; }
+  addToMap(key); return key;
+}
+function openFinder() {
+  setView('map');
+  const doms = Object.entries(DOMAINS), types = Object.entries(TYPES_ES).filter(([k]) => k !== 'Rune');
+  openModal(`<div class="finder"><div class="fhd"><h2>Agregar carta al mapa</h2><button class="btn ghost icon" onclick="closeModal()" aria-label="Cerrar">✕</button></div>
+    <div class="fbar">
+      <input type="search" id="fQ" placeholder="Nombre, texto o etiqueta…" value="${esc(FIND.q)}">
+      <div class="seg" id="fSide"><button data-v="ally" class="${FIND.side === 'ally' ? 'on' : ''}">Aliada</button><button data-v="enemy" class="${FIND.side === 'enemy' ? 'on' : ''}">Rival</button></div>
+    </div>
+    <div class="fbar">
+      <select id="fType"><option value="">Todos los tipos</option>${types.map(([k, v]) => `<option value="${k}"${FIND.type === k ? ' selected' : ''}>${v}</option>`).join('')}</select>
+      <select id="fDom"><option value="">Todos los dominios</option>${doms.map(([k, v]) => `<option value="${k}"${FIND.dom === k ? ' selected' : ''}>${v.es}</option>`).join('')}</select>
+      <label class="rng">Energía <input type="number" id="fEmin" min="0" max="12" placeholder="mín" value="${FIND.eMin}"> – <input type="number" id="fEmax" min="0" max="12" placeholder="máx" value="${FIND.eMax}"></label>
+      <label class="rng">Might <input type="number" id="fMmin" min="0" max="15" placeholder="mín" value="${FIND.mMin}"> – <input type="number" id="fMmax" min="0" max="15" placeholder="máx" value="${FIND.mMax}"></label>
+      <select id="fSort"><option value="energy"${FIND.sort === 'energy' ? ' selected' : ''}>Orden: energía</option><option value="might"${FIND.sort === 'might' ? ' selected' : ''}>Orden: might</option><option value="name"${FIND.sort === 'name' ? ' selected' : ''}>Orden: nombre</option></select>
+      <label class="chip" style="cursor:pointer"><input type="checkbox" id="fDeck" ${FIND.deck ? 'checked' : ''}> Solo mi deck</label>
+    </div>
+    <div class="small muted" id="fFoot"></div>
+    <div class="fgrid" id="fGrid"></div></div>`);
+  const upd = () => { FIND.q = $('#fQ').value; FIND.type = $('#fType').value; FIND.dom = $('#fDom').value; FIND.eMin = $('#fEmin').value; FIND.eMax = $('#fEmax').value; FIND.mMin = $('#fMmin').value; FIND.mMax = $('#fMmax').value; FIND.sort = $('#fSort').value; FIND.deck = $('#fDeck').checked; renderFinder(); };
+  for (const id of ['fQ', 'fEmin', 'fEmax', 'fMmin', 'fMmax']) $('#' + id).oninput = upd;
+  for (const id of ['fType', 'fDom', 'fSort', 'fDeck']) $('#' + id).onchange = upd;
+  $('#fSide').querySelectorAll('button').forEach(b => b.onclick = () => { FIND.side = b.dataset.v; $('#fSide').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); renderFinder(); });
+  renderFinder(); setTimeout(() => $('#fQ').focus(), 30);
+}
+function renderFinder() {
+  const q = norm(FIND.q), num = v => v === '' || v == null ? null : +v;
+  const eMin = num(FIND.eMin), eMax = num(FIND.eMax), mMin = num(FIND.mMin), mMax = num(FIND.mMax);
+  const seen = new Set(), inDeck = new Set(deck().cards.map(e => e.key));
+  let res = [...DB.values()].filter(c => {
+    if (seen.has(norm(c.name)) || /\((Overnumbered|Signature|Metal|Starter)\)/.test(c.name)) return false; seen.add(norm(c.name));
+    if (FIND.type && c.type !== FIND.type) return false; if (FIND.dom && !(c.domains || []).includes(FIND.dom)) return false;
+    if (FIND.deck && !inDeck.has(c.id)) return false;
+    if (eMin != null && !(c.energy != null && c.energy >= eMin)) return false; if (eMax != null && !(c.energy != null && c.energy <= eMax)) return false;
+    if (mMin != null && !(c.might != null && c.might >= mMin)) return false; if (mMax != null && !(c.might != null && c.might <= mMax)) return false;
+    return !q || norm(c.name).includes(q) || norm(c.text).includes(q) || (c.tags || []).some(t => norm(t).includes(q));
+  }).map(c => getCard(c.id));
+  const by = { energy: (a, b) => (a.energy ?? 99) - (b.energy ?? 99) || (a.might ?? 0) - (b.might ?? 0) || a.name.localeCompare(b.name), might: (a, b) => (b.might ?? -1) - (a.might ?? -1) || (a.energy ?? 99) - (b.energy ?? 99), name: (a, b) => a.name.localeCompare(b.name) };
+  res.sort(by[FIND.sort] || by.energy);
+  const lim = res.slice(0, 160);
+  $('#fFoot').textContent = (res.length > lim.length ? `Mostrando 160 de ${res.length}. Afina los filtros.` : `${res.length} cartas`) + ` · Toca una para agregarla como ${FIND.side === 'enemy' ? 'RIVAL' : 'aliada'}. Puedes agregar varias.`;
+  $('#fGrid').innerHTML = lim.map(c => `<button class="fcard${inDeck.has(c.id) ? ' indeck' : ''}" data-id="${esc(c.id)}">${thumb(c.id)}<span class="fn">${esc(c.name)}</span><span class="fm"><i title="Energía">⚡${c.energy ?? '–'}</i>${c.might != null ? `<i title="Might">⚔${c.might}</i>` : ''}${inDeck.has(c.id) ? '<i class="d">En deck</i>' : ''}</span></button>`).join('') || '<p class="empty">Nada con esos filtros.</p>';
+  $('#fGrid').querySelectorAll('.fcard').forEach(b => b.onclick = () => { addCardSide(b.dataset.id, FIND.side); b.classList.add('added'); setTimeout(() => b.classList.remove('added'), 900); toast(`${getCard(b.dataset.id).name} agregada como ${FIND.side === 'enemy' ? 'rival' : 'aliada'}`); });
 }
 /* ============ Grupos ============ */
 const GCOLORS = ['#b07cf5', '#2ec4b6', '#ffb627', '#ff4fa3', '#4c8dff', '#ff6b4a', '#8bc34a'];
@@ -1079,7 +1251,7 @@ async function newGroup(keys) {
   commit(); const g = { id: uid('g'), name: name.trim() || 'Grupo ' + (m.groups.length + 1), color: GCOLORS[m.groups.length % GCOLORS.length], x: Math.round(x), y: Math.round(y), w: Math.round(w), h: Math.round(h), note: '' };
   m.groups.push(g); selectGroup(g.id); renderGroups(); renderEdges(); save(); drawMinimap(); toast('Grupo creado: arrastra su título para moverlo, o su ● para conectarlo');
 }
-function selectGroup(id) { if (play) stopPlay(); sel.nodes.clear(); sel.edge = null; sel.group = id; onSelChange(); }
+function selectGroup(id) { if (play) stopPlay(); sel.nodes.clear(); sel.edge = null; sel.ann = null; sel.group = id; onSelChange(); }
 function deleteGroup(id) { commit(); const m = map(); m.groups = (m.groups || []).filter(g => g.id !== id); m.edges = m.edges.filter(e => e.from !== 'grp:' + id && e.to !== 'grp:' + id); sel.group = null; renderGroups(); renderEdges(); onSelChange(); save(); toast('Grupo borrado (las cartas se quedan) · ⌘Z para deshacer'); }
 async function renameGroup(id) { const g = grpOf('grp:' + id); if (!g) return; const n = await askText('Nombre del grupo', g.name); if (n) { commit(); g.name = n; renderGroups(); renderInspector(); save(); } }
 function renderGroupInsp(el) {
@@ -1117,7 +1289,7 @@ function renderDefs() {
   $('#defs').innerHTML = EDGE_TYPES.map(t => `<marker id="ar-${t.id}" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${t.c}"/></marker>`).join('') +
     `<marker id="ar-gold" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#f2c14e"/></marker>`;
 }
-function center(key) { const n = isGrp(key) ? grpOf(key) : map().nodes[key]; const [w, h] = nodeSize(key); return [n.x + w / 2, n.y + h / 2]; }
+function center(key) { const n = (isGrp(key) || isAnn(key)) ? boxOf(key) : map().nodes[key]; const [w, h] = nodeSize(key); return [n.x + w / 2, n.y + h / 2]; }
 function clip(key, cx, cy, tx, ty) {
   const [w, h] = nodeSize(key); const hw = w / 2 + 8, hh = h / 2 + 8;
   const dx = tx - cx, dy = ty - cy; if (!dx && !dy) return [cx, cy];
@@ -1202,6 +1374,7 @@ function applyClasses() {
     el.classList.toggle('has-step', !!st);
     const sb = el.querySelector('.stepb'); sb.innerHTML = st ? st.map(i => `<i>${i + 1}</i>`).join('') : '';
   }
+  for (const el of $('#annots').children) { const ak = 'ann:' + el.dataset.a; el.classList.toggle('sel', sel.ann === el.dataset.a); el.classList.toggle('nb', nb.has(ak) && sel.ann !== el.dataset.a); el.classList.toggle('dim', !!((focusMode && (focusKey || sel.edge)) && !nb.has(ak) && sel.ann !== el.dataset.a)); }
   for (const el of $('#groups').children) { const gk = 'grp:' + el.dataset.g; el.classList.toggle('sel', sel.group === el.dataset.g); el.classList.toggle('nb', nb.has(gk) && sel.group !== el.dataset.g); el.classList.toggle('dim', !!((focusMode && (focusKey || sel.edge)) && !nb.has(gk) && sel.group !== el.dataset.g)); }
   for (const g of $('#edgeG').children) {
     if (!g.dataset.id) continue;
@@ -1230,6 +1403,7 @@ function drawMinimap() {
     const cs = getComputedStyle(document.documentElement);
     ctx.globalAlpha = .5; ctx.lineWidth = 1;
     for (const g of m.groups || []) { ctx.strokeStyle = g.color; ctx.globalAlpha = .7; ctx.strokeRect(tx(g.x), ty(g.y), g.w * s, g.h * s); }
+    for (const g of m.notes || []) { ctx.fillStyle = g.color || '#888'; ctx.globalAlpha = .35; ctx.fillRect(tx(g.x), ty(g.y), g.w * s, g.h * s); }
     ctx.globalAlpha = .5;
     for (const e of m.edges) { if (!endExists(m, e.from) || !endExists(m, e.to) || hiddenTypes.has(e.type)) continue; const [ax, ay] = center(e.from), [bx, by] = center(e.to); ctx.strokeStyle = (ET[e.type] || ET.sinergia).c; ctx.beginPath(); ctx.moveTo(tx(ax), ty(ay)); ctx.lineTo(tx(bx), ty(by)); ctx.stroke(); }
     ctx.globalAlpha = 1;
@@ -1249,6 +1423,15 @@ function onDown(ev) {
   ptrs.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
   if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; drag = { type: 'pinch', d0: Math.hypot(a.x - b.x, a.y - b.y), k0: V.k, cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, x0: V.x, y0: V.y }; return; }
   const port = ev.target.closest('.port'), node = ev.target.closest('.node'), edge = ev.target.closest('.edge');
+  const aEl = !node && ev.target.closest('.ann'), aid = aEl && aEl.dataset.a, an = aid && annOf('ann:' + aid);
+  if (an) {
+    if (ev.target.isContentEditable) return;
+    if (mode && mode.type === 'connect') { if ('ann:' + aid !== mode.from) createEdgeUI(mode.from, 'ann:' + aid, ev.clientX, ev.clientY); setMode(null); return; }
+    if (ev.target.closest('.ann-port') && !mode) { drag = { type: 'connect', from: 'ann:' + aid, moved: false }; st.setPointerCapture(ev.pointerId); ev.preventDefault(); return; }
+    if (ev.target.closest('.ann-sz')) { commit(); drag = { type: 'aresize', g: an, sx: ev.clientX, sy: ev.clientY, w0: an.w, h0: an.h }; st.setPointerCapture(ev.pointerId); ev.preventDefault(); return; }
+    if (sel.ann !== aid) selectAnn(aid);
+    drag = { type: 'ann', g: an, sx: ev.clientX, sy: ev.clientY, g0: { x: an.x, y: an.y }, moved: false }; st.setPointerCapture(ev.pointerId); return;
+  }
   const gEl = !node && ev.target.closest('.grp'), gid = gEl && gEl.dataset.g, g = gid && grpOf('grp:' + gid);
   if (!node && !edge && mode && mode.type === 'connect') { const [wx, wy] = toWorld(ev.clientX, ev.clientY); const tg = groupAt(wx, wy); if (tg && 'grp:' + tg.id !== mode.from) { createEdgeUI(mode.from, 'grp:' + tg.id, ev.clientX, ev.clientY); setMode(null); return; } }
   if (g && ev.target.closest('.grp-port') && !mode) { drag = { type: 'connect', from: 'grp:' + gid, moved: false }; st.setPointerCapture(ev.pointerId); ev.preventDefault(); return; }
@@ -1269,12 +1452,12 @@ function onDown(ev) {
     if (mode && mode.type === 'record') { addStep(mode.comboId, key); return; }
     if (ev.shiftKey || ev.metaKey || ev.ctrlKey) { sel.nodes.has(key) ? sel.nodes.delete(key) : sel.nodes.add(key); sel.edge = null; }
     else if (!sel.nodes.has(key)) { sel.nodes.clear(); sel.nodes.add(key); sel.edge = null; }
-    sel.group = null;
+    sel.group = null; sel.ann = null;
     const m = map(); const keys = [...sel.nodes];
     drag = { type: 'node', key, sx: ev.clientX, sy: ev.clientY, start: Object.fromEntries(keys.map(k => [k, { ...m.nodes[k] }])), moved: false, wasSel: sel.nodes.has(key) };
     st.setPointerCapture(ev.pointerId); onSelChange(); return;
   }
-  if (edge) { sel.edge = edge.dataset.id; sel.nodes.clear(); sel.group = null; onSelChange(); renderEdges(); return; }
+  if (edge) { sel.edge = edge.dataset.id; sel.nodes.clear(); sel.group = null; sel.ann = null; onSelChange(); renderEdges(); return; }
   if (ev.shiftKey) { const [wx, wy] = toWorld(ev.clientX, ev.clientY); drag = { type: 'marquee', wx, wy, sx: ev.clientX, sy: ev.clientY }; st.setPointerCapture(ev.pointerId); return; }
   drag = { type: 'pan', sx: ev.clientX, sy: ev.clientY, x0: V.x, y0: V.y, moved: false };
   st.classList.add('panning'); st.setPointerCapture(ev.pointerId);
@@ -1297,6 +1480,15 @@ function onMove(ev) {
       let nx = p.x + dx, ny = p.y + dy; if (snap) { nx = Math.round(nx / 10) * 10; ny = Math.round(ny / 10) * 10; }
       m.nodes[k].x = nx; m.nodes[k].y = ny; const el = nodeEl(k); if (el) { el.style.left = nx + 'px'; el.style.top = ny + 'px'; }
     }
+    renderEdges(); drawMinimap(); return;
+  }
+  if (drag.type === 'ann' || drag.type === 'aresize') {
+    const dx = (ev.clientX - drag.sx) / V.k, dy = (ev.clientY - drag.sy) / V.k; const snap = v => ev.altKey ? v : Math.round(v / 10) * 10;
+    if (!drag.moved && Math.abs(dx) + Math.abs(dy) < 4 / V.k) return;
+    if (!drag.moved) { if (drag.type === 'ann') commit(); drag.moved = true; hidePreview(); }
+    const a = drag.g;
+    if (drag.type === 'aresize') { a.w = Math.max(60, snap(drag.w0 + dx)); a.h = Math.max(36, snap(drag.h0 + dy)); } else { a.x = snap(drag.g0.x + dx); a.y = snap(drag.g0.y + dy); }
+    const el = $('#annots').querySelector(`.ann[data-a="${a.id}"]`); if (el) Object.assign(el.style, { left: a.x + 'px', top: a.y + 'px', width: a.w + 'px', height: a.h + 'px' });
     renderEdges(); drawMinimap(); return;
   }
   if (drag.type === 'group' || drag.type === 'gresize') {
@@ -1334,17 +1526,19 @@ function onUp(ev) {
   if (!drag) return;
   const d = drag; drag = null;
   if (d.type === 'pinch') { ptrs.clear(); return; }
-  if (d.type === 'pan' && !d.moved) { if (sel.nodes.size || sel.edge || sel.group) { sel.nodes.clear(); sel.edge = null; sel.group = null; onSelChange(); renderEdges(); } }
+  if (d.type === 'pan' && !d.moved) { if (sel.nodes.size || sel.edge || sel.group || sel.ann) { sel.nodes.clear(); sel.edge = null; sel.group = null; sel.ann = null; onSelChange(); renderEdges(); } }
   if (d.type === 'node') {
     for (const el of $('#nodes').querySelectorAll('.dragging')) el.classList.remove('dragging');
     if (d.moved) { save(); renderNodes(); }
   }
+  if ((d.type === 'ann' || d.type === 'aresize') && d.moved) save();
   if (d.type === 'group' || d.type === 'gresize') { if (d.moved) { save(); renderGroups(); applyClasses(); renderInspector(); } }
   if (d.type === 'connect') {
     $('#tmpLine').setAttribute('d', ''); for (const el of $('#groups').children) el.classList.remove('drop');
     const over = document.elementFromPoint(ev.clientX, ev.clientY)?.closest('.node');
-    const [ux, uy] = toWorld(ev.clientX, ev.clientY); const tg = !over && groupAt(ux, uy);
+    const [ux, uy] = toWorld(ev.clientX, ev.clientY); const overA = !over && document.elementFromPoint(ev.clientX, ev.clientY)?.closest('.ann'); const tg = !over && !overA && groupAt(ux, uy);
     if (over && over.dataset.key !== d.from) createEdgeUI(d.from, over.dataset.key, ev.clientX, ev.clientY);
+    else if (overA && 'ann:' + overA.dataset.a !== d.from) createEdgeUI(d.from, 'ann:' + overA.dataset.a, ev.clientX, ev.clientY);
     else if (tg && 'grp:' + tg.id !== d.from && d.moved) createEdgeUI(d.from, 'grp:' + tg.id, ev.clientX, ev.clientY);
     else if (!d.moved) { setMode({ type: 'connect', from: d.from }); }
     applyClasses();
@@ -1367,6 +1561,7 @@ function onWheel(ev) {
 }
 let wheelIsMouse = false;
 function onDbl(ev) {
+  const ae = ev.target.closest('.ann'); if (ae) { editAnnot(ae.dataset.a); return; }
   const gh = ev.target.closest('.grp-hd'); if (gh) { renameGroup(gh.parentNode.dataset.g); return; }
   const node = ev.target.closest('.node'), edge = ev.target.closest('.edge');
   if (node) { centerOn(node.dataset.key, Math.max(V.k, 1.15)); return; }
@@ -1572,7 +1767,7 @@ function mergeCopies(bk) {
 }
 function selectKey(key, center = true) {
   if (play) stopPlay();
-  sel.nodes.clear(); sel.nodes.add(key); sel.edge = null; sel.group = null; onSelChange();
+  sel.nodes.clear(); sel.nodes.add(key); sel.edge = null; sel.group = null; sel.ann = null; onSelChange();
   if (center && map().nodes[key] && !inView(key)) centerOn(key);
   else if (center && map().nodes[key]) centerOn(key, V.k);
 }
@@ -1622,7 +1817,63 @@ function cycleNeighbor(back) {
 /* ============ Panel izquierdo ============ */
 let leftTab = 'deck';
 function setLeftTab(t) { leftTab = t; document.querySelectorAll('.ptabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t)); if ($('#work').classList.contains('no-left')) toggleLeft(true); renderLeft(); }
-function renderLeft() { if (leftTab === 'deck') renderDeckPanel(); else if (leftTab === 'combos') renderCombosPanel(); else renderLibPanel(); }
+function renderLeft() { if (leftTab === 'deck') renderDeckPanel(); else if (leftTab === 'combos') renderCombosPanel(); else if (leftTab === 'snaps') renderSnapsPanel(); else renderLibPanel(); }
+/* ============ Jugadas guardadas (fotos del mapa) ============ */
+const SNAP_FIELDS = ['nodes', 'edges', 'groups', 'notes', 'labels'];
+function snapData(m) { const o = {}; for (const f of SNAP_FIELDS) o[f] = JSON.parse(JSON.stringify(m[f] || (f === 'nodes' ? {} : []))); o.view = { x: V.x, y: V.y, k: V.k }; return o; }
+function snapThumb(m) {
+  try {
+    const W = 320, H = 200, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const ctx = cv.getContext('2d');
+    const cs = getComputedStyle(document.documentElement); ctx.fillStyle = cs.getPropertyValue('--canvas').trim() || '#e6e3ec'; ctx.fillRect(0, 0, W, H);
+    const b = bounds(); if (!b || !isFinite(b.x0)) return cv.toDataURL('image/jpeg', .7);
+    const s = Math.min((W - 20) / (b.x1 - b.x0), (H - 20) / (b.y1 - b.y0)); const ox = (W - (b.x1 - b.x0) * s) / 2, oy = (H - (b.y1 - b.y0) * s) / 2;
+    const tx = x => ox + (x - b.x0) * s, ty = y => oy + (y - b.y0) * s;
+    for (const g of m.groups || []) { ctx.strokeStyle = g.color; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]); ctx.strokeRect(tx(g.x), ty(g.y), g.w * s, g.h * s); }
+    ctx.setLineDash([]);
+    for (const g of m.notes || []) { ctx.fillStyle = g.color; ctx.globalAlpha = g.kind === 'sticky' ? .8 : .3; ctx.fillRect(tx(g.x), ty(g.y), g.w * s, g.h * s); }
+    ctx.globalAlpha = .8; ctx.lineWidth = 1.2;
+    for (const e of m.edges) { if (!endExists(m, e.from) || !endExists(m, e.to) || hiddenTypes.has(e.type)) continue; const [ax, ay] = center(e.from), [bx, by] = center(e.to); ctx.strokeStyle = (ET[e.type] || ET.sinergia).c; ctx.beginPath(); ctx.moveTo(tx(ax), ty(ay)); ctx.lineTo(tx(bx), ty(by)); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+    for (const [k, n] of Object.entries(m.nodes)) { const [w, h] = nodeSize(k); const img = nodeEl(k)?.querySelector('img'); const x = tx(n.x), y = ty(n.y), ww = Math.max(3, w * s), hh = Math.max(3, h * s);
+      try { if (img && img.complete && img.naturalWidth) ctx.drawImage(img, x, y, ww, hh); else throw 0; } catch (e) { ctx.fillStyle = dcol(getCard(k)); ctx.fillRect(x, y, ww, hh); }
+      if (isEnemy(k)) { ctx.strokeStyle = '#e5484d'; ctx.lineWidth = 2; ctx.strokeRect(x, y, ww, hh); } }
+    return cv.toDataURL('image/jpeg', .72);
+  } catch (e) { return ''; }
+}
+async function saveSnap(name) {
+  setView('map'); const m = map(); m.snaps = m.snaps || [];
+  if (name == null) name = await askText('Nombre de la jugada', 'Jugada ' + (m.snaps.length + 1), 'Guardar jugada', 'Ej.: Turno 4: aislar con Faefolk');
+  if (!name) return;
+  commit(); const sn = { id: uid('s'), name, at: Date.now(), thumb: snapThumb(m), data: snapData(m) };
+  m.snaps.push(sn); m.curSnap = sn.id; save(); if (leftTab !== 'snaps') setLeftTab('snaps'); else renderLeft(); toast('Jugada guardada 📸');
+}
+function openSnap(id) {
+  const m = map(), sn = (m.snaps || []).find(x => x.id === id); if (!sn) return;
+  commit(); for (const f of SNAP_FIELDS) m[f] = JSON.parse(JSON.stringify(sn.data[f] || (f === 'nodes' ? {} : [])));
+  m.curSnap = id; sel.nodes.clear(); sel.edge = null; sel.group = null; sel.ann = null;
+  if (sn.data.view) m.view = { ...sn.data.view };
+  setView('map'); renderAll(true); save(); toast(`Abriste “${sn.name}”. Edítala y pulsa Guardar cambios · ⌘Z para volver`);
+}
+function updateSnap(id) { const m = map(), sn = (m.snaps || []).find(x => x.id === id); if (!sn) return; commit(); sn.data = snapData(m); sn.thumb = snapThumb(m); sn.at = Date.now(); m.curSnap = id; save(); renderLeft(); toast(`“${sn.name}” actualizada`); }
+function renderSnapsPanel() {
+  const m = map(), snaps = m.snaps || [], cur = snaps.find(x => x.id === m.curSnap);
+  $('#leftBody').innerHTML = `<div class="btnrow"><button class="btn primary sm" id="snNew">📸 Guardar jugada actual</button>${cur ? `<button class="btn sm" id="snUpd" title="Sobrescribe “${esc(cur.name)}” con lo que ves ahora">Guardar cambios en “${esc(cur.name)}”</button>` : ''}</div>
+    <p class="small muted" style="margin:0 0 8px">Una jugada es una foto de este mapa: cartas, posiciones, conexiones, grupos y notas. Ábrela para verla o editarla.</p>
+    ${snaps.length ? '' : '<p class="empty">Todavía no hay jugadas. Arma la situación en el mapa y guárdala con un nombre.</p>'}
+    <div class="snaps">${[...snaps].reverse().map(sn => `<div class="snap${sn.id === m.curSnap ? ' on' : ''}" data-s="${sn.id}">
+      <button class="sthumb" data-a="open" title="Abrir jugada">${sn.thumb ? `<img src="${sn.thumb}" alt="">` : ''}</button>
+      <div class="sinfo"><b>${esc(sn.name)}</b><span class="small muted">${new Date(sn.at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}${sn.id === m.curSnap ? ' · abierta' : ''}</span>
+      <div class="btnrow" style="margin:4px 0 0"><button class="btn sm" data-a="open">Abrir</button><button class="btn sm ghost" data-a="ren">Renombrar</button><button class="btn sm ghost" data-a="map" title="Crea un mapa nuevo a partir de esta jugada">Como mapa</button><button class="btn sm ghost danger" data-a="del">Borrar</button></div></div></div>`).join('')}</div>`;
+  $('#snNew').onclick = () => saveSnap(); $('#snUpd') && ($('#snUpd').onclick = () => updateSnap(cur.id));
+  $('#leftBody').querySelectorAll('.snap').forEach(el => { const sn = snaps.find(x => x.id === el.dataset.s);
+    el.querySelectorAll('[data-a]').forEach(b => b.onclick = async () => {
+      const act = b.dataset.a;
+      if (act === 'open') openSnap(sn.id);
+      if (act === 'ren') { const n = await askText('Nombre de la jugada', sn.name); if (n) { commit(); sn.name = n; save(); renderLeft(); } }
+      if (act === 'del' && await askConfirm(`¿Borrar la jugada “${sn.name}”?`)) { commit(); m.snaps = m.snaps.filter(x => x !== sn); if (m.curSnap === sn.id) m.curSnap = null; save(); renderLeft(); }
+      if (act === 'map') { commit(); const nm = { ...JSON.parse(JSON.stringify(m)), id: uid('m'), name: sn.name, snaps: [], curSnap: null }; for (const f of SNAP_FIELDS) nm[f] = JSON.parse(JSON.stringify(sn.data[f] || (f === 'nodes' ? {} : []))); nm.view = sn.data.view || null; deck().maps.push(nm); switchMap(nm.id); toast('Mapa creado desde la jugada'); }
+    }); });
+}
 function renderLeftSel() { document.querySelectorAll('#leftBody .row[data-key]').forEach(r => r.classList.toggle('sel', sel.nodes.has(r.dataset.key))); }
 const dots = c => (c.domains || []).map(d => `<span class="dot" style="background:${DOMAINS[d]?.c || '#888'}" title="${DOMAINS[d]?.es || d}"></span>`).join('');
 function deckRow(e) {
@@ -1749,6 +2000,7 @@ let libPreview = null;
 function renderInspector() {
   const el = $('#insp'); const m = map();
   if (sel.group && !sel.edge) return renderGroupInsp(el);
+  if (sel.ann && !sel.edge) return renderAnnInsp(el);
   if (sel.edge) {
     const e = m.edges.find(x => x.id === sel.edge); if (!e) { sel.edge = null; return renderInspector(); }
     const t = ET[e.type];
@@ -1760,7 +2012,7 @@ function renderInspector() {
       <div class="field"><label for="eNote">Nota</label><textarea id="eNote" rows="4" placeholder="Ej.: jugar en showdown con 2 runas de Caos libres">${esc(e.note)}</textarea></div>
       <div class="btnrow"><button class="btn sm" id="eRev">Invertir dirección ⇄</button><button class="btn sm danger" id="eDel">Borrar <kbd>Supr</kbd></button></div>`;
     el.querySelectorAll('[data-t]').forEach(b => b.onclick = () => setEdgeType(e, b.dataset.t));
-    el.querySelectorAll('.conn[data-k]').forEach(c => c.onclick = () => isGrp(c.dataset.k) ? selectGroup(c.dataset.k.slice(4)) : selectKey(c.dataset.k));
+    el.querySelectorAll('.conn[data-k]').forEach(c => c.onclick = () => openEnd(c.dataset.k));
     const n = $('#eNote'); n.addEventListener('focus', () => commit(), { once: true }); n.oninput = () => { e.note = n.value; save(); clearTimeout(n._t); n._t = setTimeout(renderEdges, 300); };
     $('#eRev').onclick = () => { commit(); [e.from, e.to] = [e.to, e.from]; renderEdges(); renderInspector(); save(); };
     $('#eDel').onclick = () => deleteEdge(e.id);
@@ -1790,7 +2042,7 @@ function renderInspector() {
   const bk = baseKey(key), zs = deck().cards.filter(x => x.key === bk);
   const twinsN = Object.keys(m.nodes).filter(k => instKey(k) === instKey(key)).length, totalQ = copiesTotal(bk), onCopies = onMap ? copiesOnMap(bk).length : 0;
   el.innerHTML = `<div class="bigcard${c.type === 'Battlefield' ? ' bf' : ''}${c.img ? '' : ' noimg'}">${imgTag(c)}${phTag(c)}</div>
-    <h2>${esc(c.name)}${onCopies > 1 ? ` <span class="pill">Copia ${copyNo(key)}</span>` : ''}</h2>
+    <h2>${esc(c.name)}${isEnemy(key) ? ' <span class="pill rivalp">Rival</span>' : onCopies > 1 ? ` <span class="pill">Copia ${copyNo(key)}</span>` : ''}</h2>
     <div class="meta"><span class="pill">${esc(TYPES_ES[c.type] || c.type)}</span>${c.energy != null ? `<span class="pill">${c.energy} energía</span>` : ''}${c.power ? `<span class="pill">${c.power} runa${c.power > 1 ? 's' : ''} de poder</span>` : ''}${c.might != null ? `<span class="pill">${c.might} might</span>` : ''}${(c.domains || []).map(d => `<span class="pill"><span class="dot" style="background:${DOMAINS[d]?.c}"></span>${DOMAINS[d]?.es || d}</span>`).join('')}${c.rarity ? `<span class="pill">${esc(c.rarity)}</span>` : ''}</div>
     ${(c.tags || []).length ? `<div class="small muted">${c.tags.map(esc).join(' · ')}</div>` : ''}
     ${c.text ? `<div class="ctext">${fmtText(c.text)}</div>` : ''}
@@ -1804,10 +2056,11 @@ function renderInspector() {
     </div>
     ${onMap ? `<div class="btnrow" style="margin-top:-4px"><button class="btn sm" id="cProxy" title="Pone la MISMA carta en otro lugar del mapa para usarla en otro combo, marcada como proxy">↺ Proxy (misma carta) <kbd>P</kbd></button><button class="btn sm ghost" id="cGrp" title="Crear un grupo con esta carta">▢ Agrupar <kbd>G</kbd></button></div>` : ''}
     ${onMap && twinsN > 1 ? `<p class="hint" style="margin-top:0">${isProxy(key) ? '<b>Proxy.</b> Es la misma carta física que la original: ' : 'Esta misma carta física '}aparece en <b>${twinsN} lugares</b> del mapa. Todos se marcan en dorado al seleccionarla.${isProxy(key) ? ' <a href="#" id="cOrig">Ir a la original</a>' : ''}</p>` : ''}
-    ${onMap && totalQ > 1 ? `<div class="btnrow" style="margin-top:-4px">${onCopies < totalQ ? `<button class="btn sm" id="cSplit" title="Pone otra copia de esta carta como una carta aparte en el mapa">⧉ Separar copia (${onCopies} de ${totalQ} en el mapa)</button>` : `<span class="small muted">Las ${totalQ} copias están separadas en el mapa.</span>`}${onCopies > 1 ? `<button class="btn sm ghost" id="cMerge" title="Deja una sola carta y pasa sus conexiones a la copia 1">Juntar copias</button>` : ''}</div>` : ''}
+    ${onMap ? `<div class="field"><label for="cMapNote">Nota en este mapa <span class="muted">(se ve debajo de la carta)</span></label><textarea id="cMapNote" rows="2" placeholder="Ej.: guardar para el turno de Kha'Zix">${esc(m.nodes[key].note || '')}</textarea>${m.nodes[key].note ? `<div class="btnrow" style="margin:6px 0 0;align-items:center"><span class="small muted">Tamaño</span><button class="btn sm" id="cFm">A−</button><b class="mono">${m.nodes[key].fs || 14}</b><button class="btn sm" id="cFp">A+</button><span class="small muted"><kbd>Shift</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd></span></div>` : ''}</div>` : ''}
+    ${onMap && totalQ > 1 && !isEnemy(key) ? `<div class="btnrow" style="margin-top:-4px">${onCopies < totalQ ? `<button class="btn sm" id="cSplit" title="Pone otra copia de esta carta como una carta aparte en el mapa">⧉ Separar copia (${onCopies} de ${totalQ} en el mapa)</button>` : `<span class="small muted">Las ${totalQ} copias están separadas en el mapa.</span>`}${onCopies > 1 ? `<button class="btn sm ghost" id="cMerge" title="Deja una sola carta y pasa sus conexiones a la copia 1">Juntar copias</button>` : ''}</div>` : ''}
     ${zs.length ? `<div class="field"><label for="cNote">Notas de la carta (se comparten entre mapas del deck)</label><textarea id="cNote" rows="3" placeholder="Cuándo jugarla, contra qué, mulligan…">${esc(deck().notes[bk] || '')}</textarea></div>` : ''}
     ${onMap ? `<div class="sec"><h3>Conexiones</h3><span class="n">${outs.length + ins.length}</span></div>${outs.map(e => connRow(e, e.to, 'out')).join('')}${ins.map(e => connRow(e, e.from, 'in')).join('') || ''}${!outs.length && !ins.length ? '<p class="empty">Todavía nada. Arrastra el ● del borde de la carta hasta otra.</p>' : ''}` : ''}`;
-  el.querySelectorAll('.conn[data-k]').forEach(r => { r.onclick = () => isGrp(r.dataset.k) ? selectGroup(r.dataset.k.slice(4)) : selectKey(r.dataset.k); r.ondblclick = () => { sel.edge = r.dataset.e; sel.nodes.clear(); onSelChange(); renderEdges(); }; });
+  el.querySelectorAll('.conn[data-k]').forEach(r => { r.onclick = () => openEnd(r.dataset.k); r.ondblclick = () => { sel.edge = r.dataset.e; sel.nodes.clear(); onSelChange(); renderEdges(); }; });
   $('#cConn') && ($('#cConn').onclick = () => setMode({ type: 'connect', from: key }));
   $('#cAdd') && ($('#cAdd').onclick = () => addToMap(key));
   $('#cRem') && ($('#cRem').onclick = () => removeFromMap([key]));
@@ -1819,6 +2072,8 @@ function renderInspector() {
   $('#cLook') && ($('#cLook').onclick = () => lookupRiftcodex(bk));
   const cn = $('#cNote'); if (cn) { cn.addEventListener('focus', () => commit(), { once: true }); cn.oninput = () => { deck().notes[bk] = cn.value; save(); }; }
   $('#cSplit') && ($('#cSplit').onclick = () => splitCopy(key));
+  const mn = $('#cMapNote'); if (mn) { mn.addEventListener('focus', () => commit(), { once: true }); mn.oninput = () => { const had = !!m.nodes[key].note; m.nodes[key].note = mn.value; save(); const el2 = nodeEl(key); if (el2) { let nn = el2.querySelector('.nnote'); if (!mn.value) nn && nn.remove(); else { if (!nn) { nn = document.createElement('div'); nn.className = 'nnote'; nn.style.fontSize = (m.nodes[key].fs || 14) + 'px'; el2.appendChild(nn); } nn.textContent = mn.value; } } if (had !== !!mn.value) { clearTimeout(mn._t); mn._t = setTimeout(() => { renderInspector(); const t2 = $('#cMapNote'); if (t2) { t2.focus(); t2.setSelectionRange(t2.value.length, t2.value.length); } }, 600); } }; }
+  $('#cFm') && ($('#cFm').onclick = () => bumpFont(-2)); $('#cFp') && ($('#cFp').onclick = () => bumpFont(2));
   $('#cProxy') && ($('#cProxy').onclick = () => addProxy(key)); $('#cGrp') && ($('#cGrp').onclick = () => newGroup([key]));
   $('#cOrig') && ($('#cOrig').onclick = ev => { ev.preventDefault(); const o = instKey(key); if (m.nodes[o]) selectKey(o); else toast('La original no está en este mapa'); });
   $('#cMerge') && ($('#cMerge').onclick = () => mergeCopies(bk));
@@ -1950,6 +2205,10 @@ function showHelp() {
     ${K('<kbd>D</kbd>', 'Separar otra copia de la carta seleccionada')}
     ${K('<kbd>P</kbd>', 'Proxy: la misma carta en otro lugar, para usarla en varios combos')}
     ${K('<kbd>G</kbd>', 'Agrupar las cartas seleccionadas en un cuadro (o crear un cuadro vacío)')}
+    ${K('<kbd>A</kbd>', 'Agregar carta: buscador de todas las cartas con filtros, como aliada o rival')}
+    ${K('<kbd>T</kbd>', 'Agregar texto libre (doble clic en él para escribir)')}
+    ${K('<kbd>S</kbd>', 'Guardar jugada: foto del mapa con nombre, para abrirla y editarla después')}
+    ${K('<kbd>Shift</kbd>+<kbd>↑</kbd> / <kbd>↓</kbd>', 'Agrandar o achicar la letra de la anotación o de la nota de la carta')}
     ${K('Mantén <kbd>⌘</kbd> / <kbd>Ctrl</kbd>', 'Ampliar la carta que está bajo el cursor (en el mapa, el deck, los combos y la biblioteca)')}
     ${K('<kbd>/</kbd>', 'Buscar una carta del mapa')}
     ${K('Arrastrar el fondo · dos dedos', 'Moverte por el mapa')}
@@ -1985,6 +2244,9 @@ function commands() {
     ['Zoom al 100%', '0', () => { const r = stage().getBoundingClientRect(); animateTo(...centerTarget(r.width / 2, r.height / 2, 1)); }],
     ['Auto-organizar cartas por tipo y coste', 'L', relayout],
     ['Separar todas las copias en este mapa', '', () => { setView('map'); splitAllCopies(); }],
+    ['Agregar carta (buscador con filtros, aliada o rival)', 'A', openFinder],
+    ['Guardar jugada (foto del mapa con nombre)', 'S', () => saveSnap()], ['Ver jugadas guardadas', '', () => { setView('map'); setLeftTab('snaps'); }],
+    ['Agregar texto al mapa', 'T', () => addAnnot('text')], ['Agregar cuadro', '', () => addAnnot('rect')], ['Agregar círculo', '', () => addAnnot('ellipse')], ['Agregar nota adhesiva', '', () => addAnnot('sticky')],
     ['Nuevo grupo (cuadro para englobar cartas)', 'G', () => { setView('map'); newGroup([...sel.nodes]); }],
     ['Crear proxy de la carta seleccionada', 'P', () => { const k = [...sel.nodes][0]; k ? addProxy(k) : toast('Selecciona una carta primero'); }],
     ['Nueva línea de combo', 'N', () => { const c = newCombo(); setMode({ type: 'record', comboId: c.id }); }],
@@ -2131,7 +2393,7 @@ function onKey(ev) {
     if (k === 'p' || k === 'P') { toggleAuto(); return; }
     if (k === 'Escape') { stopPlay(); return; }
   }
-  if (k === 'Escape') { if (mode) setMode(null); else if (sel.nodes.size || sel.edge || sel.group || libPreview) { sel.nodes.clear(); sel.edge = null; sel.group = null; libPreview = null; onSelChange(); renderEdges(); } return; }
+  if (k === 'Escape') { if (mode) setMode(null); else if (sel.nodes.size || sel.edge || sel.group || sel.ann || libPreview) { sel.nodes.clear(); sel.edge = null; sel.group = null; sel.ann = null; libPreview = null; onSelChange(); renderEdges(); } return; }
   if (k === '/') { ev.preventDefault(); openPalette('@'); return; }
   if (k === '?') { showHelp(); return; }
   if (k === 'f' || k === 'F') { sel.nodes.size > 1 ? fit([...sel.nodes]) : fit(); return; }
@@ -2148,13 +2410,19 @@ function onKey(ev) {
   if ((k === 'p' || k === 'P') && activeCombo) { startPlay(activeCombo); return; }
   if ((k === 'g' || k === 'G')) { newGroup([...sel.nodes]); return; }
   if ((k === 'p' || k === 'P') && sel.nodes.size === 1) { addProxy([...sel.nodes][0]); return; }
+  if ((k === 'c' || k === 'C') && sel.ann) { setMode({ type: 'connect', from: 'ann:' + sel.ann }); return; }
+  if ((k === 't' || k === 'T') && !sel.nodes.size) { addAnnot('text'); return; }
+  if (k === 'a' || k === 'A') { openFinder(); return; }
+  if (k === 's' || k === 'S') { saveSnap(); return; }
   if ((k === 'c' || k === 'C') && sel.group) { setMode({ type: 'connect', from: 'grp:' + sel.group }); return; }
   if ((k === 'd' || k === 'D') && sel.nodes.size === 1) { splitCopy([...sel.nodes][0]); return; }
   if ((k === 'c' || k === 'C') && sel.nodes.size === 1) { setMode({ type: 'connect', from: [...sel.nodes][0] }); return; }
   if (k === 'Enter' && sel.nodes.size === 1) { centerOn([...sel.nodes][0], Math.max(V.k, 1.15)); return; }
   if (/^[1-5]$/.test(k) && sel.edge) { const e = map().edges.find(x => x.id === sel.edge); if (e) setEdgeType(e, EDGE_TYPES[+k - 1].id); return; }
   if (k === 'Tab') { ev.preventDefault(); cycleNeighbor(ev.shiftKey); return; }
-  if (k === 'Delete' || k === 'Backspace') { if (sel.edge) deleteEdge(sel.edge); else if (sel.group) deleteGroup(sel.group); else if (sel.nodes.size) removeFromMap([...sel.nodes]); return; }
+  if (k === 'Delete' || k === 'Backspace') { if (sel.edge) deleteEdge(sel.edge); else if (sel.group) deleteGroup(sel.group); else if (sel.ann) deleteAnn(sel.ann); else if (sel.nodes.size) removeFromMap([...sel.nodes]); return; }
+  if (ev.shiftKey && (k === 'ArrowUp' || k === 'ArrowDown' || k === '+' || k === '_') && bumpFont(k === 'ArrowUp' || k === '+' ? 2 : -2)) { ev.preventDefault(); return; }
+  if ((k === 'Enter' || k === 'F2') && sel.ann) { ev.preventDefault(); editAnnot(sel.ann); return; }
   const dirs = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
   if (dirs[k]) { ev.preventDefault(); navDir(...dirs[k]); }
 }
@@ -2211,7 +2479,8 @@ function init() {
   mm.addEventListener('pointerdown', ev => { ev.stopPropagation(); mmDrag = true; mm.setPointerCapture(ev.pointerId); mmGo(ev); });
   mm.addEventListener('pointermove', ev => mmDrag && mmGo(ev));
   mm.addEventListener('pointerup', () => mmDrag = false);
-  for (const id of ['filters', 'legend', 'zoomctl', 'modebar', 'play']) $('#' + id).addEventListener('pointerdown', ev => ev.stopPropagation());
+  for (const id of ['filters', 'legend', 'zoomctl', 'modebar', 'play', 'tools']) $('#' + id).addEventListener('pointerdown', ev => ev.stopPropagation());
+  $('#tools').querySelectorAll('[data-tool]').forEach(b => b.onclick = () => { const t = b.dataset.tool; if (t === 'card') openFinder(); else if (t === 'snap') saveSnap(); else if (t === 'group') newGroup([...sel.nodes]); else addAnnot(t); });
   $('#zIn').onclick = () => zoomBy(1.25); $('#zOut').onclick = () => zoomBy(0.8); $('#zFit').onclick = () => fit();
   $('#modeDone').onclick = () => setMode(null);
   $('#plPrev').onclick = () => stepPlay(-1); $('#plNext').onclick = () => stepPlay(1); $('#plAuto').onclick = toggleAuto; $('#plClose').onclick = stopPlay;
