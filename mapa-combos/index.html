@@ -248,6 +248,14 @@ input.stt:hover, input.stt:focus { border-color: var(--line); background: var(--
 .zrow.z-mb { background: color-mix(in srgb, var(--accent) 9%, var(--sunk)); }
 .zrow.z-hand { min-height: 60px; }
 .zrow.over { outline: 2px dashed var(--accent); outline-offset: -2px; }
+.ztoks.lanes { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 0; padding: 0; }
+.lane { position: relative; display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; padding: 16px 6px 6px; min-height: 64px; }
+.lane.enemy { background: color-mix(in srgb, #e5484d 8%, transparent); border-bottom: 2px dashed color-mix(in srgb, var(--fg) 22%, transparent); }
+.lane.ally { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.lane .zadd { align-self: center; }
+.lnl { position: absolute; left: 6px; top: 2px; font: 700 9px/1.2 var(--f-display); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); pointer-events: none; }
+.lane.enemy .lnl { color: #e5484d; }
+.spbox .lane { min-height: 100px; padding-top: 18px; }
 .tok.ins::before { content: ''; position: absolute; left: -5px; top: 0; height: calc(var(--tw) * 1.3965); width: 4px; border-radius: 2px; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
 .tok.ins.end::before { left: auto; right: -5px; }
 .zcol .tok.ins::before { left: 0; right: 0; top: -5px; width: auto; height: 4px; }
@@ -3096,7 +3104,7 @@ const SZONES = [
 const SZ_ES = Object.fromEntries(SZONES.map(z => [z.id, z.es]));
 const AR_LABELS = ['Jala', 'Mueve', 'Ataca', 'Mata', 'Daño', 'Protege', 'Buff', 'A la mano', 'Objetivo'];
 let STORY = null; // { rid, play: index|null, tsel: {i,id}|null, arrow: {i,from}|null }
-let ARW = null;    // flecha que se está arrastrando
+let ARW = null, DRAGSIDE = 'ally';    // flecha que se está arrastrando
 const storyOpen = () => !!STORY && $('#story').classList.contains('show');
 const storyRecipe = () => STORY && deck().recipes.find(r => r.id === STORY.rid);
 const isTouch = () => matchMedia('(hover: none)').matches;
@@ -3134,10 +3142,14 @@ function stageHTML(r, i, ro) {
   const s = r.stages[i], prev = i > 0 ? r.stages[i - 1] : null, tot = stageTotals(r, i + 1), pc = s.play ? getCard(s.play) : null, doms = runeDoms();
   const used = z => (z === 'bf2' && r.bf2) || (z === 'chain' && chainOn(r)) || (s.board[z] || []).length || r.stages.some(x => (x.board[z] || []).length);
   // fantasmas: dónde estaba en la etapa anterior lo que se movió
-  const ghosts = z => !prev || z === 'chain' ? '' : (prev.board[z] || []).filter(t => { if (t.st === 'dead') return false; const [ct, cz] = findTok(s, t.id); return ct && cz !== z && cz !== 'chain'; }).map(ghostHTML).join('');
+  const ghosts = (z, side) => !prev || z === 'chain' ? '' : (prev.board[z] || []).filter(t => { if (t.st === 'dead' || (side && t.side !== side)) return false; const [ct, cz] = findTok(s, t.id); return ct && cz !== z && cz !== 'chain'; }).map(ghostHTML).join('');
   const rows = SZONES.filter(z => z.id !== 'chain' && (!z.opt || used(z.id) || (z.id === 'hand' && !ro))).map(z => {
     const toks = s.board[z.id] || [];
     const lab = z.id === 'chain' ? 'Cadena' : z.id.startsWith('bf') && r.bfNames?.[z.id] ? esc(r.bfNames[z.id]) : z.es.replace('Battlefield', 'Battle&shy;field');
+    if (z.id.startsWith('bf')) { // battlefield: rival arriba, mías abajo
+      const lane = side => `<div class="lane ${side}"><span class="lnl">${side === 'enemy' ? 'Rival' : 'Mías'}</span>${toks.filter(t => t.side === side).map(t => tokHTML(r, i, t, z.id, ro, 0)).join('')}${ghosts(z.id, side)}${ro ? '' : `<button class="zadd" data-z="${z.id}" data-side="${side}" title="${side === 'enemy' ? 'Agregar unidad rival aquí' : 'Agregar una unidad tuya aquí'}">+</button>`}</div>`;
+      return `<div class="zrow z-${z.id}" data-z="${z.id}"><span class="zl">${lab}</span><div class="ztoks lanes">${lane('enemy')}${lane('ally')}</div></div>`;
+    }
     return `<div class="zrow z-${z.id}" data-z="${z.id}"${z.id === 'chain' ? ' title="Hechizos y habilidades en la cadena: se resuelve primero el último que entra (1º)"' : ''}><span class="zl">${lab}</span><div class="ztoks">${toks.map((t, k) => tokHTML(r, i, t, z.id, ro, z.id === 'chain' ? toks.length - k : 0)).join('')}${ghosts(z.id)}${ro ? '' : `<button class="zadd" data-z="${z.id}" title="${z.id === 'chain' ? 'Agregar un hechizo o habilidad a la cadena' : 'Agregar unidad aquí'}">+</button>`}</div></div>`;
   }).join('');
   const chainToks = s.board.chain || [], showChain = !ro || chainToks.length || r.stages.some(x => (x.board.chain || []).length);
@@ -3315,12 +3327,12 @@ function bindStory(r) {
     sec.querySelector('.sclr') && (sec.querySelector('.sclr').onclick = () => ch(() => { s.board.chain = (s.board.chain || []).filter(x => !(x.auto && x.key === s.play)); s.play = null; s.arrows = (s.arrows || []).filter(a => a.from !== 'play' && a.to !== 'play'); }));
     const aim = sec.querySelector('.saim'); if (aim) { aim.onpointerdown = ev => startArrow(ev, r, i, 'play'); aim.onclick = ev => ev.stopPropagation(); }
     sec.querySelectorAll('.zadd').forEach(b => b.onclick = async () => {
-      const z = b.dataset.z, res = await pickStoryCard('Agregar a ' + SZ_ES[z], 'any'); if (!res) return;
+      const z = b.dataset.z, res = await pickStoryCard('Agregar a ' + SZ_ES[z], 'any', b.dataset.side); if (!res) return;
       ch(() => { s.board[z] = s.board[z] || []; s.board[z].push({ id: uid('t'), key: res.key || null, label: res.label || '', might: res.might ?? null, side: res.side, st: '' }); if (z === 'chain') r.chain = true; });
     });
     sec.querySelectorAll('.tok:not(.ghost)').forEach(tk => {
       const id = tk.dataset.t;
-      tk.ondragstart = ev => { if (ARW) { ev.preventDefault(); return; } ev.dataTransfer.setData('text/x-tok', i + '|' + id); ev.dataTransfer.effectAllowed = 'move'; };
+      tk.ondragstart = ev => { if (ARW) { ev.preventDefault(); return; } DRAGSIDE = tk.classList.contains('enemy') ? 'enemy' : 'ally'; ev.dataTransfer.setData('text/x-tok', i + '|' + id); ev.dataTransfer.effectAllowed = 'move'; };
       tk.onclick = () => {
         if (STORY.arrow) return finishArrow(r, i, id);
         if (isTouch() && !(STORY.tsel && STORY.tsel.i === i && STORY.tsel.id === id)) { STORY.tsel = { i, id }; renderStory(); return; }
@@ -3333,10 +3345,11 @@ function bindStory(r) {
     });
     sec.querySelectorAll('.zrow').forEach(zr => {
       // dónde cae: antes de la primera carta que queda después del puntero
-      const slot = ev => { const col = zr.classList.contains('zcol'); const toks = [...zr.querySelectorAll('.tok:not(.ghost)')];
+      const pool = () => [...zr.querySelectorAll(zr.querySelector('.lanes') ? `.tok.${DRAGSIDE}:not(.ghost)` : '.tok:not(.ghost)')];
+      const slot = ev => { const col = zr.classList.contains('zcol'); const toks = pool();
         return toks.find(tk => { const b = tk.getBoundingClientRect(); return col ? ev.clientY < b.top + Math.min(b.height / 2, 24) : (ev.clientY < b.top || (ev.clientY <= b.bottom && ev.clientX < b.left + b.width / 2)); }) || null; };
       const clr = () => zr.querySelectorAll('.ins').forEach(x => x.classList.remove('ins', 'end'));
-      zr.ondragover = ev => { if (!ev.dataTransfer.types.includes('text/x-tok')) return; ev.preventDefault(); zr.classList.add('over'); clr(); const b = slot(ev); if (b) b.classList.add('ins'); else { const all = zr.querySelectorAll('.tok:not(.ghost)'); if (all.length) all[all.length - 1].classList.add('ins', 'end'); } };
+      zr.ondragover = ev => { if (!ev.dataTransfer.types.includes('text/x-tok')) return; ev.preventDefault(); zr.classList.add('over'); clr(); const b = slot(ev); if (b) b.classList.add('ins'); else { const all = pool(); if (all.length) all[all.length - 1].classList.add('ins', 'end'); } };
       zr.ondragleave = ev => { if (!zr.contains(ev.relatedTarget)) { zr.classList.remove('over'); clr(); } };
       zr.ondrop = ev => { zr.classList.remove('over'); clr(); const v = ev.dataTransfer.getData('text/x-tok'); if (!v) return; ev.preventDefault(); const [si, tid] = v.split('|'); if (+si !== i) return toast('Mueve las cartas dentro de la misma etapa'); const b = slot(ev); moveTok(r, i, tid, zr.dataset.z, b ? b.dataset.t : null); };
     });
@@ -3376,9 +3389,9 @@ function tokMenu(r, i, tid) {
   $('#tmDel').onclick = () => { commit(); s.board[z] = s.board[z].filter(x => x !== t); s.arrows = (s.arrows || []).filter(a => a.from !== tid && a.to !== tid); done(); };
   $('#tmDelAll').onclick = () => { commit(); for (const st of r.stages.slice(i)) { for (const zz of SZONES) st.board[zz.id] = (st.board[zz.id] || []).filter(x => x.id !== tid); st.arrows = (st.arrows || []).filter(a => a.from !== tid && a.to !== tid); } done(); };
 }
-function pickStoryCard(title, scope) {
+function pickStoryCard(title, scope, side0) {
   return new Promise(res => {
-    const d = deck(); let side = 'ally', q = '', mightG = 2;
+    const d = deck(); let side = side0 || 'ally', q = '', mightG = 2;
     const deckKeys = [...new Set(d.cards.filter(e => e.zone !== 'rune').map(e => e.key))];
     const draw = () => {
       const nq = norm(q);
@@ -3388,8 +3401,8 @@ function pickStoryCard(title, scope) {
       $('#pkList').querySelectorAll('.pk').forEach(b => b.onclick = () => { closeModal(); res({ key: b.dataset.k, side }); });
     };
     openModal(`<h2>${esc(title)}</h2>
-      ${scope === 'any' ? `<div class="btnrow" style="margin-top:0"><div class="seg" id="pkSide"><button data-v="ally" class="on">Aliada</button><button data-v="enemy">Rival</button></div></div>
-      <div class="pkgen" id="pkGen" hidden><span>Unidad rival sin carta:</span><input type="text" id="pkLabel" value="Unidad" style="width:110px"><span>might</span><button class="btn sm" id="pkMm">−</button><b class="mono" id="pkMv">2</b><button class="btn sm" id="pkMp">+</button><button class="btn sm primary" id="pkGenOk">Agregar</button></div>` : ''}
+      ${scope === 'any' ? `<div class="btnrow" style="margin-top:0"><div class="seg" id="pkSide"><button data-v="ally"${side === 'ally' ? ' class="on"' : ''}>Aliada</button><button data-v="enemy"${side === 'enemy' ? ' class="on"' : ''}>Rival</button></div></div>
+      <div class="pkgen" id="pkGen"${side === 'enemy' ? '' : ' hidden'}><span>Unidad rival sin carta:</span><input type="text" id="pkLabel" value="Unidad" style="width:110px"><span>might</span><button class="btn sm" id="pkMm">−</button><b class="mono" id="pkMv">2</b><button class="btn sm" id="pkMp">+</button><button class="btn sm primary" id="pkGenOk">Agregar</button></div>` : ''}
       <input type="search" id="pkQ" placeholder="${scope === 'deck' ? 'Busca en tu deck…' : 'Busca por nombre o texto (vacío = tu deck)…'}" style="width:100%">
       <div class="pklist" id="pkList"></div>
       <div class="btnrow"><button class="btn" id="pkNo">Cancelar</button></div>`);
