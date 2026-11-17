@@ -345,6 +345,16 @@ input.stt:hover, input.stt:focus { border-color: var(--line); background: var(--
 #zoomctl { right: 12px; bottom: 168px; display: flex; flex-direction: column; padding: 3px; gap: 2px; }
 #zoomctl button { width: 30px; height: 30px; border: 0; background: none; border-radius: 6px; font-weight: 600; }
 #zoomctl button:hover { background: var(--sunk); }
+#zoomctl button:disabled { opacity: .3; cursor: default; background: none; }
+#zoomctl button.on { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+#zoomctl button svg { display: block; margin: auto; }
+#zoomctl .zsep { height: 1px; background: var(--line); margin: 3px 4px; }
+.node.dragging { z-index: 1000000 !important; }
+.node .lk, .ann .lk { position: absolute; top: -10px; right: 18px; width: 22px; height: 22px; border-radius: 50%; background: var(--surface); border: 1px solid var(--line-strong); font-size: 11px; line-height: 20px; text-align: center; box-shadow: var(--shadow); pointer-events: none; }
+.ann .lk { right: -8px; top: -8px; }
+.ann.locked { cursor: default; }
+.grp-hd .glk { font-style: normal; font-size: 13px; }
+.lyrow .btn kbd { margin-left: 2px; }
 #zoomctl .zv { font: 500 10px var(--f-mono); text-align: center; color: var(--muted); padding: 2px 0; }
 #minimap { right: 12px; bottom: 12px; width: 208px; height: 144px; padding: 0; overflow: hidden; cursor: pointer; }
 #minimap canvas { width: 100%; height: 100%; display: block; }
@@ -660,6 +670,12 @@ button.tr:hover { background: var(--sunk); }
         <div class="zv mono" id="zVal">100%</div>
         <button id="zOut" title="Alejar (−)">−</button>
         <button id="zFit" title="Ajustar vista (F)">⤢</button>
+        <div class="zsep" aria-hidden="true"></div>
+        <button id="lyLock" title="Bloquear para que no se mueva (Shift+L)">🔓</button>
+        <button id="lyFront" title="Traer al frente (⇧⌘])"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="3" y="9" width="9" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".45"/><rect x="7" y="3" width="10" height="9" rx="1.5" fill="currentColor"/></svg></button>
+        <button id="lyUp" title="Subir una capa (⌘])">↑</button>
+        <button id="lyDown" title="Bajar una capa (⌘[)">↓</button>
+        <button id="lyBack" title="Enviar atrás (⇧⌘[)"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="3" y="9" width="9" height="8" rx="1.5" fill="currentColor"/><rect x="7" y="3" width="10" height="9" rx="1.5" fill="var(--surface)" stroke="currentColor" stroke-width="1.6"/></svg></button>
       </div>
       <div class="float" id="minimap" title="Minimapa: clic o arrastra para navegar"><canvas id="mm"></canvas></div>
       <div class="float" id="play">
@@ -1109,7 +1125,7 @@ function autoLayout(m, d = deck(), onlyExisting = false) {
   const place = (title, keys, rows, w = GX, h = GY) => {
     if (!keys.length) return;
     m.labels.push({ x, y: -70, t: title, n: keys.length });
-    keys.forEach((k, i) => { m.nodes[k] = { x: x + Math.floor(i / rows) * w, y: (i % rows) * h }; });
+    keys.forEach((k, i) => { m.nodes[k] = old[k]?.lock ? old[k] : { ...(old[k] || {}), x: x + Math.floor(i / rows) * w, y: (i % rows) * h }; });
     x += Math.max(Math.ceil(keys.length / rows) * w, title.length * 16 + 20) + 90;
   };
   place('Leyenda y campeón', filt(lanes.lc), ROWS);
@@ -1211,7 +1227,7 @@ function renderNodes() {
     const q = deckQty(key) - deckQty(key, 'side'), qs = deckQty(key, 'side');
     const badge = z === 'legend' ? 'Leyenda' : z === 'champion' ? 'Campeón' : (!q && qs ? 'Side' : '');
     const nu = uses[instKey(key)] || 1, px = isProxy(key), en = isEnemy(key);
-    h += `<div class="node${c.type === 'Battlefield' ? ' bf' : ''}${c.img ? '' : ' noimg'}${px ? ' proxy' : ''}${en ? ' enemy' : ''}" data-key="${esc(key)}" style="left:${n.x}px;top:${n.y}px">
+    h += `<div class="node${c.type === 'Battlefield' ? ' bf' : ''}${c.img ? '' : ' noimg'}${px ? ' proxy' : ''}${en ? ' enemy' : ''}${n.lock ? ' locked' : ''}" data-key="${esc(key)}" style="left:${n.x}px;top:${n.y}px">${n.lock ? '<span class="lk" title="Bloqueada: no se mueve">🔒</span>' : ''}
       <div class="cimg">${imgTag(c)}${phTag(c)}</div>
       ${en ? '<span class="rival">Rival</span>' : ncp[baseKey(key)] > 1 ? `<span class="qty" title="Copia ${copyNo(key)} de ${Math.max(copiesTotal(baseKey(key)), ncp[baseKey(key)])}">${copyNo(key)}/${Math.max(copiesTotal(baseKey(key)), ncp[baseKey(key)])}</span>` : q > 1 || (qs && q) ? `<span class="qty" title="Copias en el deck. Selecciona la carta y usa “Separar copia” para tenerlas por separado">×${q}${qs ? '+' + qs : ''}</span>` : ''}
       ${badge && !en ? `<span class="zone">${badge}</span>` : ''}
@@ -1225,12 +1241,72 @@ function renderNodes() {
   $('#zlabels').innerHTML = m.labels.map(l => `<div class="zlabel" style="left:${l.x}px;top:${l.y}px">${esc(l.t)}<small>${l.n} cartas</small></div>`).join('');
   applyClasses();
 }
+/* ============ Capas y candado ============ */
+const isShape = a => !!a && (a.kind === 'rect' || a.kind === 'ellipse');
+function layerItems(m = map()) { // de abajo hacia arriba
+  const L = [...(m.notes || []).map((a, i) => ({ k: 'ann:' + a.id, o: a, z: a.z != null ? a.z : isShape(a) ? -1e6 : 0, d: i })),
+    ...Object.entries(m.nodes).map(([k, n], i) => ({ k, o: n, z: n.z != null ? n.z : 0, d: 1e5 + i }))];
+  return L.sort((p, q) => p.z - q.z || p.d - q.d);
+}
+function applyZ() {
+  const L = layerItems(); let edgeZ = null;
+  L.forEach((it, i) => {
+    const el = isAnn(it.k) ? $('#annots').querySelector(`.ann[data-a="${it.k.slice(4)}"]`) : nodeEl(it.k);
+    if (el) el.style.zIndex = i + 1;
+    if (edgeZ == null && !isAnn(it.k)) edgeZ = i + 1;
+  });
+  $('#edges').style.zIndex = edgeZ ?? L.length + 1;
+}
+function itemBox(it) { if (isAnn(it.k)) return [it.o.x, it.o.y, it.o.w, it.o.h]; const [w, h] = nodeSize(it.k); return [it.o.x, it.o.y, w, h]; }
+const boxHit = (a, b) => a[0] < b[0] + b[2] && a[0] + a[2] > b[0] && a[1] < b[1] + b[3] && a[1] + a[3] > b[1];
+function layerKeys() { return sel.ann ? ['ann:' + sel.ann] : [...sel.nodes]; }
+function reorder(how) {
+  if (VIEW !== 'map') return;
+  const ks = new Set(layerKeys()); if (!ks.size) { toast('Selecciona una carta o forma para cambiarla de capa'); return; }
+  const m = map(), L = layerItems(m); let order = L.slice();
+  if (how === 'front') order = [...L.filter(x => !ks.has(x.k)), ...L.filter(x => ks.has(x.k))];
+  else if (how === 'back') order = [...L.filter(x => ks.has(x.k)), ...L.filter(x => !ks.has(x.k))];
+  else {
+    // sube/baja una capa: salta la siguiente pieza que se encima con la selección
+    const up = how === 'up', boxes = L.filter(x => ks.has(x.k)).map(itemBox);
+    const idx = order.map((x, i) => ks.has(x.k) ? i : -1).filter(i => i >= 0);
+    const at = up ? idx[idx.length - 1] : idx[0]; let j = at;
+    for (let i = at + (up ? 1 : -1); i >= 0 && i < order.length; i += up ? 1 : -1) if (!ks.has(order[i].k) && boxes.some(b => boxHit(b, itemBox(order[i])))) { j = i; break; }
+    if (j === at) { toast(up ? 'Ya está hasta arriba' : 'Ya está hasta abajo'); return; }
+    const pivot = order[j], rest = order.filter(x => !ks.has(x.k)), mine = order.filter(x => ks.has(x.k)), pi = rest.indexOf(pivot);
+    order = [...rest.slice(0, up ? pi + 1 : pi), ...mine, ...rest.slice(up ? pi + 1 : pi)];
+  }
+  commit(); order.forEach((x, i) => { x.o.z = i - order.length; }); applyZ(); save();
+  toast({ front: 'Traída al frente', back: 'Enviada atrás', up: 'Subió una capa', down: 'Bajó una capa' }[how]);
+}
+function lockTargets() { const m = map(); if (sel.ann) return [annOf('ann:' + sel.ann, m)]; if (sel.group) return [grpOf('grp:' + sel.group, m)]; return [...sel.nodes].map(k => m.nodes[k]); }
+function isLockedSel() { const t = lockTargets().filter(Boolean); return t.length > 0 && t.every(x => x.lock); }
+function toggleLock() {
+  if (VIEW !== 'map') return;
+  const ts = lockTargets().filter(Boolean); if (!ts.length) { toast('Selecciona una carta, forma o grupo para bloquearlo'); return; }
+  commit(); const on = !ts.every(t => t.lock); for (const t of ts) { if (on) t.lock = true; else delete t.lock; }
+  renderNodes(); renderEdges(); renderInspector(); updateLayerBtns(); save();
+  toast(on ? '🔒 Bloqueado: ya no se mueve (lo puedes seleccionar y arrastrar el fondo)' : '🔓 Desbloqueado');
+}
+function updateLayerBtns() {
+  const lk = sel.ann || sel.group || sel.nodes.size, ly = sel.ann || sel.nodes.size, on = lk && isLockedSel();
+  const b = $('#lyLock'); if (!b) return; b.disabled = !lk; b.textContent = on ? '🔒' : '🔓'; b.classList.toggle('on', !!on);
+  b.title = on ? 'Desbloquear (Shift+L)' : 'Bloquear para que no se mueva (Shift+L)';
+  for (const id of ['lyFront', 'lyUp', 'lyDown', 'lyBack']) $('#' + id).disabled = !ly;
+}
+function layerRowHTML(withOrder = true) {
+  const on = isLockedSel();
+  return `<div class="btnrow lyrow"><button class="btn sm${on ? ' primary' : ''}" data-ly="lock">${on ? '🔒 Bloqueado' : '🔓 Bloquear'} <kbd>⇧L</kbd></button>${withOrder ? `<button class="btn sm ghost" data-ly="front" title="Traer al frente (⇧⌘])">⤒ Al frente</button><button class="btn sm ghost" data-ly="up" title="Subir una capa (⌘])">↑</button><button class="btn sm ghost" data-ly="down" title="Bajar una capa (⌘[)">↓</button><button class="btn sm ghost" data-ly="back" title="Enviar atrás (⇧⌘[)">⤓ Atrás</button>` : ''}</div>`;
+}
+function bindLayerRow(el) { el.querySelectorAll('[data-ly]').forEach(b => b.onclick = () => b.dataset.ly === 'lock' ? toggleLock() : reorder(b.dataset.ly)); }
+
 /* ============ Anotaciones: textos y formas ============ */
 const ACOLORS = ['#b07cf5', '#2ec4b6', '#ffb627', '#ff4fa3', '#4c8dff', '#ff6b4a', '#8bc34a', '#9a93a3'];
 const ADEF = { text: { w: 300, h: 70, fs: 22, color: '#9a93a3' }, rect: { w: 340, h: 210, fs: 18, color: '#4c8dff' }, ellipse: { w: 280, h: 190, fs: 18, color: '#2ec4b6' }, sticky: { w: 230, h: 170, fs: 16, color: '#ffb627' } };
 function renderAnnots() {
   const m = map(); m.notes = m.notes || [];
-  $('#annots').innerHTML = m.notes.map(a => `<div class="ann ann-${a.kind}" data-a="${a.id}" style="left:${a.x}px;top:${a.y}px;width:${a.w}px;height:${a.h}px;--ac:${a.color};font-size:${a.fs}px"><div class="ann-tx${a.text ? '' : ' ph'}">${a.text ? esc(a.text) : 'Doble clic para escribir'}</div><i class="ann-port" title="Arrastra hasta una carta para conectar"></i><div class="ann-sz" title="Arrastra para cambiar el tamaño"></div></div>`).join('');
+  $('#annots').innerHTML = m.notes.map(a => `<div class="ann ann-${a.kind}${a.lock ? ' locked' : ''}" data-a="${a.id}" style="left:${a.x}px;top:${a.y}px;width:${a.w}px;height:${a.h}px;--ac:${a.color};font-size:${a.fs}px"><div class="ann-tx${a.text ? '' : ' ph'}">${a.text ? esc(a.text) : 'Doble clic para escribir'}</div><i class="ann-port" title="Arrastra hasta una carta para conectar"></i>${a.lock ? '<span class="lk" title="Bloqueada: no se mueve">🔒</span>' : '<div class="ann-sz" title="Arrastra para cambiar el tamaño"></div>'}</div>`).join('');
+  applyZ();
 }
 function addAnnot(kind, wx, wy) {
   setView('map'); const m = map(); m.notes = m.notes || []; const d = ADEF[kind];
@@ -1265,15 +1341,15 @@ function renderAnnInsp(el) {
     <div class="field"><label for="aText">Texto</label><textarea id="aText" rows="4" placeholder="Escribe aquí… (también con doble clic en el mapa)">${esc(a.text || '')}</textarea></div>
     <div class="field"><label>Tamaño de letra</label><div class="btnrow" style="margin:0;align-items:center"><button class="btn sm" id="aFm">A−</button><b class="mono">${a.fs}</b><button class="btn sm" id="aFp">A+</button><span class="small muted">o <kbd>Shift</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd></span></div></div>
     <div class="field"><label>Color</label><div class="typepick">${ACOLORS.map(c => `<button class="gsw${c === a.color ? ' on' : ''}" data-c="${c}" style="background:${c}" aria-label="Color"></button>`).join('')}</div></div>
-    <div class="btnrow"><button class="btn sm primary" id="aConn">Conectar con… <kbd>C</kbd></button><button class="btn sm" id="aDup">Duplicar</button><button class="btn sm danger" id="aDel">Borrar</button></div>
+    <div class="btnrow"><button class="btn sm primary" id="aConn">Conectar con… <kbd>C</kbd></button><button class="btn sm" id="aDup">Duplicar</button><button class="btn sm danger" id="aDel">Borrar</button></div>${layerRowHTML()}
     <div class="sec"><h3>Conexiones</h3><span class="n">${outs.length + ins.length}</span></div>${outs.map(e => row(e, e.to, 'out')).join('')}${ins.map(e => row(e, e.from, 'in')).join('')}${!outs.length && !ins.length ? '<p class="empty">Arrastra el ● de la anotación hasta una carta, otra forma o un grupo.</p>' : ''}`;
   el.querySelectorAll('#aKind button').forEach(b => b.onclick = () => { commit(); a.kind = b.dataset.k; renderAnnots(); applyClasses(); renderInspector(); save(); });
   const t = $('#aText'); t.addEventListener('focus', () => commit(), { once: true }); t.oninput = () => { a.text = t.value; renderAnnots(); applyClasses(); save(); };
   $('#aFm').onclick = () => bumpFont(-2); $('#aFp').onclick = () => bumpFont(2);
   el.querySelectorAll('.gsw').forEach(b => b.onclick = () => { commit(); a.color = b.dataset.c; renderAnnots(); applyClasses(); drawMinimap(); renderInspector(); save(); });
   $('#aConn').onclick = () => setMode({ type: 'connect', from: ak });
-  $('#aDup').onclick = () => { commit(); const n = { ...a, id: uid('a'), x: a.x + 40, y: a.y + 40 }; m.notes.push(n); renderAnnots(); selectAnn(n.id); save(); };
-  $('#aDel').onclick = () => deleteAnn(a.id);
+  $('#aDup').onclick = () => { commit(); const n = { ...a, id: uid('a'), x: a.x + 40, y: a.y + 40 }; delete n.lock; m.notes.push(n); renderAnnots(); selectAnn(n.id); save(); };
+  $('#aDel').onclick = () => deleteAnn(a.id); bindLayerRow(el);
   el.querySelectorAll('.conn[data-k]').forEach(r => { r.onclick = () => openEnd(r.dataset.k); if (r.dataset.e) r.ondblclick = () => { sel.edge = r.dataset.e; sel.ann = null; onSelChange(); }; });
 }
 function openEnd(k) { if (isGrp(k)) selectGroup(k.slice(4)); else if (isAnn(k)) selectAnn(k.slice(4)); else selectKey(k); }
@@ -1334,9 +1410,9 @@ const GCOLORS = ['#b07cf5', '#2ec4b6', '#ffb627', '#ff4fa3', '#4c8dff', '#ff6b4a
 function grpMembers(g, m = map()) { if (!g) return []; return Object.keys(m.nodes).filter(k => { const [cx, cy] = center(k); return cx > g.x && cx < g.x + g.w && cy > g.y && cy < g.y + g.h; }); }
 function renderGroups() {
   const m = map(); m.groups = m.groups || [];
-  $('#groups').innerHTML = m.groups.map(g => { const n = grpMembers(g, m).length; return `<div class="grp" data-g="${g.id}" style="left:${g.x}px;top:${g.y}px;width:${g.w}px;height:${g.h}px;--gc:${g.color}">
-    <div class="grp-hd" title="Arrastra para mover el grupo con sus cartas · doble clic para renombrar"><b>${esc(g.name)}</b><span>${n} carta${n === 1 ? '' : 's'}</span><i class="grp-port" title="Arrastra hasta una carta para conectar el grupo"></i></div>
-    ${g.note ? `<div class="grp-nt">${esc(g.note)}</div>` : ''}<div class="grp-sz" title="Arrastra para cambiar el tamaño"></div></div>`; }).join('');
+  $('#groups').innerHTML = m.groups.map(g => { const n = grpMembers(g, m).length; return `<div class="grp${g.lock ? ' locked' : ''}" data-g="${g.id}" style="left:${g.x}px;top:${g.y}px;width:${g.w}px;height:${g.h}px;--gc:${g.color}">
+    <div class="grp-hd" title="Arrastra para mover el grupo con sus cartas · doble clic para renombrar">${g.lock ? '<em class="glk" title="Bloqueado">🔒</em>' : ''}<b>${esc(g.name)}</b><span>${n} carta${n === 1 ? '' : 's'}</span><i class="grp-port" title="Arrastra hasta una carta para conectar el grupo"></i></div>
+    ${g.note ? `<div class="grp-nt">${esc(g.note)}</div>` : ''}${g.lock ? '' : '<div class="grp-sz" title="Arrastra para cambiar el tamaño"></div>'}</div>`; }).join('');
 }
 function groupAt(wx, wy) { const gs = (map().groups || []).filter(g => wx > g.x && wx < g.x + g.w && wy > g.y - 24 && wy < g.y + g.h); gs.sort((p, q) => p.w * p.h - q.w * q.h); return gs[0] || null; }
 async function newGroup(keys) {
@@ -1359,14 +1435,14 @@ function renderGroupInsp(el) {
     <div class="field"><label for="gName">Nombre</label><input type="text" id="gName" value="${esc(g.name)}"></div>
     <div class="field"><label>Color</label><div class="typepick">${GCOLORS.map(c => `<button class="gsw${c === g.color ? ' on' : ''}" data-c="${c}" style="background:${c}" aria-label="Color"></button>`).join('')}</div></div>
     <div class="field"><label for="gNote">Nota</label><textarea id="gNote" rows="3" placeholder="Ej.: Fizz rejuega cualquiera de estos desde el trash">${esc(g.note || '')}</textarea></div>
-    <div class="btnrow"><button class="btn sm primary" id="gConn">Conectar con… <kbd>C</kbd></button><button class="btn sm" id="gFit">Encuadrar</button><button class="btn sm" id="gSel">Seleccionar sus cartas</button><button class="btn sm danger" id="gDel">Borrar grupo</button></div>
+    <div class="btnrow"><button class="btn sm primary" id="gConn">Conectar con… <kbd>C</kbd></button><button class="btn sm" id="gFit">Encuadrar</button><button class="btn sm" id="gSel">Seleccionar sus cartas</button><button class="btn sm danger" id="gDel">Borrar grupo</button></div>${layerRowHTML(false)}
     <div class="sec"><h3>Cartas dentro</h3><span class="n">${mem.length}</span></div>${mem.map(k => `<div class="conn" data-k="${esc(k)}"><span class="nm">${esc(getCard(k).name)}</span></div>`).join('') || '<p class="empty">Arrastra cartas dentro del cuadro.</p>'}
     <div class="sec"><h3>Conexiones</h3><span class="n">${outs.length + ins.length}</span></div>${outs.map(e => row(e, e.to, 'out')).join('')}${ins.map(e => row(e, e.from, 'in')).join('')}${!outs.length && !ins.length ? '<p class="empty">Arrastra el ● del título hasta una carta, o arrastra el ● de una carta hasta el cuadro.</p>' : ''}`;
   const nm = $('#gName'); nm.addEventListener('focus', () => commit(), { once: true }); nm.oninput = () => { g.name = nm.value; renderGroups(); applyClasses(); save(); };
   const nt = $('#gNote'); nt.addEventListener('focus', () => commit(), { once: true }); nt.oninput = () => { g.note = nt.value; renderGroups(); applyClasses(); save(); };
   el.querySelectorAll('.gsw').forEach(b => b.onclick = () => { commit(); g.color = b.dataset.c; renderGroups(); applyClasses(); drawMinimap(); renderInspector(); save(); });
   el.querySelectorAll('.conn[data-k]').forEach(r => { r.onclick = () => isGrp(r.dataset.k) ? selectGroup(r.dataset.k.slice(4)) : selectKey(r.dataset.k); if (r.dataset.e) r.ondblclick = () => { sel.edge = r.dataset.e; sel.group = null; onSelChange(); }; });
-  $('#gConn').onclick = () => setMode({ type: 'connect', from: gk });
+  $('#gConn').onclick = () => setMode({ type: 'connect', from: gk }); bindLayerRow(el);
   $('#gFit').onclick = () => fit([gk]); $('#gSel').onclick = () => { sel.group = null; sel.nodes = new Set(mem); onSelChange(); };
   $('#gDel').onclick = () => deleteGroup(g.id);
 }
@@ -1525,17 +1601,19 @@ function onDown(ev) {
     if (ev.target.isContentEditable) return;
     if (mode && mode.type === 'connect') { if ('ann:' + aid !== mode.from) createEdgeUI(mode.from, 'ann:' + aid, ev.clientX, ev.clientY); setMode(null); return; }
     if (ev.target.closest('.ann-port') && !mode) { drag = { type: 'connect', from: 'ann:' + aid, moved: false }; st.setPointerCapture(ev.pointerId); ev.preventDefault(); return; }
-    if (ev.target.closest('.ann-sz')) { commit(); drag = { type: 'aresize', g: an, sx: ev.clientX, sy: ev.clientY, w0: an.w, h0: an.h }; st.setPointerCapture(ev.pointerId); ev.preventDefault(); return; }
+    if (ev.target.closest('.ann-sz') && !an.lock) { commit(); drag = { type: 'aresize', g: an, sx: ev.clientX, sy: ev.clientY, w0: an.w, h0: an.h }; st.setPointerCapture(ev.pointerId); ev.preventDefault(); return; }
     if (sel.ann !== aid) selectAnn(aid);
+    if (an.lock) { startPan(ev, true); return; }
     drag = { type: 'ann', g: an, sx: ev.clientX, sy: ev.clientY, g0: { x: an.x, y: an.y }, moved: false }; st.setPointerCapture(ev.pointerId); return;
   }
   const gEl = !node && ev.target.closest('.grp'), gid = gEl && gEl.dataset.g, g = gid && grpOf('grp:' + gid);
   if (!node && !edge && mode && mode.type === 'connect') { const [wx, wy] = toWorld(ev.clientX, ev.clientY); const tg = groupAt(wx, wy); if (tg && 'grp:' + tg.id !== mode.from) { createEdgeUI(mode.from, 'grp:' + tg.id, ev.clientX, ev.clientY); setMode(null); return; } }
   if (g && ev.target.closest('.grp-port') && !mode) { drag = { type: 'connect', from: 'grp:' + gid, moved: false }; st.setPointerCapture(ev.pointerId); ev.preventDefault(); return; }
-  if (g && ev.target.closest('.grp-sz')) { commit(); drag = { type: 'gresize', g, sx: ev.clientX, sy: ev.clientY, w0: g.w, h0: g.h }; st.setPointerCapture(ev.pointerId); ev.preventDefault(); return; }
+  if (g && !g.lock && ev.target.closest('.grp-sz')) { commit(); drag = { type: 'gresize', g, sx: ev.clientX, sy: ev.clientY, w0: g.w, h0: g.h }; st.setPointerCapture(ev.pointerId); ev.preventDefault(); return; }
   if (g && ev.target.closest('.grp-hd')) {
     if (sel.group !== gid) selectGroup(gid);
-    const m = map(); const mem = grpMembers(g, m);
+    if (g.lock) { startPan(ev, true); return; }
+    const m = map(); const mem = grpMembers(g, m).filter(k => !m.nodes[k].lock);
     drag = { type: 'group', g, sx: ev.clientX, sy: ev.clientY, g0: { x: g.x, y: g.y }, start: Object.fromEntries(mem.map(k => [k, { ...m.nodes[k] }])), moved: false };
     st.setPointerCapture(ev.pointerId); return;
   }
@@ -1550,15 +1628,16 @@ function onDown(ev) {
     if (ev.shiftKey || ev.metaKey || ev.ctrlKey) { sel.nodes.has(key) ? sel.nodes.delete(key) : sel.nodes.add(key); sel.edge = null; }
     else if (!sel.nodes.has(key)) { sel.nodes.clear(); sel.nodes.add(key); sel.edge = null; }
     sel.group = null; sel.ann = null;
-    const m = map(); const keys = [...sel.nodes];
+    const m = map(); const keys = [...sel.nodes].filter(k => m.nodes[k] && !m.nodes[k].lock);
+    if (!keys.length) { onSelChange(); startPan(ev, true); return; }
     drag = { type: 'node', key, sx: ev.clientX, sy: ev.clientY, start: Object.fromEntries(keys.map(k => [k, { ...m.nodes[k] }])), moved: false, wasSel: sel.nodes.has(key) };
     st.setPointerCapture(ev.pointerId); onSelChange(); return;
   }
   if (edge) { sel.edge = edge.dataset.id; sel.nodes.clear(); sel.group = null; sel.ann = null; onSelChange(); renderEdges(); return; }
   if (ev.shiftKey) { const [wx, wy] = toWorld(ev.clientX, ev.clientY); drag = { type: 'marquee', wx, wy, sx: ev.clientX, sy: ev.clientY }; st.setPointerCapture(ev.pointerId); return; }
-  drag = { type: 'pan', sx: ev.clientX, sy: ev.clientY, x0: V.x, y0: V.y, moved: false };
-  st.classList.add('panning'); st.setPointerCapture(ev.pointerId);
+  startPan(ev);
 }
+function startPan(ev, keep) { const st = stage(); drag = { type: 'pan', sx: ev.clientX, sy: ev.clientY, x0: V.x, y0: V.y, moved: false, keep }; st.classList.add('panning'); st.setPointerCapture(ev.pointerId); }
 function onMove(ev) {
   if (ptrs.has(ev.pointerId)) ptrs.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
   if (!drag) { hoverPreview(ev); return; }
@@ -1623,7 +1702,7 @@ function onUp(ev) {
   if (!drag) return;
   const d = drag; drag = null;
   if (d.type === 'pinch') { ptrs.clear(); return; }
-  if (d.type === 'pan' && !d.moved) { if (sel.nodes.size || sel.edge || sel.group || sel.ann) { sel.nodes.clear(); sel.edge = null; sel.group = null; sel.ann = null; onSelChange(); renderEdges(); } }
+  if (d.type === 'pan' && !d.moved && !d.keep) { if (sel.nodes.size || sel.edge || sel.group || sel.ann) { sel.nodes.clear(); sel.edge = null; sel.group = null; sel.ann = null; onSelChange(); renderEdges(); } }
   if (d.type === 'node') {
     for (const el of $('#nodes').querySelectorAll('.dragging')) el.classList.remove('dragging');
     if (d.moved) { save(); renderNodes(); }
@@ -1868,7 +1947,7 @@ function selectKey(key, center = true) {
   if (center && map().nodes[key] && !inView(key)) centerOn(key);
   else if (center && map().nodes[key]) centerOn(key, V.k);
 }
-function onSelChange() { renderEdges(); renderInspector(); renderLeftSel(); drawMinimap(); }
+function onSelChange() { renderEdges(); renderInspector(); renderLeftSel(); drawMinimap(); updateLayerBtns(); }
 function switchMap(id) { stopPlay(); setMode(null); deck().mapId = id; sel.nodes.clear(); sel.edge = null; activeCombo = null; renderAll(true); save(); }
 function switchDeck(id) { stopPlay(); setMode(null); S.deckId = id; sel.nodes.clear(); sel.edge = null; activeCombo = null; renderAll(true); save(); }
 async function addMap() {
@@ -2117,9 +2196,9 @@ function renderInspector() {
   }
   if (sel.nodes.size > 1) {
     el.innerHTML = `<div class="sec"><h3>${sel.nodes.size} cartas seleccionadas</h3></div>${[...sel.nodes].map(k => `<div class="conn" data-k="${esc(k)}"><span class="nm">${esc(getCard(k).name)}</span></div>`).join('')}
-      <div class="btnrow"><button class="btn sm primary" id="mGrp">▢ Agrupar <kbd>G</kbd></button><button class="btn sm" id="mFit">Encuadrar</button><button class="btn sm danger" id="mRem">Quitar del mapa</button></div><p class="hint">Arrastra cualquiera para mover el grupo. <kbd>Shift</kbd>+clic suma o quita cartas; <kbd>Shift</kbd>+arrastrar en el fondo selecciona por área.</p>`;
+      <div class="btnrow"><button class="btn sm primary" id="mGrp">▢ Agrupar <kbd>G</kbd></button><button class="btn sm" id="mFit">Encuadrar</button><button class="btn sm danger" id="mRem">Quitar del mapa</button></div>${layerRowHTML()}<p class="hint">Arrastra cualquiera para mover el grupo. <kbd>Shift</kbd>+clic suma o quita cartas; <kbd>Shift</kbd>+arrastrar en el fondo selecciona por área.</p>`;
     el.querySelectorAll('.conn[data-k]').forEach(c => c.onclick = () => selectKey(c.dataset.k));
-    $('#mGrp').onclick = () => newGroup([...sel.nodes]); $('#mFit').onclick = () => fit([...sel.nodes]); $('#mRem').onclick = () => removeFromMap([...sel.nodes]);
+    $('#mGrp').onclick = () => newGroup([...sel.nodes]); $('#mFit').onclick = () => fit([...sel.nodes]); $('#mRem').onclick = () => removeFromMap([...sel.nodes]); bindLayerRow(el);
     return;
   }
   const key = sel.nodes.size === 1 ? [...sel.nodes][0] : libPreview;
@@ -2151,7 +2230,7 @@ function renderInspector() {
       ${zs.length ? '' : `<button class="btn sm" id="cToMain">+ Main</button><button class="btn sm" id="cToSide">+ Side</button>`}
       ${onMap ? `<button class="btn sm danger" id="cRem">Quitar del mapa</button>` : ''}
     </div>
-    ${onMap ? `<div class="btnrow" style="margin-top:-4px"><button class="btn sm" id="cProxy" title="Pone la MISMA carta en otro lugar del mapa para usarla en otro combo, marcada como proxy">↺ Proxy (misma carta) <kbd>P</kbd></button><button class="btn sm ghost" id="cGrp" title="Crear un grupo con esta carta">▢ Agrupar <kbd>G</kbd></button></div>` : ''}
+    ${onMap ? `<div class="btnrow" style="margin-top:-4px"><button class="btn sm" id="cProxy" title="Pone la MISMA carta en otro lugar del mapa para usarla en otro combo, marcada como proxy">↺ Proxy (misma carta) <kbd>P</kbd></button><button class="btn sm ghost" id="cGrp" title="Crear un grupo con esta carta">▢ Agrupar <kbd>G</kbd></button></div>${layerRowHTML()}` : ''}
     ${onMap && twinsN > 1 ? `<p class="hint" style="margin-top:0">${isProxy(key) ? '<b>Proxy.</b> Es la misma carta física que la original: ' : 'Esta misma carta física '}aparece en <b>${twinsN} lugares</b> del mapa. Todos se marcan en dorado al seleccionarla.${isProxy(key) ? ' <a href="#" id="cOrig">Ir a la original</a>' : ''}</p>` : ''}
     ${onMap ? `<div class="field"><label for="cMapNote">Nota en este mapa <span class="muted">(se ve debajo de la carta)</span></label><textarea id="cMapNote" rows="2" placeholder="Ej.: guardar para el turno de Kha'Zix">${esc(m.nodes[key].note || '')}</textarea>${m.nodes[key].note ? `<div class="btnrow" style="margin:6px 0 0;align-items:center"><span class="small muted">Tamaño</span><button class="btn sm" id="cFm">A−</button><b class="mono">${m.nodes[key].fs || 14}</b><button class="btn sm" id="cFp">A+</button><span class="small muted"><kbd>Shift</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd></span></div>` : ''}</div>` : ''}
     ${onMap && totalQ > 1 && !isEnemy(key) ? `<div class="btnrow" style="margin-top:-4px">${onCopies < totalQ ? `<button class="btn sm" id="cSplit" title="Pone otra copia de esta carta como una carta aparte en el mapa">⧉ Separar copia (${onCopies} de ${totalQ} en el mapa)</button>` : `<span class="small muted">Las ${totalQ} copias están separadas en el mapa.</span>`}${onCopies > 1 ? `<button class="btn sm ghost" id="cMerge" title="Deja una sola carta y pasa sus conexiones a la copia 1">Juntar copias</button>` : ''}</div>` : ''}
@@ -2171,7 +2250,7 @@ function renderInspector() {
   $('#cSplit') && ($('#cSplit').onclick = () => splitCopy(key));
   const mn = $('#cMapNote'); if (mn) { mn.addEventListener('focus', () => commit(), { once: true }); mn.oninput = () => { const had = !!m.nodes[key].note; m.nodes[key].note = mn.value; save(); const el2 = nodeEl(key); if (el2) { let nn = el2.querySelector('.nnote'); if (!mn.value) nn && nn.remove(); else { if (!nn) { nn = document.createElement('div'); nn.className = 'nnote'; nn.style.fontSize = (m.nodes[key].fs || 14) + 'px'; el2.appendChild(nn); } nn.textContent = mn.value; } } if (had !== !!mn.value) { clearTimeout(mn._t); mn._t = setTimeout(() => { renderInspector(); const t2 = $('#cMapNote'); if (t2) { t2.focus(); t2.setSelectionRange(t2.value.length, t2.value.length); } }, 600); } }; }
   $('#cFm') && ($('#cFm').onclick = () => bumpFont(-2)); $('#cFp') && ($('#cFp').onclick = () => bumpFont(2));
-  $('#cProxy') && ($('#cProxy').onclick = () => addProxy(key)); $('#cGrp') && ($('#cGrp').onclick = () => newGroup([key]));
+  $('#cProxy') && ($('#cProxy').onclick = () => addProxy(key)); $('#cGrp') && ($('#cGrp').onclick = () => newGroup([key])); bindLayerRow(el);
   $('#cOrig') && ($('#cOrig').onclick = ev => { ev.preventDefault(); const o = instKey(key); if (m.nodes[o]) selectKey(o); else toast('La original no está en este mapa'); });
   $('#cMerge') && ($('#cMerge').onclick = () => mergeCopies(bk));
 }
@@ -2304,6 +2383,8 @@ function showHelp() {
     ${K('<kbd>G</kbd>', 'Agrupar las cartas seleccionadas en un cuadro (o crear un cuadro vacío)')}
     ${K('<kbd>A</kbd>', 'Agregar carta: buscador de todas las cartas con filtros, como aliada o rival')}
     ${K('<kbd>T</kbd>', 'Agregar texto libre (doble clic en él para escribir)')}
+    ${K('<kbd>Shift</kbd>+<kbd>L</kbd>', 'Bloquear / desbloquear lo seleccionado para que no se mueva')}
+    ${K('<kbd>⌘</kbd>+<kbd>]</kbd> / <kbd>[</kbd>', 'Subir o bajar una capa (con <kbd>Shift</kbd>: al frente o hasta atrás)')}
     ${K('<kbd>S</kbd>', 'Guardar jugada: foto del mapa con nombre, para abrirla y editarla después')}
     ${K('<kbd>Shift</kbd>+<kbd>↑</kbd> / <kbd>↓</kbd>', 'Agrandar o achicar la letra de la anotación o de la nota de la carta')}
     ${K('Mantén <kbd>⌘</kbd> / <kbd>Ctrl</kbd>', 'Ampliar la carta que está bajo el cursor (en el mapa, el deck, los combos y la biblioteca)')}
@@ -2342,6 +2423,7 @@ function commands() {
     ['Auto-organizar cartas por tipo y coste', 'L', relayout],
     ['Separar todas las copias en este mapa', '', () => { setView('map'); splitAllCopies(); }],
     ['Agregar carta (buscador con filtros, aliada o rival)', 'A', openFinder],
+    ['Bloquear / desbloquear selección', '⇧L', toggleLock], ['Traer al frente', '⇧⌘]', () => reorder('front')], ['Enviar atrás', '⇧⌘[', () => reorder('back')], ['Subir una capa', '⌘]', () => reorder('up')], ['Bajar una capa', '⌘[', () => reorder('down')],
     ['Guardar jugada (foto del mapa con nombre)', 'S', () => saveSnap()], ['Ver jugadas guardadas', '', () => { setView('map'); setLeftTab('snaps'); }],
     ['Agregar texto al mapa', 'T', () => addAnnot('text')], ['Agregar cuadro', '', () => addAnnot('rect')], ['Agregar círculo', '', () => addAnnot('ellipse')], ['Agregar nota adhesiva', '', () => addAnnot('sticky')],
     ['Nuevo grupo (cuadro para englobar cartas)', 'G', () => { setView('map'); newGroup([...sel.nodes]); }],
@@ -2483,6 +2565,7 @@ function onKey(ev) {
   if (mod && ev.key.toLowerCase() === 'z') { ev.preventDefault(); ev.shiftKey ? redo() : undo(); return; }
   if (mod && ev.key.toLowerCase() === 'y') { ev.preventDefault(); redo(); return; }
   if (mod && ev.key.toLowerCase() === 'a') { ev.preventDefault(); Object.keys(map().nodes).forEach(k => sel.nodes.add(k)); onSelChange(); return; }
+  if (mod && (ev.code === 'BracketRight' || ev.code === 'BracketLeft')) { ev.preventDefault(); reorder(ev.code === 'BracketRight' ? (ev.shiftKey ? 'front' : 'up') : (ev.shiftKey ? 'back' : 'down')); return; }
   if (mod) return;
   const k = ev.key;
   if (play) {
@@ -2501,6 +2584,7 @@ function onKey(ev) {
   if (k === '[') { toggleLeft(); return; }
   if (k === ']') { toggleRight(); return; }
   if (k === 'e' || k === 'E') { toggleFocus(); return; }
+  if ((k === 'l' || k === 'L') && ev.shiftKey) { toggleLock(); return; }
   if (k === 'l' || k === 'L') { relayout(); return; }
   if (k === 'i' || k === 'I') { importDeckUI(); return; }
   if (k === 'n' || k === 'N') { const c = newCombo(); setMode({ type: 'record', comboId: c.id }); return; }
@@ -2580,6 +2664,7 @@ function init() {
   for (const id of ['filters', 'legend', 'zoomctl', 'modebar', 'play', 'tools']) $('#' + id).addEventListener('pointerdown', ev => ev.stopPropagation());
   $('#tools').querySelectorAll('[data-tool]').forEach(b => b.onclick = () => { const t = b.dataset.tool; if (t === 'card') openFinder(); else if (t === 'snap') saveSnap(); else if (t === 'group') newGroup([...sel.nodes]); else addAnnot(t); });
   $('#zIn').onclick = () => zoomBy(1.25); $('#zOut').onclick = () => zoomBy(0.8); $('#zFit').onclick = () => fit();
+  $('#lyLock').onclick = toggleLock; for (const [id, h] of [['lyFront', 'front'], ['lyUp', 'up'], ['lyDown', 'down'], ['lyBack', 'back']]) $('#' + id).onclick = () => reorder(h); updateLayerBtns();
   $('#modeDone').onclick = () => setMode(null);
   $('#plPrev').onclick = () => stepPlay(-1); $('#plNext').onclick = () => stepPlay(1); $('#plAuto').onclick = toggleAuto; $('#plClose').onclick = stopPlay;
   $('#btnPal').onclick = () => openPalette(); $('#btnPal2').onclick = () => openPalette();
