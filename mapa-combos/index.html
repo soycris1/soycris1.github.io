@@ -70,6 +70,9 @@ select, input[type=text], input[type=number], input[type=search], textarea { bac
 textarea { resize: vertical; width: 100%; }
 .spacer { flex: 1; }
 .search-trigger { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); min-width: 0; }
+.undoctl { display: flex; gap: 2px; flex: none; }
+.btn:disabled { opacity: .35; cursor: default; }
+.btn.ghost:disabled:hover { background: none; }
 .save-ind { font-size: 12px; color: var(--muted); white-space: nowrap; }
 
 main.work { position: relative; display: grid; grid-template-columns: var(--lw, 300px) 1fr var(--rw, 340px); min-height: 0; }
@@ -216,7 +219,7 @@ svg.layer { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overfl
 .saddst { flex: none; width: 150px; border: 2px dashed var(--line-strong); border-radius: 14px; background: none; color: var(--muted); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-weight: 600; }
 .saddst b { font-size: 34px; line-height: 1; color: var(--accent); }
 .saddst:hover { border-color: var(--accent); color: var(--fg); }
-.stg { flex: none; width: 360px; display: flex; flex-direction: column; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; overflow-y: auto; scroll-snap-align: start; }
+.stg { position: relative; z-index: 0; flex: none; width: 360px; display: flex; flex-direction: column; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; overflow-y: auto; scroll-snap-align: start; }
 .stg header { display: flex; align-items: center; gap: 8px; }
 .sn { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font: 700 17px var(--f-display); }
 .stt { flex: 1; min-width: 0; font: 700 18px/1.1 var(--f-display); text-transform: uppercase; letter-spacing: .02em; }
@@ -249,13 +252,14 @@ input.stt:hover, input.stt:focus { border-color: var(--line); background: var(--
 .ztoks { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; align-items: flex-start; }
 .zadd { width: 30px; height: 30px; border: 1px dashed var(--line-strong); border-radius: 8px; background: none; color: var(--muted); font-weight: 700; align-self: center; }
 .zadd:hover { border-color: var(--accent); color: var(--accent); }
-.tok { position: relative; width: 56px; cursor: grab; display: flex; flex-direction: column; gap: 2px; }
-.tok .th { width: 56px; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+.tok { --tw: 56px; position: relative; width: var(--tw); cursor: grab; display: flex; flex-direction: column; gap: 2px; transition: width .15s; }
+.tok .th { width: var(--tw); box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .18s, margin .15s; }
 .tok .th.gen { display: grid; place-items: center; background: linear-gradient(160deg, #e5484d, #3a1216); }
 .tok .th.gen b { display: block; position: static; font-size: 10px; text-align: center; padding: 3px; }
 .tok.ally .th { outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent); outline-offset: 1px; }
 .tok.enemy .th { outline: 2px solid #e5484d; outline-offset: 1px; }
-.tok.exh .th { transform: rotate(14deg); filter: brightness(.8); }
+.tok.exh { width: calc(var(--tw) * 1.3965); }
+.tok.exh .th { transform: rotate(90deg); margin: calc(var(--tw) * -.1983) calc(var(--tw) * .1983); filter: brightness(.82); }
 .tok.dead .th { filter: grayscale(1) brightness(.6); }
 .tok.dead::after { content: '✕'; position: absolute; top: 14px; left: 0; right: 0; text-align: center; font-size: 34px; font-weight: 700; color: #e5484d; text-shadow: 0 1px 3px #000; pointer-events: none; }
 .tok.moved .th { box-shadow: 0 0 0 3px var(--gold), 0 0 14px var(--gold); }
@@ -266,16 +270,50 @@ input.stt:hover, input.stt:focus { border-color: var(--line); background: var(--
 .tb.mv { background: var(--gold); color: #1a1200; }
 .tb.nw { background: var(--ok); color: var(--on-strong); }
 .tb.dead { background: #e5484d; color: #fff; }
+.tq { position: absolute; left: 50%; top: calc(var(--tw) * 1.3965 - 26px); transform: translateX(-50%); display: flex; gap: 2px; padding: 2px; border-radius: 999px; background: color-mix(in srgb, #0b0710 78%, transparent); box-shadow: 0 2px 6px rgba(0,0,0,.35); opacity: 0; pointer-events: none; transition: opacity .1s; z-index: 5; }
+.tok.exh .tq { top: calc(var(--tw) - 26px); }
+.tq button { width: 20px; height: 20px; border: 0; border-radius: 50%; padding: 0; background: none; color: #fff; font: 700 12px/20px var(--f-body); text-align: center; cursor: pointer; }
+.tq button:hover { background: var(--accent); color: var(--accent-ink); }
+.tq button[data-q="arrow"] { cursor: crosshair; }
+.tok:hover .tq, .tok.tsel .tq { opacity: 1; pointer-events: auto; }
+@media (hover: none) { .tok:hover:not(.tsel) .tq { opacity: 0; pointer-events: none; } .tq button { width: 24px; height: 24px; line-height: 24px; } }
+.tok.tsel .th { outline: 3px solid var(--accent); outline-offset: 2px; }
+.tok.aim .th, .spc.aim { outline: 3px solid var(--accent); outline-offset: 2px; box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 25%, transparent); }
+.tok.atgt .th, .spc.atgt { outline: 3px dashed var(--accent); outline-offset: 3px; }
+.stg.arming .tok:not(.ghost):not(.aim), .stg.arming .spc:not(.aim) { cursor: crosshair; }
+.stg.arming .tok:not(.ghost):not(.aim):hover .th { outline: 3px dashed var(--accent); outline-offset: 3px; }
+.tok.ghost { cursor: default; opacity: .5; pointer-events: none; }
+.tok.ghost .th { outline: 2px dashed var(--gold) !important; outline-offset: 1px; filter: grayscale(.6); box-shadow: none; }
+.tok.ghost .tnm { font-style: italic; color: var(--muted); }
+.tord { position: absolute; top: -6px; left: -6px; min-width: 22px; height: 20px; border-radius: 10px; background: #8b5cf6; color: #fff; font: 700 11px/20px var(--f-mono); text-align: center; padding: 0 4px; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
+.zrow.z-chain { background: color-mix(in srgb, #8b5cf6 13%, var(--sunk)); min-height: 52px; }
+.zrow.z-chain .ztoks { flex-direction: row; }
+.sarr { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; z-index: 3; }
+.sarr .am { fill: none; stroke: var(--accent); stroke-width: 2.6; stroke-linecap: round; marker-end: url(#samM); filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.35)); }
+.sarr .av { fill: none; stroke: var(--gold); stroke-width: 2; stroke-dasharray: 5 4; stroke-linecap: round; marker-end: url(#samV); opacity: .95; }
+.sarr .atmp { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: 6 4; }
+.sarr-l { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 4; }
+.alab { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; font: 700 10.5px/1 var(--f-body); background: var(--accent); color: var(--accent-ink); border: 2px solid var(--surface); border-radius: 999px; padding: 3px 7px; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+button.alab { cursor: pointer; }
+button.alab:hover { filter: brightness(1.1); }
+.alab.empty { width: 14px; height: 14px; padding: 0; }
+.spbox .alab { font-size: 12.5px; padding: 4px 9px; }
+.sdefs { position: absolute; width: 0; height: 0; overflow: hidden; }
+.saim { flex: none; }
+.saddcol { flex: none; display: flex; flex-direction: column; gap: 6px; }
+.saddcol .saddst { flex: 1; }
+.saddst small { font-size: 11px; font-weight: 500; color: var(--muted); }
+.saddst.resp b { color: #8b5cf6; }
 .tnm { font-size: 10.5px; line-height: 1.1; font-weight: 600; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .snote { width: 100%; font-size: 13px; }
 .snote-ro { margin: 0; font-size: 15px; line-height: 1.45; }
-.splayer { position: absolute; inset: 0; background: color-mix(in srgb, var(--bg) 94%, transparent); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 16px; z-index: 2; }
+.splayer { position: absolute; inset: 0; background: color-mix(in srgb, var(--bg) 94%, transparent); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 16px; z-index: 6; }
 .spbox { width: min(760px, 100%); max-height: calc(100% - 80px); overflow: auto; }
 .spbox .stg { width: 100%; padding: 18px; gap: 12px; box-shadow: var(--shadow); }
 .spbox .stt { font-size: 26px; }
 .spbox .sn { width: 40px; height: 40px; font-size: 22px; }
 .spbox .zrow { min-height: 130px; grid-template-columns: 96px minmax(0, 1fr); }
-.spbox .tok, .spbox .tok .th { width: 84px; }
+.spbox .tok { --tw: 84px; }
 .spbox .tb { top: 70px; font-size: 11px; }
 .spbox .tnm { font-size: 12px; }
 .spbox .tok.dead::after { top: 26px; font-size: 48px; }
@@ -297,7 +335,7 @@ input.stt:hover, input.stt:focus { border-color: var(--line); background: var(--
 .pk span { display: flex; flex-direction: column; min-width: 0; }
 .pk b { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pk small { font-size: 11.5px; color: var(--muted); }
-@media (max-width: 640px) { .stitle { flex-basis: 100%; } .story { padding: 10px 10px calc(10px + env(safe-area-inset-bottom)); } .shint { display: none; } .stg { width: 300px; } .stitle input { font-size: 22px; } .zrow { grid-template-columns: 64px minmax(0, 1fr); } .zl { font-size: 10px; } .tok, .tok .th { width: 48px; } .tb { top: 40px; } }
+@media (max-width: 640px) { .stitle { flex-basis: 100%; } .story { padding: 10px 10px calc(10px + env(safe-area-inset-bottom)); } .shint { display: none; } .stg { width: 300px; } .stitle input { font-size: 22px; } .zrow { grid-template-columns: 64px minmax(0, 1fr); } .zl { font-size: 10px; } .tok { --tw: 48px; } .tb { top: 40px; } .shint.arm { display: block; } }
 .grp { position: absolute; border: 2px dashed var(--gc); border-radius: 18px; background: color-mix(in srgb, var(--gc) 7%, transparent); pointer-events: none; transition: opacity .18s, box-shadow .15s; }
 .grp.sel { border-style: solid; box-shadow: 0 0 0 4px color-mix(in srgb, var(--gc) 25%, transparent); }
 .grp.nb { border-style: solid; }
@@ -321,6 +359,12 @@ input.stt:hover, input.stt:focus { border-color: var(--line); background: var(--
 .node.hit-search .cimg { outline-color: var(--gold); }
 .node.dragging { z-index: 5; }
 .node.dragging .cimg { transform: scale(1.03); }
+.node.exh .cimg { transform: rotate(90deg); filter: brightness(.85); }
+.node.exh.dragging .cimg { transform: rotate(90deg) scale(1.03); }
+.node .qx { position: absolute; top: 18px; left: 8px; z-index: 3; width: 32px; height: 32px; border-radius: 50%; border: 2px solid rgba(255,255,255,.85); background: rgba(14,9,20,.72); color: #fff; font: 700 17px/1 var(--f-body); padding: 0; display: grid; place-items: center; opacity: 0; transition: opacity .12s, transform .12s; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.35); }
+.node .qx:hover { background: var(--accent); color: var(--accent-ink); transform: scale(1.1); }
+.node:hover .qx, .node.sel .qx { opacity: 1; }
+.node.exh .qx { opacity: 1; background: var(--gold); color: #1a1200; border-color: #fff; }
 .node .stepb { position: absolute; left: 50%; top: 168px; transform: translateX(-50%); display: none; gap: 3px; }
 .node .stepb i { font: 700 13px/26px var(--f-mono); font-style: normal; width: 26px; height: 26px; border-radius: 50%; background: var(--gold); color: #1a1205; text-align: center; box-shadow: var(--shadow); }
 .node.has-step .stepb { display: flex; }
@@ -485,6 +529,9 @@ input.stt:hover, input.stt:focus { border-color: var(--line); background: var(--
 }
 @media (max-width: 640px) {
   .brand { display: none; }
+  header.bar { gap: 6px; padding: 8px; }
+  #btnImport { display: none; }
+  .undoctl .btn.icon { width: 30px; }
   .deckpick select { max-width: 120px; }
   #minimap { width: 150px; height: 104px; }
   #zoomctl, #legend { bottom: 124px; }
@@ -631,6 +678,7 @@ button.tr:hover { background: var(--sunk); }
     <nav class="tabs only-map" id="mapTabs" aria-label="Mapas"></nav>
     <button class="btn search-trigger hide-narrow" id="btnPal" title="Paleta de comandos">Buscar o ejecutar… <kbd>⌘K</kbd></button>
     <button class="btn icon only-narrow" id="btnPal2" aria-label="Buscar">⌕</button>
+    <div class="undoctl"><button class="btn icon ghost" id="btnUndo" title="Deshacer (⌘Z)" aria-label="Deshacer" disabled></button><button class="btn icon ghost" id="btnRedo" title="Rehacer (⇧⌘Z)" aria-label="Rehacer" disabled></button></div>
     <span class="save-ind hide-narrow" id="saveInd">Guardado</span>
     <button class="btn icon ghost" id="btnMore" title="Más opciones" aria-label="Más opciones">⋯</button>
     <button class="btn icon ghost only-map" id="tglRight" title="Inspector (])" aria-label="Inspector">◧</button>
@@ -1054,10 +1102,13 @@ const deckQty = (key, zone) => (key = baseKey(key), deck().cards.filter(c => c.k
 /* undo / redo */
 const UNDO = [], REDO = [];
 function snapshot() { return JSON.stringify({ decks: S.decks, custom: S.custom, deckId: S.deckId }); }
-function commit() { UNDO.push(snapshot()); if (UNDO.length > 100) UNDO.shift(); REDO.length = 0; }
-function restore(str) { const o = JSON.parse(str); S.decks = o.decks; S.custom = o.custom; S.deckId = o.deckId; sel.nodes.clear(); sel.edge = null; stopPlay(); renderAll(); save(); }
+function commit() { UNDO.push(snapshot()); if (UNDO.length > 100) UNDO.shift(); REDO.length = 0; histBtns(); }
+function restore(str) { const o = JSON.parse(str); S.decks = o.decks; S.custom = o.custom; S.deckId = o.deckId; sel.nodes.clear(); sel.edge = null; sel.group = null; sel.ann = null; stopPlay(); renderAll(); if (storyOpen()) renderStory(); save(); histBtns(); }
 function undo() { if (!UNDO.length) return toast('Nada que deshacer'); REDO.push(snapshot()); restore(UNDO.pop()); toast('Deshecho'); }
 function redo() { if (!REDO.length) return toast('Nada que rehacer'); UNDO.push(snapshot()); restore(REDO.pop()); toast('Rehecho'); }
+function histBtns() { for (const [id, st] of [['btnUndo', UNDO], ['btnRedo', REDO], ['stUndo', UNDO], ['stRedo', REDO]]) { const b = document.getElementById(id); if (b) b.disabled = !st.length; } }
+const ICON_UNDO = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>';
+const ICON_REDO = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>';
 
 /* ============ Parser de decklist ============ */
 const HEADERS = [
@@ -1227,7 +1278,7 @@ function renderNodes() {
     const q = deckQty(key) - deckQty(key, 'side'), qs = deckQty(key, 'side');
     const badge = z === 'legend' ? 'Leyenda' : z === 'champion' ? 'Campeón' : (!q && qs ? 'Side' : '');
     const nu = uses[instKey(key)] || 1, px = isProxy(key), en = isEnemy(key);
-    h += `<div class="node${c.type === 'Battlefield' ? ' bf' : ''}${c.img ? '' : ' noimg'}${px ? ' proxy' : ''}${en ? ' enemy' : ''}${n.lock ? ' locked' : ''}" data-key="${esc(key)}" style="left:${n.x}px;top:${n.y}px">${n.lock ? '<span class="lk" title="Bloqueada: no se mueve">🔒</span>' : ''}
+    h += `<div class="node${c.type === 'Battlefield' ? ' bf' : ''}${c.img ? '' : ' noimg'}${px ? ' proxy' : ''}${en ? ' enemy' : ''}${n.lock ? ' locked' : ''}${n.exh ? ' exh' : ''}" data-key="${esc(key)}" style="left:${n.x}px;top:${n.y}px">${c.type !== 'Battlefield' ? `<button class="qx" title="${n.exh ? 'Preparar (enderezar)' : 'Agotar (girar)'} · X" aria-label="Girar carta">↻</button>` : ''}${n.lock ? '<span class="lk" title="Bloqueada: no se mueve">🔒</span>' : ''}
       <div class="cimg">${imgTag(c)}${phTag(c)}</div>
       ${en ? '<span class="rival">Rival</span>' : ncp[baseKey(key)] > 1 ? `<span class="qty" title="Copia ${copyNo(key)} de ${Math.max(copiesTotal(baseKey(key)), ncp[baseKey(key)])}">${copyNo(key)}/${Math.max(copiesTotal(baseKey(key)), ncp[baseKey(key)])}</span>` : q > 1 || (qs && q) ? `<span class="qty" title="Copias en el deck. Selecciona la carta y usa “Separar copia” para tenerlas por separado">×${q}${qs ? '+' + qs : ''}</span>` : ''}
       ${badge && !en ? `<span class="zone">${badge}</span>` : ''}
@@ -1455,6 +1506,12 @@ function addProxy(key) {
   renderNodes(); renderEdges(); renderLeft(); save(); selectKey(nk, false); drawMinimap(); toast('Proxy creado: es la misma carta, puedes usarla en otro combo');
   return nk;
 }
+function toggleExh(keys) {
+  const m = map(); keys = keys.filter(k => m.nodes[k] && getCard(k).type !== 'Battlefield'); if (!keys.length) return;
+  commit(); const on = !keys.every(k => m.nodes[k].exh);
+  for (const k of keys) { if (on) m.nodes[k].exh = true; else delete m.nodes[k].exh; const el = nodeEl(k); if (el) { el.classList.toggle('exh', on); const b = el.querySelector('.qx'); if (b) b.title = (on ? 'Preparar (enderezar)' : 'Agotar (girar)') + ' · X'; } }
+  save(); toast(on ? (keys.length > 1 ? keys.length + ' cartas agotadas' : 'Agotada') : 'Preparada');
+}
 function nodeEl(key) { return $('#nodes').querySelector(`.node[data-key="${CSS.escape(key)}"]`); }
 
 /* ============ Render: conexiones ============ */
@@ -1617,6 +1674,8 @@ function onDown(ev) {
     drag = { type: 'group', g, sx: ev.clientX, sy: ev.clientY, g0: { x: g.x, y: g.y }, start: Object.fromEntries(mem.map(k => [k, { ...m.nodes[k] }])), moved: false };
     st.setPointerCapture(ev.pointerId); return;
   }
+  const onQx = !!(node && ev.target.closest('.qx'));
+  if (onQx && (mode || map().nodes[node.dataset.key]?.lock)) { toggleExh([node.dataset.key]); return; }
   if (port && node && !mode) {
     drag = { type: 'connect', from: node.dataset.key, moved: false };
     st.setPointerCapture(ev.pointerId); ev.preventDefault(); return;
@@ -1630,7 +1689,7 @@ function onDown(ev) {
     sel.group = null; sel.ann = null;
     const m = map(); const keys = [...sel.nodes].filter(k => m.nodes[k] && !m.nodes[k].lock);
     if (!keys.length) { onSelChange(); startPan(ev, true); return; }
-    drag = { type: 'node', key, sx: ev.clientX, sy: ev.clientY, start: Object.fromEntries(keys.map(k => [k, { ...m.nodes[k] }])), moved: false, wasSel: sel.nodes.has(key) };
+    drag = { type: 'node', key, sx: ev.clientX, sy: ev.clientY, start: Object.fromEntries(keys.map(k => [k, { ...m.nodes[k] }])), moved: false, wasSel: sel.nodes.has(key), qx: onQx };
     st.setPointerCapture(ev.pointerId); onSelChange(); return;
   }
   if (edge) { sel.edge = edge.dataset.id; sel.nodes.clear(); sel.group = null; sel.ann = null; onSelChange(); renderEdges(); return; }
@@ -1706,6 +1765,7 @@ function onUp(ev) {
   if (d.type === 'node') {
     for (const el of $('#nodes').querySelectorAll('.dragging')) el.classList.remove('dragging');
     if (d.moved) { save(); renderNodes(); }
+    else if (d.qx) toggleExh([d.key]);
   }
   if ((d.type === 'ann' || d.type === 'aresize') && d.moved) save();
   if (d.type === 'group' || d.type === 'gresize') { if (d.moved) { save(); renderGroups(); applyClasses(); renderInspector(); } }
@@ -2110,7 +2170,7 @@ function renderCombosPanel() {
         h += `<div class="prob"><b>Probabilidad de tener las ${pcs.length} piezas</b> <span class="muted">(al menos 1 copia de cada una del main deck, mano inicial de 4, sin mulligan, robando 1 por turno; el campeón y la leyenda no cuentan porque empiezan fuera del mazo)</span>
           <div class="bars">${turns.map(t => { const p = probAll(pcs.map(x => x.q), N, Math.min(N, 4 + t)); return `<div><i><b style="height:${(p * 100).toFixed(0)}%"></b></i>${(p * 100).toFixed(0)}%<br><span class="muted">T${t}</span></div>`; }).join('')}</div></div>`;
       }
-      h += `<div class="btnrow"><button class="btn sm" data-a="dup">Duplicar</button><button class="btn sm" data-a="fit">Ver piezas</button><button class="btn sm danger" data-a="delc">Borrar línea</button></div>`;
+      h += `<div class="btnrow"><button class="btn sm primary" data-a="tost" title="Crea un combo por etapas con estos pasos (energía, runas y notas incluidas)">⚡ Pasar a combo por etapas</button></div><div class="btnrow"><button class="btn sm" data-a="dup">Duplicar</button><button class="btn sm" data-a="fit">Ver piezas</button><button class="btn sm danger" data-a="delc">Borrar línea</button></div>`;
     }
     h += `</div>`;
   }
@@ -2141,6 +2201,7 @@ function renderCombosPanel() {
       if (a === 'del') { commit(); c.steps.splice(i, 1); save(); renderLeft(); applyClasses(); }
       if (a === 'dup') { commit(); const n = JSON.parse(JSON.stringify(c)); n.id = uid('c'); n.name += ' (copia)'; map().combos.push(n); activeCombo = n.id; save(); renderLeft(); }
       if (a === 'fit') fit([...new Set(c.steps.map(s => s.key))], 1);
+      if (a === 'tost') { if (!c.steps.length) return toast('Primero graba pasos en la línea'); openStory(comboFromCards(c.steps.map(x => x.key), c.name, c.steps).id); }
       if (a === 'delc') { askConfirm(`¿Borrar la línea “${c.name}”?`).then(okd => { if (!okd) return; commit(); map().combos = map().combos.filter(x => x.id !== c.id); if (play?.comboId === c.id) stopPlay(); activeCombo = null; save(); renderLeft(); applyClasses(); toast('Línea borrada · ⌘Z para deshacer'); }); }
     });
   });
@@ -2196,9 +2257,10 @@ function renderInspector() {
   }
   if (sel.nodes.size > 1) {
     el.innerHTML = `<div class="sec"><h3>${sel.nodes.size} cartas seleccionadas</h3></div>${[...sel.nodes].map(k => `<div class="conn" data-k="${esc(k)}"><span class="nm">${esc(getCard(k).name)}</span></div>`).join('')}
-      <div class="btnrow"><button class="btn sm primary" id="mGrp">▢ Agrupar <kbd>G</kbd></button><button class="btn sm" id="mFit">Encuadrar</button><button class="btn sm danger" id="mRem">Quitar del mapa</button></div>${layerRowHTML()}<p class="hint">Arrastra cualquiera para mover el grupo. <kbd>Shift</kbd>+clic suma o quita cartas; <kbd>Shift</kbd>+arrastrar en el fondo selecciona por área.</p>`;
+      <div class="btnrow"><button class="btn sm primary" id="mGrp">▢ Agrupar <kbd>G</kbd></button><button class="btn sm" id="mFit">Encuadrar</button><button class="btn sm danger" id="mRem">Quitar del mapa</button></div><div class="btnrow"><button class="btn sm primary" id="mCombo" title="Una etapa por carta, en el orden en que las seleccionaste">⚡ Crear combo por etapas con estas ${sel.nodes.size}</button></div>${layerRowHTML()}<p class="hint">Arrastra cualquiera para mover el grupo. <kbd>Shift</kbd>+clic suma o quita cartas; <kbd>Shift</kbd>+arrastrar en el fondo selecciona por área.</p>`;
     el.querySelectorAll('.conn[data-k]').forEach(c => c.onclick = () => selectKey(c.dataset.k));
     $('#mGrp').onclick = () => newGroup([...sel.nodes]); $('#mFit').onclick = () => fit([...sel.nodes]); $('#mRem').onclick = () => removeFromMap([...sel.nodes]); bindLayerRow(el);
+    $('#mCombo').onclick = () => openStory(comboFromCards([...sel.nodes]).id);
     return;
   }
   const key = sel.nodes.size === 1 ? [...sel.nodes][0] : libPreview;
@@ -2235,9 +2297,12 @@ function renderInspector() {
     ${onMap ? `<div class="field"><label for="cMapNote">Nota en este mapa <span class="muted">(se ve debajo de la carta)</span></label><textarea id="cMapNote" rows="2" placeholder="Ej.: guardar para el turno de Kha'Zix">${esc(m.nodes[key].note || '')}</textarea>${m.nodes[key].note ? `<div class="btnrow" style="margin:6px 0 0;align-items:center"><span class="small muted">Tamaño</span><button class="btn sm" id="cFm">A−</button><b class="mono">${m.nodes[key].fs || 14}</b><button class="btn sm" id="cFp">A+</button><span class="small muted"><kbd>Shift</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd></span></div>` : ''}</div>` : ''}
     ${onMap && totalQ > 1 && !isEnemy(key) ? `<div class="btnrow" style="margin-top:-4px">${onCopies < totalQ ? `<button class="btn sm" id="cSplit" title="Pone otra copia de esta carta como una carta aparte en el mapa">⧉ Separar copia (${onCopies} de ${totalQ} en el mapa)</button>` : `<span class="small muted">Las ${totalQ} copias están separadas en el mapa.</span>`}${onCopies > 1 ? `<button class="btn sm ghost" id="cMerge" title="Deja una sola carta y pasa sus conexiones a la copia 1">Juntar copias</button>` : ''}</div>` : ''}
     ${zs.length ? `<div class="field"><label for="cNote">Notas de la carta (se comparten entre mapas del deck)</label><textarea id="cNote" rows="3" placeholder="Cuándo jugarla, contra qué, mulligan…">${esc(deck().notes[bk] || '')}</textarea></div>` : ''}
-    ${onMap ? `<div class="sec"><h3>Conexiones</h3><span class="n">${outs.length + ins.length}</span></div>${outs.map(e => connRow(e, e.to, 'out')).join('')}${ins.map(e => connRow(e, e.from, 'in')).join('') || ''}${!outs.length && !ins.length ? '<p class="empty">Todavía nada. Arrastra el ● del borde de la carta hasta otra.</p>' : ''}` : ''}`;
+    ${onMap ? `<div class="sec"><h3>Conexiones</h3><span class="n">${outs.length + ins.length}</span></div>${outs.map(e => connRow(e, e.to, 'out')).join('')}${ins.map(e => connRow(e, e.from, 'in')).join('') || ''}${!outs.length && !ins.length ? '<p class="empty">Todavía nada. Arrastra el ● del borde de la carta hasta otra.</p>' : ''}` : ''}
+    ${isEnemy(key) ? '' : (() => { const rs = combosWith(bk); return `<div class="sec"><h3>En tus combos</h3><span class="n">${rs.length}</span></div>${rs.map(r => `<div class="conn" data-rc="${r.id}" title="Abrir paso a paso"><span class="nm">${esc(r.name)}</span><span class="t">${r.stages && r.stages.length > 1 ? '▶ ' + r.stages.length + ' etapas' : 'receta'}</span></div>`).join('') || '<p class="empty">Todavía no está en ningún combo.</p>'}<div class="btnrow"><button class="btn sm" id="cNewSt" title="Crea un combo por etapas que empieza con esta carta">⚡ Combo por etapas con esta carta</button></div>`; })()}`;
   el.querySelectorAll('.conn[data-k]').forEach(r => { r.onclick = () => openEnd(r.dataset.k); r.ondblclick = () => { sel.edge = r.dataset.e; sel.nodes.clear(); onSelChange(); renderEdges(); }; });
   $('#cConn') && ($('#cConn').onclick = () => setMode({ type: 'connect', from: key }));
+  el.querySelectorAll('.conn[data-rc]').forEach(r => r.onclick = () => openStory(r.dataset.rc));
+  $('#cNewSt') && ($('#cNewSt').onclick = () => openStory(comboFromCards([key]).id));
   $('#cAdd') && ($('#cAdd').onclick = () => addToMap(key));
   $('#cRem') && ($('#cRem').onclick = () => removeFromMap([key]));
   $('#cNewCombo') && ($('#cNewCombo').onclick = () => { if (!onMap) addToMap(key); const cb = newCombo(); addStep(cb.id, key); setMode({ type: 'record', comboId: cb.id }); });
@@ -2379,6 +2444,8 @@ function showHelp() {
     ${K('<kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd>', 'Cambiar de vista: Mi deck · Combos · Mapa · Partidas')}
     ${K('<kbd>H</kbd>', 'Robar una mano de prueba (fuera del mapa)')}
     ${K('<kbd>D</kbd>', 'Separar otra copia de la carta seleccionada')}
+    ${K('<kbd>X</kbd> o ↻', 'Agotar / preparar (girar) la carta seleccionada; el ↻ sale al pasar el mouse')}
+    ${K('<kbd>⌘</kbd>+<kbd>Z</kbd> / <kbd>⇧</kbd><kbd>⌘</kbd><kbd>Z</kbd>', 'Deshacer / rehacer (también con las flechas ↶ ↷ de arriba)')}
     ${K('<kbd>P</kbd>', 'Proxy: la misma carta en otro lugar, para usarla en varios combos')}
     ${K('<kbd>G</kbd>', 'Agrupar las cartas seleccionadas en un cuadro (o crear un cuadro vacío)')}
     ${K('<kbd>A</kbd>', 'Agregar carta: buscador de todas las cartas con filtros, como aliada o rival')}
@@ -2421,6 +2488,7 @@ function commands() {
     ['Ajustar vista a todo el mapa', 'F', () => fit()],
     ['Zoom al 100%', '0', () => { const r = stage().getBoundingClientRect(); animateTo(...centerTarget(r.width / 2, r.height / 2, 1)); }],
     ['Auto-organizar cartas por tipo y coste', 'L', relayout],
+    ['Agotar / preparar cartas seleccionadas (girar)', 'X', () => toggleExh([...sel.nodes])], ['Crear combo por etapas con las cartas seleccionadas', '', () => { if (!sel.nodes.size) return toast('Selecciona cartas en el mapa (Shift+clic) en el orden en que se juegan'); openStory(comboFromCards([...sel.nodes]).id); }], ['Deshacer', '⌘Z', undo], ['Rehacer', '⇧⌘Z', redo],
     ['Separar todas las copias en este mapa', '', () => { setView('map'); splitAllCopies(); }],
     ['Agregar carta (buscador con filtros, aliada o rival)', 'A', openFinder],
     ['Bloquear / desbloquear selección', '⇧L', toggleLock], ['Traer al frente', '⇧⌘]', () => reorder('front')], ['Enviar atrás', '⇧⌘[', () => reorder('back')], ['Subir una capa', '⌘]', () => reorder('up')], ['Bajar una capa', '⌘[', () => reorder('down')],
@@ -2533,7 +2601,7 @@ function toggleTheme() {
   const nx = cur === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = nx; S.theme = nx; save(); drawMinimap();
 }
 function moreMenu(ev) {
-  const items = [['Auto-organizar mapa', relayout], ['Renombrar mapa', renameMap], ['Duplicar mapa', dupMap], ['Borrar mapa', delMap], ['Renombrar deck', renameDeck], ['Copiar decklist', copyDecklist], ['Exportar todo (JSON)', () => exportJSON(false)], ['Importar JSON (archivo)', () => $('#fileIn').click()], ['Importar JSON (pegar)', importJSONPaste], ['Borrar deck', delDeck], ['Tema claro / oscuro', toggleTheme], ['Atajos de teclado', showHelp]];
+  const items = [['Importar un deck nuevo', importDeckUI], ['Auto-organizar mapa', relayout], ['Renombrar mapa', renameMap], ['Duplicar mapa', dupMap], ['Borrar mapa', delMap], ['Renombrar deck', renameDeck], ['Copiar decklist', copyDecklist], ['Exportar todo (JSON)', () => exportJSON(false)], ['Importar JSON (archivo)', () => $('#fileIn').click()], ['Importar JSON (pegar)', importJSONPaste], ['Borrar deck', delDeck], ['Tema claro / oscuro', toggleTheme], ['Atajos de teclado', showHelp]];
   openModal(`<h2>Opciones</h2><div style="display:grid;gap:6px">${items.map(([l], i) => `<button class="btn" data-i="${i}" style="justify-content:flex-start">${l}</button>`).join('')}</div>`);
   $('#modal').querySelectorAll('[data-i]').forEach(b => b.onclick = () => { closeModal(); items[+b.dataset.i][1](); });
 }
@@ -2597,6 +2665,7 @@ function onKey(ev) {
   if (k === 'a' || k === 'A') { openFinder(); return; }
   if (k === 's' || k === 'S') { saveSnap(); return; }
   if ((k === 'c' || k === 'C') && sel.group) { setMode({ type: 'connect', from: 'grp:' + sel.group }); return; }
+  if ((k === 'x' || k === 'X') && sel.nodes.size) { toggleExh([...sel.nodes]); return; }
   if ((k === 'd' || k === 'D') && sel.nodes.size === 1) { splitCopy([...sel.nodes][0]); return; }
   if ((k === 'c' || k === 'C') && sel.nodes.size === 1) { setMode({ type: 'connect', from: [...sel.nodes][0] }); return; }
   if (k === 'Enter' && sel.nodes.size === 1) { centerOn([...sel.nodes][0], Math.max(V.k, 1.15)); return; }
@@ -2672,6 +2741,8 @@ function init() {
   $('#palScrim').onclick = ev => { if (ev.target.id === 'palScrim') closePalette(); };
   $('#modalScrim').onclick = ev => { if (ev.target.id === 'modalScrim') closeModal(); };
   $('#btnImport').onclick = importDeckUI; $('#btnMore').onclick = moreMenu;
+  $('#btnUndo').innerHTML = ICON_UNDO; $('#btnRedo').innerHTML = ICON_REDO; $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo; histBtns();
+  addEventListener('resize', () => { if (storyOpen()) drawAllArrows(); });
   $('#deckSel').onchange = ev => switchDeck(ev.target.value);
   $('#tglLeft').onclick = () => toggleLeft(); $('#tglRight').onclick = () => toggleRight();
   $('#fileIn').onchange = ev => { const f = ev.target.files[0]; if (f) importJSON(f); ev.target.value = ''; };
@@ -2872,7 +2943,7 @@ function renderCombosView(d) {
     el.querySelectorAll('[data-a]').forEach(b => b.onclick = async () => {
       if (b.dataset.a === 'edit') editRecipe(r);
       if (b.dataset.a === 'story') openStory(r.id);
-      if (b.dataset.a === 'map') { setView('map'); const ks = Object.keys(map().nodes).filter(k => r.pieces.includes(baseKey(k))); if (ks.length) { sel.nodes = new Set(ks); onSelChange(); fit(ks, 1); } }
+      if (b.dataset.a === 'map') showComboOnMap(r);
       if (b.dataset.a === 'del' && await askConfirm(`¿Borrar la receta “${r.name}”?`)) { commit(); d.recipes = d.recipes.filter(x => x !== r); save(); renderView(); }
     });
   });
@@ -3001,6 +3072,7 @@ function bindMatchup(d, opp) {
 
 /* ================= Combos por etapas (tira tipo cómic con mini tablero) ================= */
 const SZONES = [
+  { id: 'chain', es: 'Cadena', opt: true },
   { id: 'eb', es: 'Base rival' },
   { id: 'bf1', es: 'Battlefield' },
   { id: 'bf2', es: 'Battlefield 2', opt: true },
@@ -3008,16 +3080,21 @@ const SZONES = [
   { id: 'hand', es: 'Mano', opt: true },
 ];
 const SZ_ES = Object.fromEntries(SZONES.map(z => [z.id, z.es]));
-let STORY = null; // { rid, play: index|null }
+const AR_LABELS = ['Jala', 'Mueve', 'Ataca', 'Mata', 'Daño', 'Protege', 'Buff', 'A la mano', 'Objetivo'];
+let STORY = null; // { rid, play: index|null, tsel: {i,id}|null, arrow: {i,from}|null }
+let ARW = null;    // flecha que se está arrastrando
 const storyOpen = () => !!STORY && $('#story').classList.contains('show');
 const storyRecipe = () => STORY && deck().recipes.find(r => r.id === STORY.rid);
+const isTouch = () => matchMedia('(hover: none)').matches;
 function runeDoms() {
   const d = deck(), out = [];
   for (const e of d.cards) if (e.zone === 'rune') for (const x of getCard(e.key).domains || []) if (!out.includes(x)) out.push(x);
   if (!out.length) for (const e of d.cards) if (e.zone === 'legend') for (const x of getCard(e.key).domains || []) if (!out.includes(x)) out.push(x);
   return out.length ? out : ['Body', 'Chaos'];
 }
-const newStage = (prev) => ({ id: uid('st'), title: '', play: null, energy: 0, runes: {}, note: '', board: prev ? Object.fromEntries(SZONES.map(z => [z.id, (prev.board[z.id] || []).filter(t => t.st !== 'dead').map(t => ({ ...t }))])) : { eb: [], bf1: [], bf2: [], mb: [], hand: [] } });
+// la cadena solo se copia a la siguiente etapa cuando alguien responde
+const newStage = (prev, keepChain) => ({ id: uid('st'), title: '', play: null, energy: 0, runes: {}, note: '', arrows: [], board: prev ? Object.fromEntries(SZONES.map(z => [z.id, z.id === 'chain' && !keepChain ? [] : (prev.board[z.id] || []).filter(t => t.st !== 'dead').map(t => ({ ...t, auto: undefined }))])) : { chain: [], eb: [], bf1: [], bf2: [], mb: [], hand: [] } });
+const chainOn = r => !!r.chain || r.stages.some(x => (x.board.chain || []).length);
 function stageTotals(r, upto) {
   let en = 0; const ru = {};
   r.stages.slice(0, upto).forEach(s => { en += +s.energy || 0; for (const [k, v] of Object.entries(s.runes || {})) if (+v) ru[k] = (ru[k] || 0) + (+v); });
@@ -3025,21 +3102,34 @@ function stageTotals(r, upto) {
 }
 const fmtRunes = ru => Object.entries(ru).filter(([, v]) => v).map(([k, v]) => `<span class="rchip" style="--rc:${DOMAINS[k]?.c || '#888'}">${v} ${esc(DOMAINS[k]?.es || k)}</span>`).join('');
 function findTok(st, id) { for (const z of SZONES) { const t = (st.board[z.id] || []).find(x => x.id === id); if (t) return [t, z.id]; } return [null, null]; }
-function tokHTML(r, i, t, zone) {
+function tokName(s, id) { if (id === 'play') return s.play ? getCard(s.play).name.split(' - ')[0] : 'Carta jugada'; const [t] = findTok(s, id); return t ? (t.key ? getCard(t.key).name.split(' - ')[0] : t.label || 'Unidad') : '?'; }
+const genTh = t => `<span class="th gen"><b>${esc(t.label || 'Unidad')}</b></span>`;
+function tokHTML(r, i, t, zone, ro, ord) {
   const prev = i > 0 ? r.stages[i - 1] : null; const [pt, pz] = prev ? findTok(prev, t.id) : [null, null];
-  const moved = prev && pt && pz !== zone, isNew = prev && !pt, died = t.st === 'dead' && (!pt || pt.st !== 'dead');
-  const c = t.key ? getCard(t.key) : null; const might = t.might ?? c?.might;
+  const inChain = zone === 'chain';
+  const moved = !inChain && prev && pt && pz !== zone && pz !== 'chain', isNew = !inChain && prev && !pt, died = t.st === 'dead' && (!pt || pt.st !== 'dead');
+  const c = t.key ? getCard(t.key) : null; const might = inChain ? null : (t.might ?? c?.might);
   const badge = died ? '<span class="tb dead">✝ Muere</span>' : moved ? `<span class="tb mv">↗ ${zone === 'hand' ? 'A la mano' : 'Se movió'}</span>` : isNew ? '<span class="tb nw">✦ Entra</span>' : '';
-  return `<div class="tok ${t.side}${t.st ? ' ' + t.st : ''}${moved ? ' moved' : ''}${isNew ? ' isnew' : ''}" draggable="true" data-t="${t.id}" title="${esc((t.side === 'enemy' ? 'Rival: ' : '') + (c ? c.name : t.label || 'Unidad'))}">
-    ${c ? thumb(t.key) : `<span class="th gen"><b>${esc(t.label || 'Unidad')}</b></span>`}${might != null ? `<span class="tmi">${might}</span>` : ''}${badge}<span class="tnm">${esc(c ? c.name.split(' - ')[0] : t.label || 'Unidad')}</span></div>`;
+  const tsel = STORY.tsel && STORY.tsel.i === i && STORY.tsel.id === t.id, aim = STORY.arrow && STORY.arrow.i === i && STORY.arrow.from === t.id;
+  const tq = ro ? '' : `<span class="tq">${inChain ? '' : `<button data-q="exh" draggable="false" title="${t.st === 'exh' ? 'Preparar (enderezar)' : 'Agotar (girar)'}">↻</button><button data-q="dead" draggable="false" title="${t.st === 'dead' ? 'Revivir' : 'Muere'}">✝</button>`}<button data-q="arrow" draggable="false" title="Flecha: arrástrala hasta la carta a la que apunta (o tócala y luego toca la carta)">➝</button></span>`;
+  return `<div class="tok ${t.side}${t.st ? ' ' + t.st : ''}${moved ? ' moved' : ''}${isNew ? ' isnew' : ''}${tsel ? ' tsel' : ''}${aim ? ' aim' : ''}"${ro ? '' : ' draggable="true"'} data-t="${t.id}"${t.key ? ` data-k="${esc(t.key)}"` : ''} title="${esc((t.side === 'enemy' ? 'Rival: ' : '') + (c ? c.name : t.label || 'Unidad'))}">
+    ${c ? thumb(t.key) : genTh(t)}${might != null ? `<span class="tmi">${might}</span>` : ''}${ord ? `<span class="tord" title="Se resuelve en ${ord}º lugar">${ord}º</span>` : ''}${badge}<span class="tnm">${esc(c ? c.name.split(' - ')[0] : t.label || 'Unidad')}</span>${tq}</div>`;
 }
+const ghostHTML = t => `<div class="tok ghost ${t.side}" data-gh="${t.id}" title="Aquí estaba antes">${t.key ? thumb(t.key) : genTh(t)}<span class="tnm">antes</span></div>`;
 function stageHTML(r, i, ro) {
-  const s = r.stages[i], tot = stageTotals(r, i + 1), pc = s.play ? getCard(s.play) : null, doms = runeDoms();
-  const used = z => (z === 'bf2' && r.bf2) || (s.board[z] || []).length || r.stages.some(x => (x.board[z] || []).length);
-  const rows = SZONES.filter(z => !z.opt || used(z.id) || (z.id === 'hand' && !ro)).map(z => `<div class="zrow z-${z.id}" data-z="${z.id}"><span class="zl">${z.id.startsWith('bf') && r.bfNames?.[z.id] ? esc(r.bfNames[z.id]) : z.es}</span><div class="ztoks">${(s.board[z.id] || []).map(t => tokHTML(r, i, t, z.id)).join('')}${ro ? '' : `<button class="zadd" data-z="${z.id}" title="Agregar unidad aquí">+</button>`}</div></div>`).join('');
-  return `<section class="stg${ro ? ' ro' : ''}" data-i="${i}">
+  const s = r.stages[i], prev = i > 0 ? r.stages[i - 1] : null, tot = stageTotals(r, i + 1), pc = s.play ? getCard(s.play) : null, doms = runeDoms();
+  const used = z => (z === 'bf2' && r.bf2) || (z === 'chain' && chainOn(r)) || (s.board[z] || []).length || r.stages.some(x => (x.board[z] || []).length);
+  // fantasmas: dónde estaba en la etapa anterior lo que se movió
+  const ghosts = z => !prev || z === 'chain' ? '' : (prev.board[z] || []).filter(t => { if (t.st === 'dead') return false; const [ct, cz] = findTok(s, t.id); return ct && cz !== z && cz !== 'chain'; }).map(ghostHTML).join('');
+  const rows = SZONES.filter(z => !z.opt || used(z.id) || (z.id === 'hand' && !ro)).map(z => {
+    const toks = s.board[z.id] || [];
+    const lab = z.id === 'chain' ? 'Cadena' : z.id.startsWith('bf') && r.bfNames?.[z.id] ? esc(r.bfNames[z.id]) : z.es.replace('Battlefield', 'Battle&shy;field');
+    return `<div class="zrow z-${z.id}" data-z="${z.id}"${z.id === 'chain' ? ' title="Hechizos y habilidades en la cadena: se resuelve primero el último que entra (1º)"' : ''}><span class="zl">${lab}</span><div class="ztoks">${toks.map((t, k) => tokHTML(r, i, t, z.id, ro, z.id === 'chain' ? toks.length - k : 0)).join('')}${ghosts(z.id)}${ro ? '' : `<button class="zadd" data-z="${z.id}" title="${z.id === 'chain' ? 'Agregar un hechizo o habilidad a la cadena' : 'Agregar unidad aquí'}">+</button>`}</div></div>`;
+  }).join('');
+  return `<section class="stg${ro ? ' ro' : ''}${STORY.arrow && STORY.arrow.i === i ? ' arming' : ''}" data-i="${i}">
+    <svg class="sarr" aria-hidden="true"></svg><div class="sarr-l"></div>
     <header><span class="sn">${i + 1}</span>${ro ? `<b class="stt">${esc(s.title || (pc ? pc.name : 'Etapa ' + (i + 1)))}</b>` : `<input class="stt" value="${esc(s.title)}" placeholder="${i === 0 ? 'Ej.: Preparación' : 'Qué pasa en esta etapa'}"><button class="btn sm ghost icon sdel" title="Borrar etapa" aria-label="Borrar etapa">✕</button>`}</header>
-    <div class="splay">${pc ? `<button class="spc" ${ro ? 'disabled' : ''} title="${ro ? '' : 'Cambiar carta jugada'}">${thumb(s.play, 'sm')}<span><small>Juegas</small><b>${esc(pc.name)}</b></span></button>${ro ? '' : '<button class="btn sm ghost sclr" title="Quitar carta jugada">✕</button>'}` : ro ? '<span class="small muted">Sin carta jugada</span>' : '<button class="btn sm spick">+ Carta que juegas</button>'}</div>
+    <div class="splay">${pc ? `<button class="spc${STORY.arrow && STORY.arrow.i === i && STORY.arrow.from === 'play' ? ' aim' : ''}" ${ro ? 'disabled' : ''} title="${ro ? '' : 'Cambiar carta jugada'}">${thumb(s.play, 'sm')}<span><small>Juegas</small><b>${esc(pc.name)}</b></span></button>${ro ? '' : '<button class="btn sm ghost icon saim" draggable="false" title="Flecha desde la carta que juegas: arrástrala hasta su objetivo (o tócala y luego toca la carta)">➝</button><button class="btn sm ghost icon sclr" title="Quitar carta jugada">✕</button>'}` : ro ? '<span class="small muted">Sin carta jugada</span>' : '<button class="btn sm spick">+ Carta que juegas</button>'}</div>
     <div class="scost">${ro ? `<span class="cst">⚡ <b>${s.energy || 0}</b></span>${fmtRunes(s.runes || {})}` : `<label class="cst" title="Energía que gastas en esta etapa">⚡ <input type="number" min="0" max="20" class="sen" value="${s.energy || 0}"></label>${doms.map(dm => `<span class="rstep" style="--rc:${DOMAINS[dm]?.c || '#888'}" title="Runas de ${esc(DOMAINS[dm]?.es || dm)}"><button data-dom="${dm}" data-d="-1">−</button><i>${(s.runes || {})[dm] || 0}</i><button data-dom="${dm}" data-d="1">+</button><em>${esc(DOMAINS[dm]?.es || dm)}</em></span>`).join('')}`}
       <span class="acc" title="Acumulado hasta esta etapa">Llevas ⚡<b>${tot.en}</b>${tot.rt ? ` · <b>${tot.rt}</b> runa${tot.rt > 1 ? 's' : ''}` : ''}</span></div>
     <div class="board">${rows}</div>
@@ -3049,28 +3139,151 @@ function stageHTML(r, i, ro) {
 function openStory(rid) {
   const r = deck().recipes.find(x => x.id === rid); if (!r) return;
   if (!r.stages || !r.stages.length) { commit(); r.stages = [newStage()]; save(); }
-  STORY = { rid, play: null }; $('#story').classList.add('show'); renderStory();
+  STORY = { rid, play: null, tsel: null, arrow: null }; $('#story').classList.add('show'); renderStory();
 }
 function closeStory() { STORY = null; $('#story').classList.remove('show'); $('#story').innerHTML = ''; if (VIEW === 'combos') renderView(); }
 function renderStory(keepScroll = true) {
   const r = storyRecipe(); if (!r) return closeStory();
+  if (STORY.play != null && STORY.play >= r.stages.length) STORY.play = r.stages.length - 1;
   const el = $('#story'), sc = el.querySelector('.strip')?.scrollLeft || 0;
-  const tot = stageTotals(r, r.stages.length);
-  el.innerHTML = `<div class="shead"><div class="stitle"><input id="stName" value="${esc(r.name)}" aria-label="Nombre del combo"><span class="stot">Total: ⚡ <b>${tot.en}</b> energía${tot.rt ? ` · <b>${tot.rt}</b> runa${tot.rt > 1 ? 's' : ''} ${fmtRunes(tot.ru)}` : ''} · ${r.stages.length} etapa${r.stages.length > 1 ? 's' : ''}</span></div>
-    <div class="btnrow" style="margin:0"><button class="btn primary" id="stPlay">▶ Reproducir</button><button class="btn" id="stBf" title="Mostrar u ocultar un segundo battlefield">${r.stages.some(s => (s.board.bf2 || []).length) || r.bf2 ? '− Battlefield 2' : '+ Battlefield 2'}</button><button class="btn ghost icon" id="stClose" aria-label="Cerrar">✕</button></div></div>
-    <p class="small muted shint">Arrastra las cartas entre zonas (o tócalas para moverlas, agotarlas o marcarlas como muertas). Cada etapa nueva copia el tablero de la anterior; lo que cambia se marca solo.</p>
-    <div class="strip">${r.stages.map((s, i) => stageHTML(r, i, false) + (i < r.stages.length - 1 ? '<div class="sarrow">➜</div>' : '')).join('')}<button class="saddst" id="stAdd"><b>+</b>Nueva etapa</button></div>
+  const tot = stageTotals(r, r.stages.length), last = r.stages[r.stages.length - 1], lastChain = (last.board.chain || []).length;
+  const chainHas = r.stages.some(x => (x.board.chain || []).length);
+  el.innerHTML = `<svg class="sdefs" width="0" height="0" aria-hidden="true"><defs>
+      <marker id="samM" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse" style="color:var(--accent)"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
+      <marker id="samV" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse" style="color:var(--gold)"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs></svg>
+    <div class="shead"><div class="stitle"><input id="stName" value="${esc(r.name)}" aria-label="Nombre del combo"><span class="stot">Total: ⚡ <b>${tot.en}</b> energía${tot.rt ? ` · <b>${tot.rt}</b> runa${tot.rt > 1 ? 's' : ''} ${fmtRunes(tot.ru)}` : ''} · ${r.stages.length} etapa${r.stages.length > 1 ? 's' : ''}</span></div>
+    <div class="btnrow" style="margin:0"><button class="btn ghost icon" id="stUndo" title="Deshacer (⌘Z)" aria-label="Deshacer">${ICON_UNDO}</button><button class="btn ghost icon" id="stRedo" title="Rehacer (⇧⌘Z)" aria-label="Rehacer">${ICON_REDO}</button><button class="btn primary" id="stPlay">▶ Reproducir</button><button class="btn" id="stMap" title="Marca las cartas de este combo en el mapa">🗺 Ver en el mapa</button><button class="btn" id="stChain" title="Zona para la cadena de hechizos y respuestas">${chainOn(r) ? '− Cadena' : '+ Cadena'}</button><button class="btn" id="stBf" title="Mostrar u ocultar un segundo battlefield">${r.stages.some(s => (s.board.bf2 || []).length) || r.bf2 ? '− Battlefield 2' : '+ Battlefield 2'}</button><button class="btn ghost icon" id="stClose" aria-label="Cerrar">✕</button></div></div>
+    <p class="small muted shint${STORY.arrow ? ' arm' : ''}">${STORY.arrow ? '<b>Toca la carta a la que apunta la flecha</b> (Esc para cancelar).' : `Arrastra las cartas entre zonas. Al pasar el mouse: ↻ girar, ✝ muere, ➝ flecha (arrástrala hasta su objetivo). Cada etapa nueva copia el tablero; lo que se mueve deja su “antes” con flecha.${chainHas ? ' En la Cadena, 1º es lo que se resuelve primero.' : ''}`}</p>
+    <div class="strip">${r.stages.map((s, i) => stageHTML(r, i, false) + (i < r.stages.length - 1 ? '<div class="sarrow">➜</div>' : '')).join('')}<div class="saddcol"><button class="saddst" id="stAdd"><b>+</b>Nueva etapa${lastChain ? '<small>la cadena se resuelve</small>' : ''}</button>${lastChain ? '<button class="saddst resp" id="stResp" title="La siguiente etapa mantiene la cadena para que agregues la respuesta encima"><b>↪</b>Responder<small>la cadena sigue</small></button>' : ''}</div></div>
     ${STORY.play != null ? `<div class="splayer"><div class="spbox">${stageHTML(r, STORY.play, true)}</div><div class="spnav"><button class="btn" id="spPrev" ${STORY.play ? '' : 'disabled'}>‹ Anterior</button><span class="mono">${STORY.play + 1} / ${r.stages.length}</span><button class="btn primary" id="spNext">${STORY.play < r.stages.length - 1 ? 'Siguiente ›' : 'Terminar'}</button><button class="btn ghost" id="spClose">Cerrar</button></div></div>` : ''}`;
   if (keepScroll) el.querySelector('.strip').scrollLeft = sc;
-  bindStory(r);
+  bindStory(r); histBtns();
+  requestAnimationFrame(drawAllArrows);
+}
+/* ---------- flechas ---------- */
+function arrowGeom(A, B, gap = 5) {
+  const ca = [A.x + A.w / 2, A.y + A.h / 2], cb = [B.x + B.w / 2, B.y + B.h / 2];
+  let vx = cb[0] - ca[0], vy = cb[1] - ca[1]; const L = Math.hypot(vx, vy) || 1;
+  let p0, p1, c;
+  if (Math.abs(vy) < Math.min(A.h, B.h) / 2) { // misma fila: arco por arriba
+    p0 = [ca[0], A.y - 2]; p1 = [cb[0], B.y - gap]; c = [(p0[0] + p1[0]) / 2, Math.min(p0[1], p1[1]) - Math.max(26, Math.abs(vx) * 0.35)];
+  } else {
+    const edge = (cc, b, sx, sy, g) => { const k = 1 / Math.max(Math.abs(sx) / (b.w / 2 + g), Math.abs(sy) / (b.h / 2 + g), 1e-6); return [cc[0] + sx * k, cc[1] + sy * k]; };
+    p0 = edge(ca, A, vx, vy, 2); p1 = edge(cb, B, -vx, -vy, gap);
+    let px = -vy / L, py = vx / L; if (py > 0 || (Math.abs(py) < 1e-3 && px < 0)) { px = -px; py = -py; }
+    const bend = Math.min(60, L * 0.18); c = [(p0[0] + p1[0]) / 2 + px * bend, (p0[1] + p1[1]) / 2 + py * bend];
+  }
+  const at = t => [(1 - t) * (1 - t) * p0[0] + 2 * (1 - t) * t * c[0] + t * t * p1[0], (1 - t) * (1 - t) * p0[1] + 2 * (1 - t) * t * c[1] + t * t * p1[1]];
+  return { d: `M${p0[0].toFixed(1)},${p0[1].toFixed(1)} Q${c[0].toFixed(1)},${c[1].toFixed(1)} ${p1[0].toFixed(1)},${p1[1].toFixed(1)}`, at };
+}
+function secBox(sec) { const R = sec.getBoundingClientRect(); return el => { const b = el.getBoundingClientRect(); return { x: b.left - R.left + sec.scrollLeft, y: b.top - R.top + sec.scrollTop, w: b.width, h: b.height }; }; }
+const anchorEl = (sec, id, s) => id === 'play' ? ((s && s.play && sec.querySelector(`.z-chain .tok[data-k="${CSS.escape(s.play)}"] .th`)) || sec.querySelector('.spc .th')) : sec.querySelector(`.tok[data-t="${CSS.escape(id)}"]:not(.ghost) .th`);
+function drawStageArrows(sec, r, i) {
+  const s = r.stages[i], svg = sec.querySelector(':scope > .sarr'), lab = sec.querySelector(':scope > .sarr-l'); if (!s || !svg) return;
+  const box = secBox(sec), ro = sec.classList.contains('ro'); let p = '', l = ''; const placed = [];
+  const obst = [...sec.querySelectorAll('.tok .th, .spc')].map(box);
+  const spot = (G, txt) => { // etiqueta sin taparse con otras ni tapar cartas
+    const w = Math.max(16, txt.length * 6.6 + 18), h = 20; let best = null, bestHit = Infinity;
+    for (const t of [0.5, 0.42, 0.58, 0.34, 0.66, 0.26, 0.74, 0.18, 0.82]) {
+      const [x, y] = G.at(t); if (placed.some(q => Math.abs(q[0] - x) < (q[2] + w) / 2 && Math.abs(q[1] - y) < h)) continue;
+      const hit = obst.reduce((n, o) => n + Math.max(0, Math.min(x + w / 2, o.x + o.w) - Math.max(x - w / 2, o.x)) * Math.max(0, Math.min(y + h / 2, o.y + o.h) - Math.max(y - h / 2, o.y)), 0);
+      if (hit < bestHit) { bestHit = hit; best = [x, y]; } if (!hit) break;
+    }
+    if (!best) { const [x, y] = G.at(0.5); best = [x, y + h * placed.filter(q => Math.abs(q[0] - x) < 60).length]; }
+    placed.push([best[0], best[1], w]); return best;
+  };
+  sec.querySelectorAll('.tok.ghost').forEach(g => { const t = anchorEl(sec, g.dataset.gh); if (t) p += `<path class="av" d="${arrowGeom(box(g.querySelector('.th')), box(t)).d}"/>`; });
+  for (const a of s.arrows || []) {
+    const A = anchorEl(sec, a.from, s), B = anchorEl(sec, a.to, s); if (!A || !B || A === B) continue;
+    const G = arrowGeom(box(A), box(B)); p += `<path class="am" d="${G.d}"/>`;
+    if (a.label || !ro) { const [mx, my] = spot(G, a.label || ''); l += ro ? `<span class="alab" style="left:${mx.toFixed(0)}px;top:${my.toFixed(0)}px">${esc(a.label)}</span>` : `<button class="alab${a.label ? '' : ' empty'}" data-ar="${a.id}" style="left:${mx.toFixed(0)}px;top:${my.toFixed(0)}px" title="Cambiar o borrar la flecha">${esc(a.label || '')}</button>`; }
+  }
+  svg.setAttribute('width', sec.scrollWidth); svg.setAttribute('height', sec.scrollHeight);
+  svg.innerHTML = p + '<path class="atmp" d=""/>'; lab.innerHTML = l;
+  if (!ro) lab.querySelectorAll('.alab').forEach(b => b.onclick = ev => { ev.stopPropagation(); arrowMenu(r, i, b.dataset.ar); });
+}
+function drawAllArrows() { const r = storyRecipe(); if (!r) return; $('#story').querySelectorAll('.stg').forEach(sec => drawStageArrows(sec, r, +sec.dataset.i)); }
+function startArrow(ev, r, i, from) {
+  if (ev.button > 0) return;
+  ev.preventDefault(); ev.stopPropagation();
+  const sec = $('#story').querySelector(`.strip .stg[data-i="${i}"]`), A = sec && anchorEl(sec, from, r.stages[i]); if (!A) return;
+  const tmp = sec.querySelector('.sarr .atmp'); ARW = { moved: false, x0: ev.clientX, y0: ev.clientY };
+  const mv = e => {
+    if (!ARW.moved && Math.hypot(e.clientX - ARW.x0, e.clientY - ARW.y0) < 6) return; ARW.moved = true;
+    const box = secBox(sec), a = box(A), R = sec.getBoundingClientRect();
+    tmp?.setAttribute('d', `M${a.x + a.w / 2},${a.y + a.h / 2} L${e.clientX - R.left + sec.scrollLeft},${e.clientY - R.top + sec.scrollTop}`);
+    const over = document.elementFromPoint(e.clientX, e.clientY)?.closest('.tok:not(.ghost), .spc');
+    sec.querySelectorAll('.atgt').forEach(x => x !== over && x.classList.remove('atgt')); if (over && sec.contains(over)) over.classList.add('atgt');
+  };
+  const up = e => {
+    removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up);
+    tmp?.setAttribute('d', ''); sec.querySelectorAll('.atgt').forEach(x => x.classList.remove('atgt'));
+    const moved = ARW.moved; ARW = null;
+    const el = document.elementFromPoint(e.clientX, e.clientY), tk = el?.closest('.tok:not(.ghost)'), sp = el?.closest('.spc');
+    setTimeout(() => {
+      if (!moved) { STORY.arrow = { i, from }; STORY.tsel = null; renderStory(); toast('Ahora toca la carta a la que apunta · Esc para cancelar'); return; }
+      if (tk && sec.contains(tk) && tk.dataset.t !== from) addArrow(r, i, from, tk.dataset.t);
+      else if (sp && sec.contains(sp) && from !== 'play') addArrow(r, i, from, 'play');
+    }, 0);
+  };
+  addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
+}
+function finishArrow(r, i, to) {
+  const A = STORY.arrow; STORY.arrow = null;
+  if (!A || A.i !== i || A.from === to) { renderStory(); if (A && A.i !== i) toast('La flecha tiene que quedar dentro de la misma etapa'); return; }
+  addArrow(r, i, A.from, to);
+}
+function addArrow(r, i, from, to) {
+  const s = r.stages[i]; commit(); s.arrows = s.arrows || [];
+  const a = { id: uid('ar'), from, to, label: '' }; s.arrows.push(a); STORY.tsel = null; save(); renderStory(); arrowMenu(r, i, a.id, true);
+}
+function arrowMenu(r, i, id, isNew) {
+  const s = r.stages[i], a = (s.arrows || []).find(x => x.id === id); if (!a) return;
+  openModal(`<h2>${isNew ? '¿Qué hace esta flecha?' : 'Flecha'}</h2><p class="small muted" style="margin-top:0">${esc(tokName(s, a.from))} ➝ ${esc(tokName(s, a.to))} · etapa ${i + 1}</p>
+    <div class="btnrow" style="margin-top:0">${AR_LABELS.map(x => `<button class="btn sm${a.label === x ? ' primary' : ''}" data-l="${esc(x)}">${esc(x)}</button>`).join('')}</div>
+    <div class="field"><label for="arTx">O escribe tu texto</label><input type="text" id="arTx" value="${esc(a.label || '')}" placeholder="Ej.: jala con Faefolk"></div>
+    <div class="btnrow"><button class="btn primary" id="arOk">${isNew ? 'Listo' : 'Guardar'}</button>${isNew ? '<button class="btn" id="arNo">Sin texto</button>' : ''}<button class="btn" id="arRev">Invertir ⇄</button><button class="btn danger" id="arDel">Borrar flecha</button></div>`);
+  const set = v => { if (!isNew) commit(); a.label = v.trim(); save(); closeModal(); renderStory(); };
+  $('#modal').querySelectorAll('[data-l]').forEach(b => b.onclick = () => set(b.dataset.l));
+  $('#arOk').onclick = () => set($('#arTx').value);
+  $('#arTx').onkeydown = ev => { if (ev.key === 'Enter') { ev.preventDefault(); set($('#arTx').value); } };
+  $('#arNo') && ($('#arNo').onclick = () => closeModal());
+  $('#arRev').onclick = () => { commit(); [a.from, a.to] = [a.to, a.from]; save(); closeModal(); renderStory(); };
+  $('#arDel').onclick = () => { if (!isNew) commit(); s.arrows = s.arrows.filter(x => x !== a); save(); closeModal(); renderStory(); toast('Flecha borrada · ⌘Z para deshacer'); };
+}
+/* ---------- jugar una carta: se acomoda sola ---------- */
+function applyPlay(r, i, key) {
+  const s = r.stages[i], c = getCard(key), old = s.play; s.board.chain = s.board.chain || [];
+  if (old && old !== key) s.board.chain = s.board.chain.filter(t => !(t.auto && t.key === old));
+  s.play = key; s.energy = c.energy || 0;
+  s.runes = {}; if (c.power) { const doms = runeDoms(); const dm = (c.domains || []).find(x => doms.includes(x)) || (c.domains || [])[0] || doms[0]; s.runes[dm] = c.power; }
+  if (!s.title || (old && s.title === getCard(old).name.split(' - ')[0])) s.title = c.name.split(' - ')[0];
+  if (c.type === 'Spell') { if (!s.board.chain.some(x => x.key === key && x.side === 'ally')) s.board.chain.push({ id: uid('t'), key, side: 'ally', st: '', auto: true }); }
+  else if (c.type === 'Unit' || c.type === 'Gear') {
+    const ambush = c.type === 'Unit' && /ambush|emboscada/i.test(c.text || '') && (s.board.bf1 || []).some(x => x.side === 'enemy');
+    const z = ambush ? 'bf1' : 'mb'; const inHand = (s.board.hand || []).find(x => x.key === key && x.side === 'ally');
+    const onBoard = SZONES.some(zz => zz.id !== 'hand' && (s.board[zz.id] || []).some(x => x.key === key && x.side === 'ally'));
+    if (inHand) { s.board.hand = s.board.hand.filter(x => x !== inHand); (s.board[z] = s.board[z] || []).push(inHand); }
+    else if (!onBoard) (s.board[z] = s.board[z] || []).push({ id: uid('t'), key, side: 'ally', st: '' });
+  }
+  r.pieces = r.pieces || []; if (!r.pieces.includes(baseKey(key))) r.pieces.push(baseKey(key));
 }
 function bindStory(r) {
   const el = $('#story'); const ch = (fn, rerender = true) => { commit(); fn(); save(); if (rerender) renderStory(); };
   $('#stClose').onclick = closeStory;
+  $('#stUndo').onclick = undo; $('#stRedo').onclick = redo;
   const nm = $('#stName'); nm.addEventListener('focus', () => commit(), { once: true }); nm.oninput = () => { r.name = nm.value; save(); };
-  $('#stPlay').onclick = () => { STORY.play = 0; renderStory(); };
+  $('#stMap').onclick = () => showComboOnMap(r);
+  $('#stPlay').onclick = () => { STORY.play = 0; STORY.arrow = null; STORY.tsel = null; renderStory(); };
   $('#stBf').onclick = () => ch(() => { const on = r.stages.some(s => (s.board.bf2 || []).length) || r.bf2; if (on) { r.bf2 = false; for (const s of r.stages) { s.board.mb = (s.board.mb || []).concat(s.board.bf2 || []); s.board.bf2 = []; } } else r.bf2 = true; });
-  $('#stAdd').onclick = () => { ch(() => r.stages.push(newStage(r.stages[r.stages.length - 1]))); const st = el.querySelector('.strip'); st.scrollLeft = st.scrollWidth; el.querySelector('.stg:last-of-type .stt')?.focus(); };
+  $('#stChain').onclick = async () => {
+    if (!chainOn(r)) return ch(() => { r.chain = true; });
+    if (r.stages.some(s => (s.board.chain || []).length) && !(await askConfirm('¿Quitar la cadena? Se borran los hechizos que tenga en todas las etapas.', 'Quitar', true))) return;
+    ch(() => { r.chain = false; for (const s of r.stages) s.board.chain = []; });
+  };
+  const addStage = keep => { ch(() => r.stages.push(newStage(r.stages[r.stages.length - 1], keep))); const st = el.querySelector('.strip'); st.scrollLeft = st.scrollWidth; el.querySelector('.strip .stg:last-of-type .stt')?.focus(); };
+  $('#stAdd').onclick = () => addStage(false);
+  $('#stResp') && ($('#stResp').onclick = () => addStage(true));
   if (STORY.play != null) {
     $('#spPrev').onclick = () => { STORY.play = Math.max(0, STORY.play - 1); renderStory(); };
     $('#spNext').onclick = () => { if (STORY.play < r.stages.length - 1) STORY.play++; else STORY.play = null; renderStory(); };
@@ -3083,22 +3296,30 @@ function bindStory(r) {
     sec.querySelector('.sdel').onclick = async () => { if (r.stages.length === 1) return toast('Un combo necesita al menos una etapa'); if (await askConfirm(`¿Borrar la etapa ${i + 1}?`)) ch(() => r.stages.splice(i, 1)); };
     sec.querySelector('.sen').onchange = ev => ch(() => s.energy = Math.max(0, +ev.target.value || 0));
     sec.querySelectorAll('.rstep button').forEach(b => b.onclick = () => ch(() => { s.runes = s.runes || {}; s.runes[b.dataset.dom] = Math.max(0, (s.runes[b.dataset.dom] || 0) + +b.dataset.d); if (!s.runes[b.dataset.dom]) delete s.runes[b.dataset.dom]; }));
-    const pick = async () => { const res = await pickStoryCard('Carta que juegas en esta etapa', 'deck'); if (!res || !res.key) return; ch(() => {
-      const c = getCard(res.key); s.play = res.key; s.energy = c.energy || 0;
-      s.runes = {}; if (c.power) { const doms = runeDoms(); const dm = (c.domains || []).find(x => doms.includes(x)) || (c.domains || [])[0] || doms[0]; s.runes[dm] = c.power; }
-      if (!s.title) s.title = c.name.split(' - ')[0];
-      if (c.type === 'Unit' && !SZONES.some(z => (s.board[z.id] || []).some(x => x.key === res.key && x.side === 'ally'))) { const z = (s.board.bf1 || []).some(x => x.side === 'enemy') ? 'bf1' : 'mb'; s.board[z].push({ id: uid('t'), key: res.key, side: 'ally', st: '' }); }
-    }); };
+    const pick = async () => {
+      if (STORY.arrow) return finishArrow(r, i, 'play');
+      const res = await pickStoryCard('Carta que juegas en esta etapa', 'deck'); if (!res || !res.key) return; ch(() => applyPlay(r, i, res.key));
+    };
     sec.querySelector('.spick') && (sec.querySelector('.spick').onclick = pick);
     sec.querySelector('.spc') && (sec.querySelector('.spc').onclick = pick);
-    sec.querySelector('.sclr') && (sec.querySelector('.sclr').onclick = () => ch(() => s.play = null));
+    sec.querySelector('.sclr') && (sec.querySelector('.sclr').onclick = () => ch(() => { s.board.chain = (s.board.chain || []).filter(x => !(x.auto && x.key === s.play)); s.play = null; s.arrows = (s.arrows || []).filter(a => a.from !== 'play' && a.to !== 'play'); }));
+    const aim = sec.querySelector('.saim'); if (aim) { aim.onpointerdown = ev => startArrow(ev, r, i, 'play'); aim.onclick = ev => ev.stopPropagation(); }
     sec.querySelectorAll('.zadd').forEach(b => b.onclick = async () => {
-      const res = await pickStoryCard('Agregar a ' + SZ_ES[b.dataset.z], 'any'); if (!res) return;
-      ch(() => { s.board[b.dataset.z] = s.board[b.dataset.z] || []; s.board[b.dataset.z].push({ id: uid('t'), key: res.key || null, label: res.label || '', might: res.might ?? null, side: res.side, st: '' }); });
+      const z = b.dataset.z, res = await pickStoryCard('Agregar a ' + SZ_ES[z], 'any'); if (!res) return;
+      ch(() => { s.board[z] = s.board[z] || []; s.board[z].push({ id: uid('t'), key: res.key || null, label: res.label || '', might: res.might ?? null, side: res.side, st: '' }); if (z === 'chain') r.chain = true; });
     });
-    sec.querySelectorAll('.tok').forEach(tk => {
-      tk.ondragstart = ev => { ev.dataTransfer.setData('text/x-tok', i + '|' + tk.dataset.t); ev.dataTransfer.effectAllowed = 'move'; };
-      tk.onclick = () => tokMenu(r, i, tk.dataset.t);
+    sec.querySelectorAll('.tok:not(.ghost)').forEach(tk => {
+      const id = tk.dataset.t;
+      tk.ondragstart = ev => { if (ARW) { ev.preventDefault(); return; } ev.dataTransfer.setData('text/x-tok', i + '|' + id); ev.dataTransfer.effectAllowed = 'move'; };
+      tk.onclick = () => {
+        if (STORY.arrow) return finishArrow(r, i, id);
+        if (isTouch() && !(STORY.tsel && STORY.tsel.i === i && STORY.tsel.id === id)) { STORY.tsel = { i, id }; renderStory(); return; }
+        tokMenu(r, i, id);
+      };
+      tk.querySelectorAll('.tq button').forEach(b => {
+        if (b.dataset.q === 'arrow') { b.onpointerdown = ev => startArrow(ev, r, i, id); b.onclick = ev => ev.stopPropagation(); return; }
+        b.onclick = ev => { ev.stopPropagation(); const [tt] = findTok(s, id); if (!tt) return; const q = b.dataset.q; ch(() => { tt.st = tt.st === q ? '' : q; }); toast(q === 'exh' ? (tt.st ? 'Agotada' : 'Preparada') : (tt.st ? 'Muere en esta etapa' : 'Revivió')); };
+      });
     });
     sec.querySelectorAll('.zrow').forEach(zr => {
       zr.ondragover = ev => { if (ev.dataTransfer.types.includes('text/x-tok')) { ev.preventDefault(); zr.classList.add('over'); } };
@@ -3109,25 +3330,27 @@ function bindStory(r) {
 }
 function moveTok(r, i, tid, z) {
   const s = r.stages[i]; const [t, from] = findTok(s, tid); if (!t || from === z) return;
-  commit(); s.board[from] = s.board[from].filter(x => x !== t); (s.board[z] = s.board[z] || []).push(t); save(); renderStory();
+  commit(); s.board[from] = s.board[from].filter(x => x !== t); (s.board[z] = s.board[z] || []).push(t); if (z === 'chain') r.chain = true; save(); renderStory();
 }
 function tokMenu(r, i, tid) {
   const s = r.stages[i]; const [t, z] = findTok(s, tid); if (!t) return; const c = t.key ? getCard(t.key) : null;
-  const zs = SZONES.filter(x => x.id !== z && (x.id !== 'bf2' || r.bf2 || r.stages.some(st => (st.board.bf2 || []).length)));
+  const zs = SZONES.filter(x => x.id !== z && (x.id !== 'bf2' || r.bf2 || r.stages.some(st => (st.board.bf2 || []).length)) && (x.id !== 'chain' || chainOn(r) || (c && c.type === 'Spell')));
   openModal(`<h2>${esc(c ? c.name : t.label || 'Unidad')}</h2><p class="small muted" style="margin-top:0">${t.side === 'enemy' ? 'Rival' : 'Aliada'} · en ${esc(SZ_ES[z])} · etapa ${i + 1}</p>
     <div class="field"><label>Mover a</label><div class="btnrow" style="margin:0">${zs.map(x => `<button class="btn sm" data-mv="${x.id}">${esc(x.es)}</button>`).join('')}</div></div>
-    <div class="field"><label>Estado</label><div class="btnrow" style="margin:0"><button class="btn sm${t.st === 'exh' ? ' primary' : ''}" data-st="exh">↷ Agotada</button><button class="btn sm${t.st === 'dead' ? ' primary' : ''}" data-st="dead">✝ Muerta</button><button class="btn sm${!t.st ? ' primary' : ''}" data-st="">Lista</button></div></div>
+    <div class="field"><label>Estado</label><div class="btnrow" style="margin:0"><button class="btn sm${t.st === 'exh' ? ' primary' : ''}" data-st="exh">↻ Agotada</button><button class="btn sm${t.st === 'dead' ? ' primary' : ''}" data-st="dead">✝ Muerta</button><button class="btn sm${!t.st ? ' primary' : ''}" data-st="">Lista</button></div></div>
+    <div class="field"><label>Flecha</label><div class="btnrow" style="margin:0"><button class="btn sm" id="tmArrow">➝ Apuntar a otra carta…</button></div></div>
     <div class="field"><label>Might en esta etapa</label><div class="btnrow" style="margin:0;align-items:center"><button class="btn sm" data-mi="-1">−</button><b class="mono">${t.might ?? c?.might ?? 0}</b><button class="btn sm" data-mi="1">+</button>${t.might != null && c ? '<button class="btn sm ghost" data-mi="reset">Original</button>' : ''}</div></div>
     <div class="field"><label>Lado</label><div class="btnrow" style="margin:0"><button class="btn sm${t.side === 'ally' ? ' primary' : ''}" data-sd="ally">Aliada</button><button class="btn sm${t.side === 'enemy' ? ' primary' : ''}" data-sd="enemy">Rival</button></div></div>
     <div class="btnrow"><button class="btn primary" id="tmOk">Listo</button><button class="btn danger" id="tmDel">Quitar de esta etapa</button><button class="btn ghost" id="tmDelAll" title="Quitarla de esta etapa y de las siguientes">Quitar de aquí en adelante</button></div>`);
-  const done = () => { save(); closeModal(); renderStory(); };
-  $('#modal').querySelectorAll('[data-mv]').forEach(b => b.onclick = () => { closeModal(); moveTok(r, i, tid, b.dataset.mv); });
+  const done = () => { save(); closeModal(); STORY.tsel = null; renderStory(); };
+  $('#modal').querySelectorAll('[data-mv]').forEach(b => b.onclick = () => { closeModal(); STORY.tsel = null; moveTok(r, i, tid, b.dataset.mv); });
   $('#modal').querySelectorAll('[data-st]').forEach(b => b.onclick = () => { commit(); t.st = b.dataset.st; done(); });
+  $('#tmArrow').onclick = () => { closeModal(); STORY.arrow = { i, from: tid }; STORY.tsel = null; renderStory(); toast('Ahora toca la carta a la que apunta · Esc para cancelar'); };
   $('#modal').querySelectorAll('[data-mi]').forEach(b => b.onclick = () => { commit(); if (b.dataset.mi === 'reset') t.might = null; else t.might = Math.max(0, (t.might ?? c?.might ?? 0) + +b.dataset.mi); save(); tokMenu(r, i, tid); renderStory(); });
   $('#modal').querySelectorAll('[data-sd]').forEach(b => b.onclick = () => { commit(); t.side = b.dataset.sd; done(); });
   $('#tmOk').onclick = () => { closeModal(); };
-  $('#tmDel').onclick = () => { commit(); s.board[z] = s.board[z].filter(x => x !== t); done(); };
-  $('#tmDelAll').onclick = () => { commit(); for (const st of r.stages.slice(i)) for (const zz of SZONES) st.board[zz.id] = (st.board[zz.id] || []).filter(x => x.id !== tid); done(); };
+  $('#tmDel').onclick = () => { commit(); s.board[z] = s.board[z].filter(x => x !== t); s.arrows = (s.arrows || []).filter(a => a.from !== tid && a.to !== tid); done(); };
+  $('#tmDelAll').onclick = () => { commit(); for (const st of r.stages.slice(i)) { for (const zz of SZONES) st.board[zz.id] = (st.board[zz.id] || []).filter(x => x.id !== tid); st.arrows = (st.arrows || []).filter(a => a.from !== tid && a.to !== tid); } done(); };
 }
 function pickStoryCard(title, scope) {
   return new Promise(res => {
@@ -3158,7 +3381,14 @@ function pickStoryCard(title, scope) {
   });
 }
 function storyKey(ev) {
-  if (ev.key === 'Escape') { ev.preventDefault(); if (STORY.play != null) { STORY.play = null; renderStory(); } else closeStory(); return; }
+  const mod = ev.metaKey || ev.ctrlKey;
+  if (mod && ev.key.toLowerCase() === 'z') { ev.preventDefault(); ev.shiftKey ? redo() : undo(); return; }
+  if (mod && ev.key.toLowerCase() === 'y') { ev.preventDefault(); redo(); return; }
+  if (ev.key === 'Escape') {
+    ev.preventDefault();
+    if (STORY.arrow || STORY.tsel) { STORY.arrow = null; STORY.tsel = null; renderStory(); return; }
+    if (STORY.play != null) { STORY.play = null; renderStory(); } else closeStory(); return;
+  }
   if (STORY.play != null) {
     const r = storyRecipe();
     if (ev.key === 'ArrowRight' || ev.key === ' ') { ev.preventDefault(); if (STORY.play < r.stages.length - 1) { STORY.play++; renderStory(); } }
@@ -3167,14 +3397,14 @@ function storyKey(ev) {
 }
 /* ejemplo precargado: el combo de Faefolk + Void Assault + Rengar + Gust */
 function seedStageExample(d) {
-  if (d.stagesSeeded) return; d.stagesSeeded = true;
+  if (d.stagesSeeded) { upgradeStageExample(d); return; } d.stagesSeeded = true; d.stagesV2 = true;
   if (!(typeof SEED_DECKS !== 'undefined' && SEED_DECKS.some(x => x.name === d.name))) return;
   const K = n => resolveName(n, 'main'); const fa = K('Irresistible Faefolk'), va = K('Void Assault'), rg = K('Rengar, Trophy Hunter'), gu = K('Gust');
   if (![fa, va, rg, gu].every(k => d.cards.some(e => e.key === k))) return;
   const F = { id: uid('t'), key: fa, side: 'ally', st: '' }, A = { id: uid('t'), key: null, label: 'Unidad A', might: 2, side: 'enemy', st: '' }, B = { id: uid('t'), key: null, label: 'Unidad B', might: 2, side: 'enemy', st: '' }, R = { id: uid('t'), key: rg, side: 'ally', st: '' };
-  const b = (eb, bf1, mb, hand = []) => ({ eb, bf1, bf2: [], mb, hand });
+  const b = (eb, bf1, mb, hand = []) => ({ chain: [], eb, bf1, bf2: [], mb, hand });
   const c = o => ({ ...o });
-  d.recipes.unshift({
+  const rec = {
     id: uid('r'), name: 'Doble arrastre con Rengar', pieces: [fa, va, rg, gu], turn: 7, tags: ['Por etapas'], note: '',
     result: 'Void Assault y Faefolk jalan a dos unidades rivales al battlefield, Rengar las mata en el combate y Gust salva a Faefolk.',
     stages: [
@@ -3183,8 +3413,66 @@ function seedStageExample(d) {
       { id: uid('st'), title: 'Rengar embosca', play: rg, energy: 5, runes: { Body: 1 }, note: 'Rengar entra con Ambush (puede porque hay enemigos ahí) y en el combate mata a las dos unidades de 2.', board: b([], [c(F), c(R), { ...c(A), st: 'dead' }, { ...c(B), st: 'dead' }], []) },
       { id: uid('st'), title: 'Gust salva a Faefolk', play: gu, energy: 1, runes: {}, note: 'Gust devuelve a Faefolk a tu mano para que no muera. Lo vuelves a jugar después.', board: b([], [c(R)], [], [c(F)]) },
     ],
-  });
+  };
+  d.recipes.unshift(rec); addExampleArrows(rec);
   setTimeout(save, 0);
+}
+// flechas y cadena para el ejemplo (también a quien ya lo tenía, si no lo ha cambiado)
+function addExampleArrows(rec) {
+  const [s0, s1, s2, s3] = rec.stages; const tid = (s, lab) => SZONES.flatMap(z => s.board[z.id] || []).find(t => (t.label || '') === lab)?.id;
+  const fa = rec.pieces[0], va = rec.pieces[1], gu = rec.pieces[3]; const F = SZONES.flatMap(z => s1.board[z.id] || []).find(t => t.key === fa)?.id; if (!F) return false;
+  s1.board.chain = [{ id: uid('t'), key: va, side: 'ally', st: '', auto: true }];
+  s1.arrows = [{ id: uid('ar'), from: 'play', to: F, label: 'Mueve' }, { id: uid('ar'), from: 'play', to: tid(s1, 'Unidad A'), label: 'Mueve' }, { id: uid('ar'), from: F, to: tid(s1, 'Unidad B'), label: 'Jala' }];
+  const Rg = SZONES.flatMap(z => s2.board[z.id] || []).find(t => t.key === rec.pieces[2])?.id;
+  s2.arrows = [{ id: uid('ar'), from: Rg, to: tid(s2, 'Unidad A'), label: 'Mata' }, { id: uid('ar'), from: Rg, to: tid(s2, 'Unidad B'), label: 'Mata' }];
+  s3.board.chain = [{ id: uid('t'), key: gu, side: 'ally', st: '', auto: true }];
+  s3.arrows = [{ id: uid('ar'), from: 'play', to: SZONES.flatMap(z => s3.board[z.id] || []).find(t => t.key === fa)?.id, label: 'A la mano' }];
+  for (const s of rec.stages) { s.board.chain = s.board.chain || []; s.arrows = (s.arrows || []).filter(a => a.from && a.to); }
+  return true;
+}
+function upgradeStageExample(d) {
+  if (d.stagesV2) return; d.stagesV2 = true;
+  const rec = d.recipes.find(r => r.name === 'Doble arrastre con Rengar' && (r.stages || []).length === 4);
+  if (!rec || rec.stages.some(s => (s.arrows || []).length || (s.board.chain || []).length)) return;
+  if (!rec.stages[1].board.bf1?.some(t => t.label === 'Unidad B')) return;
+  if (addExampleArrows(rec)) setTimeout(save, 0);
+}
+
+/* ---------- puente con el mapa (botones para pasar) ---------- */
+function comboKeys(r) {
+  const ks = [...(r.pieces || [])];
+  for (const s of r.stages || []) { if (s.play) ks.push(s.play); for (const z of SZONES) for (const t of s.board[z.id] || []) if (t.key && t.side === 'ally') ks.push(t.key); }
+  return [...new Set(ks.map(baseKey))];
+}
+const combosWith = bk => deck().recipes.filter(r => comboKeys(r).includes(bk));
+function comboFromCards(keys, name, steps) {
+  const d = deck(), list = keys.map(baseKey), short = k => getCard(k).name.split(' - ')[0].split(',')[0];
+  commit();
+  const nm = name || (list.length > 4 ? list.slice(0, 3).map(short).join(' + ') + ` +${list.length - 3}` : list.map(short).join(' + '));
+  const r = { id: uid('r'), name: nm, pieces: [...new Set(list)], result: '', turn: null, tags: ['Por etapas'], note: '', stages: [newStage()] };
+  r.stages[0].title = 'Preparación';
+  const bf = list.find(k => getCard(k).type === 'Battlefield'); if (bf) r.bfNames = { bf1: getCard(bf).name };
+  list.forEach((k, j) => {
+    if (['Legend', 'Battlefield', 'Rune'].includes(getCard(k).type)) return;
+    r.stages.push(newStage(r.stages[r.stages.length - 1])); const i = r.stages.length - 1; applyPlay(r, i, k);
+    const stp = steps && steps[j]; if (stp) { const st = r.stages[i]; st.energy = +stp.energy || 0; st.runes = +stp.power ? { [stp.pdom || runeDoms()[0]]: +stp.power } : {}; st.note = stp.note || ''; }
+  });
+  d.recipes.unshift(r); save();
+  toast(`Combo creado con ${r.stages.length - 1} etapa${r.stages.length === 2 ? '' : 's'}: agrega a los rivales en “Preparación”`);
+  return r;
+}
+function showComboOnMap(r) {
+  const keys = comboKeys(r); if (STORY) closeStory(); setView('map');
+  const m = map(); const has = k => Object.keys(m.nodes).some(n => baseKey(n) === k && !isEnemy(n));
+  const missing = keys.filter(k => !has(k) && getCard(k).type !== 'Rune');
+  if (missing.length) {
+    commit(); const b = bounds() || { x0: 0, y1: 0 };
+    missing.forEach((k, j) => { m.nodes[k] = { x: Math.round((b.x0 + j * 190) / 10) * 10, y: Math.round((b.y1 + 110) / 10) * 10 }; });
+    renderNodes(); renderEdges(); renderLeft(); save();
+  }
+  const ks = Object.keys(m.nodes).filter(n => keys.includes(baseKey(n)) && !isEnemy(n));
+  sel.nodes = new Set(ks); sel.edge = null; sel.group = null; sel.ann = null; onSelChange(); if (ks.length) fit(ks, 1);
+  toast(missing.length ? `Agregué ${missing.length} carta${missing.length > 1 ? 's' : ''} del combo que no estaba${missing.length > 1 ? 'n' : ''} en el mapa · ⌘Z para deshacer` : `“${r.name}”: ${ks.length} carta${ks.length > 1 ? 's' : ''} marcadas en el mapa`);
 }
 
 </script>
