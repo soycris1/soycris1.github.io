@@ -202,6 +202,102 @@ svg.layer { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overfl
 .sinfo { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .sinfo b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sinfo .btn.sm { padding: 2px 6px; font-size: 12px; }
+.story { position: fixed; inset: 0; z-index: 45; background: var(--bg); display: none; flex-direction: column; padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); }
+.story.show { display: flex; }
+.shead { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.stitle { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.stitle input { font: 700 28px/1.1 var(--f-display); text-transform: uppercase; letter-spacing: .02em; background: none; border: 1px solid transparent; padding: 2px 6px; max-width: 100%; }
+.stitle input:hover, .stitle input:focus { border-color: var(--line); background: var(--sunk); }
+.stot { font-size: 13px; color: var(--muted); padding-left: 7px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.stot b { color: var(--fg); font-family: var(--f-mono); }
+.shint { margin: 6px 0 10px 7px; }
+.strip { flex: 1; display: flex; gap: 6px; align-items: stretch; overflow-x: auto; overflow-y: hidden; padding: 4px 4px 12px; scroll-snap-type: x proximity; }
+.sarrow { align-self: center; font-size: 22px; color: var(--muted); flex: none; }
+.saddst { flex: none; width: 150px; border: 2px dashed var(--line-strong); border-radius: 14px; background: none; color: var(--muted); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-weight: 600; }
+.saddst b { font-size: 34px; line-height: 1; color: var(--accent); }
+.saddst:hover { border-color: var(--accent); color: var(--fg); }
+.stg { flex: none; width: 360px; display: flex; flex-direction: column; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; overflow-y: auto; scroll-snap-align: start; }
+.stg header { display: flex; align-items: center; gap: 8px; }
+.sn { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font: 700 17px var(--f-display); }
+.stt { flex: 1; min-width: 0; font: 700 18px/1.1 var(--f-display); text-transform: uppercase; letter-spacing: .02em; }
+input.stt { background: none; border: 1px solid transparent; padding: 4px 6px; }
+input.stt:hover, input.stt:focus { border-color: var(--line); background: var(--sunk); }
+.splay { display: flex; align-items: center; gap: 6px; min-height: 40px; }
+.spc { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--raise); border-radius: 10px; padding: 4px 10px 4px 4px; text-align: left; flex: 1; min-width: 0; }
+.spc .th.sm { width: 34px; }
+.spc span { display: flex; flex-direction: column; min-width: 0; }
+.spc small { font-size: 11px; color: var(--muted); }
+.spc b { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scost { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12.5px; }
+.cst { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; background: var(--sunk); border-radius: 8px; padding: 3px 8px; }
+.cst input { width: 52px; padding: 2px 4px; }
+.rstep { display: inline-flex; align-items: center; gap: 2px; border: 1px solid color-mix(in srgb, var(--rc) 55%, var(--line)); border-radius: 8px; padding: 1px 3px; background: color-mix(in srgb, var(--rc) 10%, transparent); }
+.rstep button { border: 0; background: none; width: 20px; height: 22px; padding: 0; font-weight: 700; color: var(--fg); }
+.rstep i { font-style: normal; font-family: var(--f-mono); font-weight: 600; min-width: 12px; text-align: center; }
+.rstep em { font-style: normal; font-size: 11px; color: var(--muted); padding: 0 3px; }
+.rchip { display: inline-flex; align-items: center; gap: 3px; padding: 1px 7px; border-radius: 7px; font-size: 12px; font-weight: 600; background: color-mix(in srgb, var(--rc) 20%, transparent); border: 1px solid color-mix(in srgb, var(--rc) 50%, transparent); }
+.acc { margin-left: auto; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.acc b { color: var(--fg); font-family: var(--f-mono); }
+.board { display: grid; gap: 4px; border-radius: 10px; overflow: hidden; }
+.zrow { display: grid; grid-template-columns: 78px minmax(0, 1fr); align-items: stretch; background: var(--sunk); border-radius: 8px; min-height: 84px; }
+.zrow.z-eb { background: color-mix(in srgb, #e5484d 9%, var(--sunk)); }
+.zrow.z-bf1, .zrow.z-bf2 { background: color-mix(in srgb, var(--gold) 13%, var(--sunk)); }
+.zrow.z-mb { background: color-mix(in srgb, var(--accent) 9%, var(--sunk)); }
+.zrow.z-hand { min-height: 60px; }
+.zrow.over { outline: 2px dashed var(--accent); outline-offset: -2px; }
+.zl { overflow-wrap: anywhere; font: 700 11.5px/1.1 var(--f-display); text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 8px 6px; display: flex; align-items: center; border-right: 1px solid var(--line); }
+.ztoks { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; align-items: flex-start; }
+.zadd { width: 30px; height: 30px; border: 1px dashed var(--line-strong); border-radius: 8px; background: none; color: var(--muted); font-weight: 700; align-self: center; }
+.zadd:hover { border-color: var(--accent); color: var(--accent); }
+.tok { position: relative; width: 56px; cursor: grab; display: flex; flex-direction: column; gap: 2px; }
+.tok .th { width: 56px; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+.tok .th.gen { display: grid; place-items: center; background: linear-gradient(160deg, #e5484d, #3a1216); }
+.tok .th.gen b { display: block; position: static; font-size: 10px; text-align: center; padding: 3px; }
+.tok.ally .th { outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent); outline-offset: 1px; }
+.tok.enemy .th { outline: 2px solid #e5484d; outline-offset: 1px; }
+.tok.exh .th { transform: rotate(14deg); filter: brightness(.8); }
+.tok.dead .th { filter: grayscale(1) brightness(.6); }
+.tok.dead::after { content: '✕'; position: absolute; top: 14px; left: 0; right: 0; text-align: center; font-size: 34px; font-weight: 700; color: #e5484d; text-shadow: 0 1px 3px #000; pointer-events: none; }
+.tok.moved .th { box-shadow: 0 0 0 3px var(--gold), 0 0 14px var(--gold); }
+.tok.isnew .th { box-shadow: 0 0 0 3px var(--ok), 0 0 12px var(--ok); }
+.tmi { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--fg); color: var(--bg); font: 700 11px/20px var(--f-mono); text-align: center; padding: 0 4px; }
+.tok.enemy .tmi { background: #e5484d; color: #fff; }
+.tb { position: absolute; left: 50%; top: 46px; transform: translateX(-50%); white-space: nowrap; font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 5px; }
+.tb.mv { background: var(--gold); color: #1a1200; }
+.tb.nw { background: var(--ok); color: var(--on-strong); }
+.tb.dead { background: #e5484d; color: #fff; }
+.tnm { font-size: 10.5px; line-height: 1.1; font-weight: 600; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.snote { width: 100%; font-size: 13px; }
+.snote-ro { margin: 0; font-size: 15px; line-height: 1.45; }
+.splayer { position: absolute; inset: 0; background: color-mix(in srgb, var(--bg) 94%, transparent); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 16px; z-index: 2; }
+.spbox { width: min(760px, 100%); max-height: calc(100% - 80px); overflow: auto; }
+.spbox .stg { width: 100%; padding: 18px; gap: 12px; box-shadow: var(--shadow); }
+.spbox .stt { font-size: 26px; }
+.spbox .sn { width: 40px; height: 40px; font-size: 22px; }
+.spbox .zrow { min-height: 130px; grid-template-columns: 96px minmax(0, 1fr); }
+.spbox .tok, .spbox .tok .th { width: 84px; }
+.spbox .tb { top: 70px; font-size: 11px; }
+.spbox .tnm { font-size: 12px; }
+.spbox .tok.dead::after { top: 26px; font-size: 48px; }
+.spbox .scost { font-size: 14px; }
+.spnav { display: flex; gap: 10px; align-items: center; }
+.mstrip { display: flex; align-items: flex-start; gap: 4px; overflow-x: auto; padding: 8px 0 2px; cursor: pointer; }
+.ms { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: none; width: 58px; position: relative; }
+.ms i { position: absolute; top: -6px; left: -4px; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font: 700 11px/18px var(--f-display); text-align: center; font-style: normal; z-index: 1; }
+.ms .th.sm { width: 44px; }
+.ms .th.gen { display: grid; place-items: center; background: var(--sunk); aspect-ratio: 744 / 1039; border-radius: 8px; }
+.ms .th.gen b { display: block; position: static; color: var(--muted); font-size: 10px; }
+.ms em { font-style: normal; font-size: 10.5px; text-align: center; line-height: 1.1; color: var(--muted); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.msa { align-self: center; color: var(--muted); font-weight: 700; margin-top: -14px; }
+.pkgen { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; background: var(--sunk); border-radius: 10px; padding: 8px 10px; margin-bottom: 10px; font-size: 13px; }
+.pklist { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; margin-top: 10px; max-height: 50vh; overflow: auto; }
+.pk { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--raise); border-radius: 10px; padding: 4px 8px 4px 4px; text-align: left; min-width: 0; }
+.pk:hover { border-color: var(--accent); }
+.pk .th.sm { width: 34px; }
+.pk span { display: flex; flex-direction: column; min-width: 0; }
+.pk b { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pk small { font-size: 11.5px; color: var(--muted); }
+@media (max-width: 640px) { .stitle { flex-basis: 100%; } .story { padding: 10px 10px calc(10px + env(safe-area-inset-bottom)); } .shint { display: none; } .stg { width: 300px; } .stitle input { font-size: 22px; } .zrow { grid-template-columns: 64px minmax(0, 1fr); } .zl { font-size: 10px; } .tok, .tok .th { width: 48px; } .tb { top: 40px; } }
 .grp { position: absolute; border: 2px dashed var(--gc); border-radius: 18px; background: color-mix(in srgb, var(--gc) 7%, transparent); pointer-events: none; transition: opacity .18s, box-shadow .15s; }
 .grp.sel { border-style: solid; box-shadow: 0 0 0 4px color-mix(in srgb, var(--gc) 25%, transparent); }
 .grp.nb { border-style: solid; }
@@ -276,7 +372,7 @@ svg.layer { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overfl
 #play .prog i { display: block; height: 100%; background: var(--gold); transition: width .25s; }
 
 /* hover preview */
-#preview { position: fixed; z-index: 40; width: 300px; pointer-events: none; display: none; }
+#preview { position: fixed; z-index: 70; width: 300px; pointer-events: none; display: none; }
 #preview.show { display: block; }
 #preview .bigcard { box-shadow: 0 20px 50px rgba(0,0,0,.45); }
 
@@ -585,6 +681,7 @@ button.tr:hover { background: var(--sunk); }
   <nav class="vbar" id="viewBar" aria-label="Vistas"><button data-v="deck"><span class="ic">▤</span>Mi deck</button><button data-v="combos"><span class="ic">✦</span>Combos</button><button data-v="map"><span class="ic">⌗</span>Mapa</button><button data-v="games"><span class="ic">◎</span>Partidas</button></nav>
 </div>
 <div id="preview"></div>
+<div id="story" class="story" role="dialog" aria-label="Combo paso a paso"></div>
 <div class="float edgepop" id="edgepop"></div>
 <div class="scrim" id="palScrim"><div class="modal pal" role="dialog" aria-label="Paleta de comandos"><input id="palIn" placeholder="Busca cartas, mapas, combos o comandos…" autocomplete="off"><ul id="palList"></ul><div class="foot"><span><kbd>↑</kbd><kbd>↓</kbd> moverte</span><span><kbd>Enter</kbd> elegir</span><span><kbd>Esc</kbd> cerrar</span><span>Prefijos: <kbd>&gt;</kbd> comandos · <kbd>@</kbd> cartas · <kbd>#</kbd> combos</span></div></div></div>
 <div class="scrim" id="modalScrim"><div class="modal" id="modal" role="dialog"></div></div>
@@ -2372,6 +2469,7 @@ function onKey(ev) {
     return;
   }
   if ($('#modalScrim').classList.contains('show')) { if (ev.key === 'Escape') closeModal(); return; }
+  if (typeof storyOpen === 'function' && storyOpen()) { if (!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) storyKey(ev); else if (ev.key === 'Escape') document.activeElement.blur(); return; }
   if ($('#edgepop').classList.contains('show') && !typing) {
     const e = map().edges.find(x => x.id === $('#edgepop').dataset.id);
     if (/^[1-5]$/.test(ev.key) && e) { setEdgeType(e, EDGE_TYPES[+ev.key - 1].id); return; }
@@ -2547,6 +2645,7 @@ function ensureDeckPro(d) {
       setTimeout(save, 0);
     }
   }
+  if (typeof seedStageExample === 'function') seedStageExample(d);
   return d;
 }
 const roleOf = (d, key, zone) => d.roles[key] || autoRole(key, zone);
@@ -2641,7 +2740,7 @@ function recipeStats(d, r) {
   const pcs = [...new Set(r.pieces)].map(k => ({ k, q: deckQty(k, 'main') }));
   const inDeck = pcs.filter(p => p.q > 0);
   const missing = pcs.filter(p => p.q === 0 && !d.cards.some(e => e.key === p.k));
-  let en = 0, pw = 0; for (const p of pcs) { const c = getCard(p.k); if (c.type !== 'Legend' && c.type !== 'Battlefield') { en += c.energy || 0; pw += c.power || 0; } }
+  let en = 0, pw = 0; if (r.stages && r.stages.length > 1) { const t = stageTotals(r, r.stages.length); en = t.en; pw = t.rt; } else for (const p of pcs) { const c = getCard(p.k); if (c.type !== 'Legend' && c.type !== 'Battlefield') { en += c.energy || 0; pw += c.power || 0; } }
   const P = t => inDeck.length ? probAll(inDeck.map(p => p.q), N, Math.min(N, 4 + t)) : 1;
   return { en, pw, P, missing, nDeck: inDeck.length };
 }
@@ -2671,20 +2770,23 @@ function renderCombosView(d) {
         <div class="rstats"><span><b class="mono">${s.en}</b> energía${s.pw ? ` + <b class="mono">${s.pw}</b> runa${s.pw > 1 ? 's' : ''}` : ''}</span><span>Turno ideal <b class="mono">${r.turn || '–'}</b></span>
         ${s.nDeck ? `<span title="Probabilidad de tener en mano todas las piezas que salen del mazo (sin contar mulligan)">Piezas en mano: ${[3, 5, 7].map(t => `T${t} <b class="mono">${pct(s.P(t))}</b>`).join(' · ')}</span>` : '<span>Piezas siempre disponibles</span>'}</div>
         ${s.missing.length ? `<p class="small" style="color:var(--danger)">No está en el deck: ${s.missing.map(p => esc(getCard(p.k).name)).join(', ')}</p>` : ''}
-        <div class="btnrow"><button class="btn sm" data-a="edit">Editar</button><button class="btn sm" data-a="map">Ver en mapa</button><button class="btn sm ghost danger" data-a="del">Borrar</button></div></div></article>`;
+        ${r.stages && r.stages.length > 1 ? `<div class="mstrip" data-a="story" title="Ver paso a paso">${r.stages.map((st, i) => `<span class="ms"><i>${i + 1}</i>${st.play ? thumb(st.play, 'sm') : '<span class="th sm gen"><b>Inicio</b></span>'}<em>${esc(st.title || '')}</em></span>`).join('<span class="msa">›</span>')}</div>` : ''}
+        <div class="btnrow"><button class="btn sm primary" data-a="story">${r.stages && r.stages.length > 1 ? `▶ Paso a paso (${r.stages.length})` : '＋ Armar paso a paso'}</button><button class="btn sm" data-a="edit">Editar</button><button class="btn sm" data-a="map">Ver en mapa</button><button class="btn sm ghost danger" data-a="del">Borrar</button></div></div></article>`;
   };
   $('#view').innerHTML = `<div class="vwrap">
     <div class="vhead"><div><h1>Combos</h1><p class="muted">Recetas: qué cartas se juntan, qué consiguen, cuánto cuestan y qué tan seguido las tendrás.</p></div>
-      <div class="btnrow"><button class="btn primary" id="rNew">+ Nueva receta</button><button class="btn" id="vDraw2">🂠 Robar mano</button></div></div>
+      <div class="btnrow"><button class="btn primary" id="rNewSt">+ Combo por etapas</button><button class="btn" id="rNew">+ Receta rápida</button><button class="btn" id="vDraw2">🂠 Robar mano</button></div></div>
     <div class="recipes">${d.recipes.map(card).join('') || '<p class="empty">Aún no hay recetas. Crea una o acepta una sugerencia de abajo.</p>'}</div>
     ${sug.length ? `<div class="sec" style="margin-top:28px"><h3>Combos sugeridos</h3><span class="n">${sug.length}</span></div><p class="small muted" style="margin-top:0">Los detecto leyendo el texto de tus cartas y las conexiones de tus mapas. Acéptalos para convertirlos en receta.</p>
     <div class="sugs">${sug.map((s, i) => `<div class="sug" data-i="${i}"><div class="rp">${thumb(s.a, 'sm')}<span class="plus">+</span>${thumb(s.b, 'sm')}</div><div><b>${esc(getCard(s.a).name)} + ${esc(getCard(s.b).name)}</b><p class="small muted">${esc(s.why)}</p><div class="btnrow"><button class="btn sm primary" data-a="ok">Agregar</button><button class="btn sm ghost" data-a="no">Descartar</button></div></div></div>`).join('')}</div>` : ''}
   </div>`;
-  $('#rNew').onclick = () => editRecipe(null); $('#vDraw2').onclick = () => openHand();
+  $('#rNew').onclick = () => editRecipe(null);
+  $('#rNewSt').onclick = async () => { const n = await askText('Nombre del combo', 'Combo ' + (d.recipes.length + 1), 'Crear', 'Ej.: Doble arrastre con Rengar'); if (!n) return; commit(); const r = { id: uid('r'), name: n, pieces: [], result: '', turn: null, tags: ['Por etapas'], note: '', stages: [newStage()] }; d.recipes.unshift(r); save(); renderView(); openStory(r.id); }; $('#vDraw2').onclick = () => openHand();
   $('#view').querySelectorAll('.recipe').forEach(el => {
     const r = d.recipes.find(x => x.id === el.dataset.r);
     el.querySelectorAll('[data-a]').forEach(b => b.onclick = async () => {
       if (b.dataset.a === 'edit') editRecipe(r);
+      if (b.dataset.a === 'story') openStory(r.id);
       if (b.dataset.a === 'map') { setView('map'); const ks = Object.keys(map().nodes).filter(k => r.pieces.includes(baseKey(k))); if (ks.length) { sel.nodes = new Set(ks); onSelChange(); fit(ks, 1); } }
       if (b.dataset.a === 'del' && await askConfirm(`¿Borrar la receta “${r.name}”?`)) { commit(); d.recipes = d.recipes.filter(x => x !== r); save(); renderView(); }
     });
@@ -2810,6 +2912,194 @@ function bindMatchup(d, opp) {
     const bag = mu[b.dataset.kind], k = b.dataset.k, max = deckQty(k, b.dataset.kind === 'ins' ? 'side' : 'main');
     commit(); bag[k] = Math.max(0, Math.min(max, (bag[k] || 0) + +b.dataset.d)); if (!bag[k]) delete bag[k]; save(); renderView();
   });
+}
+
+/* ================= Combos por etapas (tira tipo cómic con mini tablero) ================= */
+const SZONES = [
+  { id: 'eb', es: 'Base rival' },
+  { id: 'bf1', es: 'Battlefield' },
+  { id: 'bf2', es: 'Battlefield 2', opt: true },
+  { id: 'mb', es: 'Mi base' },
+  { id: 'hand', es: 'Mano', opt: true },
+];
+const SZ_ES = Object.fromEntries(SZONES.map(z => [z.id, z.es]));
+let STORY = null; // { rid, play: index|null }
+const storyOpen = () => !!STORY && $('#story').classList.contains('show');
+const storyRecipe = () => STORY && deck().recipes.find(r => r.id === STORY.rid);
+function runeDoms() {
+  const d = deck(), out = [];
+  for (const e of d.cards) if (e.zone === 'rune') for (const x of getCard(e.key).domains || []) if (!out.includes(x)) out.push(x);
+  if (!out.length) for (const e of d.cards) if (e.zone === 'legend') for (const x of getCard(e.key).domains || []) if (!out.includes(x)) out.push(x);
+  return out.length ? out : ['Body', 'Chaos'];
+}
+const newStage = (prev) => ({ id: uid('st'), title: '', play: null, energy: 0, runes: {}, note: '', board: prev ? Object.fromEntries(SZONES.map(z => [z.id, (prev.board[z.id] || []).filter(t => t.st !== 'dead').map(t => ({ ...t }))])) : { eb: [], bf1: [], bf2: [], mb: [], hand: [] } });
+function stageTotals(r, upto) {
+  let en = 0; const ru = {};
+  r.stages.slice(0, upto).forEach(s => { en += +s.energy || 0; for (const [k, v] of Object.entries(s.runes || {})) if (+v) ru[k] = (ru[k] || 0) + (+v); });
+  return { en, ru, rt: Object.values(ru).reduce((a, b) => a + b, 0) };
+}
+const fmtRunes = ru => Object.entries(ru).filter(([, v]) => v).map(([k, v]) => `<span class="rchip" style="--rc:${DOMAINS[k]?.c || '#888'}">${v} ${esc(DOMAINS[k]?.es || k)}</span>`).join('');
+function findTok(st, id) { for (const z of SZONES) { const t = (st.board[z.id] || []).find(x => x.id === id); if (t) return [t, z.id]; } return [null, null]; }
+function tokHTML(r, i, t, zone) {
+  const prev = i > 0 ? r.stages[i - 1] : null; const [pt, pz] = prev ? findTok(prev, t.id) : [null, null];
+  const moved = prev && pt && pz !== zone, isNew = prev && !pt, died = t.st === 'dead' && (!pt || pt.st !== 'dead');
+  const c = t.key ? getCard(t.key) : null; const might = t.might ?? c?.might;
+  const badge = died ? '<span class="tb dead">✝ Muere</span>' : moved ? `<span class="tb mv">↗ ${zone === 'hand' ? 'A la mano' : 'Se movió'}</span>` : isNew ? '<span class="tb nw">✦ Entra</span>' : '';
+  return `<div class="tok ${t.side}${t.st ? ' ' + t.st : ''}${moved ? ' moved' : ''}${isNew ? ' isnew' : ''}" draggable="true" data-t="${t.id}" title="${esc((t.side === 'enemy' ? 'Rival: ' : '') + (c ? c.name : t.label || 'Unidad'))}">
+    ${c ? thumb(t.key) : `<span class="th gen"><b>${esc(t.label || 'Unidad')}</b></span>`}${might != null ? `<span class="tmi">${might}</span>` : ''}${badge}<span class="tnm">${esc(c ? c.name.split(' - ')[0] : t.label || 'Unidad')}</span></div>`;
+}
+function stageHTML(r, i, ro) {
+  const s = r.stages[i], tot = stageTotals(r, i + 1), pc = s.play ? getCard(s.play) : null, doms = runeDoms();
+  const used = z => (z === 'bf2' && r.bf2) || (s.board[z] || []).length || r.stages.some(x => (x.board[z] || []).length);
+  const rows = SZONES.filter(z => !z.opt || used(z.id) || (z.id === 'hand' && !ro)).map(z => `<div class="zrow z-${z.id}" data-z="${z.id}"><span class="zl">${z.id.startsWith('bf') && r.bfNames?.[z.id] ? esc(r.bfNames[z.id]) : z.es}</span><div class="ztoks">${(s.board[z.id] || []).map(t => tokHTML(r, i, t, z.id)).join('')}${ro ? '' : `<button class="zadd" data-z="${z.id}" title="Agregar unidad aquí">+</button>`}</div></div>`).join('');
+  return `<section class="stg${ro ? ' ro' : ''}" data-i="${i}">
+    <header><span class="sn">${i + 1}</span>${ro ? `<b class="stt">${esc(s.title || (pc ? pc.name : 'Etapa ' + (i + 1)))}</b>` : `<input class="stt" value="${esc(s.title)}" placeholder="${i === 0 ? 'Ej.: Preparación' : 'Qué pasa en esta etapa'}"><button class="btn sm ghost icon sdel" title="Borrar etapa" aria-label="Borrar etapa">✕</button>`}</header>
+    <div class="splay">${pc ? `<button class="spc" ${ro ? 'disabled' : ''} title="${ro ? '' : 'Cambiar carta jugada'}">${thumb(s.play, 'sm')}<span><small>Juegas</small><b>${esc(pc.name)}</b></span></button>${ro ? '' : '<button class="btn sm ghost sclr" title="Quitar carta jugada">✕</button>'}` : ro ? '<span class="small muted">Sin carta jugada</span>' : '<button class="btn sm spick">+ Carta que juegas</button>'}</div>
+    <div class="scost">${ro ? `<span class="cst">⚡ <b>${s.energy || 0}</b></span>${fmtRunes(s.runes || {})}` : `<label class="cst" title="Energía que gastas en esta etapa">⚡ <input type="number" min="0" max="20" class="sen" value="${s.energy || 0}"></label>${doms.map(dm => `<span class="rstep" style="--rc:${DOMAINS[dm]?.c || '#888'}" title="Runas de ${esc(DOMAINS[dm]?.es || dm)}"><button data-dom="${dm}" data-d="-1">−</button><i>${(s.runes || {})[dm] || 0}</i><button data-dom="${dm}" data-d="1">+</button><em>${esc(DOMAINS[dm]?.es || dm)}</em></span>`).join('')}`}
+      <span class="acc" title="Acumulado hasta esta etapa">Llevas ⚡<b>${tot.en}</b>${tot.rt ? ` · <b>${tot.rt}</b> runa${tot.rt > 1 ? 's' : ''}` : ''}</span></div>
+    <div class="board">${rows}</div>
+    ${ro ? (s.note ? `<p class="snote-ro">${esc(s.note)}</p>` : '') : `<textarea class="snote" rows="2" placeholder="Qué pasa y por qué (ej.: Faefolk jala a la segunda unidad)">${esc(s.note || '')}</textarea>`}
+  </section>`;
+}
+function openStory(rid) {
+  const r = deck().recipes.find(x => x.id === rid); if (!r) return;
+  if (!r.stages || !r.stages.length) { commit(); r.stages = [newStage()]; save(); }
+  STORY = { rid, play: null }; $('#story').classList.add('show'); renderStory();
+}
+function closeStory() { STORY = null; $('#story').classList.remove('show'); $('#story').innerHTML = ''; if (VIEW === 'combos') renderView(); }
+function renderStory(keepScroll = true) {
+  const r = storyRecipe(); if (!r) return closeStory();
+  const el = $('#story'), sc = el.querySelector('.strip')?.scrollLeft || 0;
+  const tot = stageTotals(r, r.stages.length);
+  el.innerHTML = `<div class="shead"><div class="stitle"><input id="stName" value="${esc(r.name)}" aria-label="Nombre del combo"><span class="stot">Total: ⚡ <b>${tot.en}</b> energía${tot.rt ? ` · <b>${tot.rt}</b> runa${tot.rt > 1 ? 's' : ''} ${fmtRunes(tot.ru)}` : ''} · ${r.stages.length} etapa${r.stages.length > 1 ? 's' : ''}</span></div>
+    <div class="btnrow" style="margin:0"><button class="btn primary" id="stPlay">▶ Reproducir</button><button class="btn" id="stBf" title="Mostrar u ocultar un segundo battlefield">${r.stages.some(s => (s.board.bf2 || []).length) || r.bf2 ? '− Battlefield 2' : '+ Battlefield 2'}</button><button class="btn ghost icon" id="stClose" aria-label="Cerrar">✕</button></div></div>
+    <p class="small muted shint">Arrastra las cartas entre zonas (o tócalas para moverlas, agotarlas o marcarlas como muertas). Cada etapa nueva copia el tablero de la anterior; lo que cambia se marca solo.</p>
+    <div class="strip">${r.stages.map((s, i) => stageHTML(r, i, false) + (i < r.stages.length - 1 ? '<div class="sarrow">➜</div>' : '')).join('')}<button class="saddst" id="stAdd"><b>+</b>Nueva etapa</button></div>
+    ${STORY.play != null ? `<div class="splayer"><div class="spbox">${stageHTML(r, STORY.play, true)}</div><div class="spnav"><button class="btn" id="spPrev" ${STORY.play ? '' : 'disabled'}>‹ Anterior</button><span class="mono">${STORY.play + 1} / ${r.stages.length}</span><button class="btn primary" id="spNext">${STORY.play < r.stages.length - 1 ? 'Siguiente ›' : 'Terminar'}</button><button class="btn ghost" id="spClose">Cerrar</button></div></div>` : ''}`;
+  if (keepScroll) el.querySelector('.strip').scrollLeft = sc;
+  bindStory(r);
+}
+function bindStory(r) {
+  const el = $('#story'); const ch = (fn, rerender = true) => { commit(); fn(); save(); if (rerender) renderStory(); };
+  $('#stClose').onclick = closeStory;
+  const nm = $('#stName'); nm.addEventListener('focus', () => commit(), { once: true }); nm.oninput = () => { r.name = nm.value; save(); };
+  $('#stPlay').onclick = () => { STORY.play = 0; renderStory(); };
+  $('#stBf').onclick = () => ch(() => { const on = r.stages.some(s => (s.board.bf2 || []).length) || r.bf2; if (on) { r.bf2 = false; for (const s of r.stages) { s.board.mb = (s.board.mb || []).concat(s.board.bf2 || []); s.board.bf2 = []; } } else r.bf2 = true; });
+  $('#stAdd').onclick = () => { ch(() => r.stages.push(newStage(r.stages[r.stages.length - 1]))); const st = el.querySelector('.strip'); st.scrollLeft = st.scrollWidth; el.querySelector('.stg:last-of-type .stt')?.focus(); };
+  if (STORY.play != null) {
+    $('#spPrev').onclick = () => { STORY.play = Math.max(0, STORY.play - 1); renderStory(); };
+    $('#spNext').onclick = () => { if (STORY.play < r.stages.length - 1) STORY.play++; else STORY.play = null; renderStory(); };
+    $('#spClose').onclick = () => { STORY.play = null; renderStory(); };
+  }
+  el.querySelectorAll('.strip .stg').forEach(sec => {
+    const i = +sec.dataset.i, s = r.stages[i];
+    const t = sec.querySelector('.stt'); t.addEventListener('focus', () => commit(), { once: true }); t.oninput = () => { s.title = t.value; save(); };
+    const n = sec.querySelector('.snote'); n.addEventListener('focus', () => commit(), { once: true }); n.oninput = () => { s.note = n.value; save(); };
+    sec.querySelector('.sdel').onclick = async () => { if (r.stages.length === 1) return toast('Un combo necesita al menos una etapa'); if (await askConfirm(`¿Borrar la etapa ${i + 1}?`)) ch(() => r.stages.splice(i, 1)); };
+    sec.querySelector('.sen').onchange = ev => ch(() => s.energy = Math.max(0, +ev.target.value || 0));
+    sec.querySelectorAll('.rstep button').forEach(b => b.onclick = () => ch(() => { s.runes = s.runes || {}; s.runes[b.dataset.dom] = Math.max(0, (s.runes[b.dataset.dom] || 0) + +b.dataset.d); if (!s.runes[b.dataset.dom]) delete s.runes[b.dataset.dom]; }));
+    const pick = async () => { const res = await pickStoryCard('Carta que juegas en esta etapa', 'deck'); if (!res || !res.key) return; ch(() => {
+      const c = getCard(res.key); s.play = res.key; s.energy = c.energy || 0;
+      s.runes = {}; if (c.power) { const doms = runeDoms(); const dm = (c.domains || []).find(x => doms.includes(x)) || (c.domains || [])[0] || doms[0]; s.runes[dm] = c.power; }
+      if (!s.title) s.title = c.name.split(' - ')[0];
+      if (c.type === 'Unit' && !SZONES.some(z => (s.board[z.id] || []).some(x => x.key === res.key && x.side === 'ally'))) { const z = (s.board.bf1 || []).some(x => x.side === 'enemy') ? 'bf1' : 'mb'; s.board[z].push({ id: uid('t'), key: res.key, side: 'ally', st: '' }); }
+    }); };
+    sec.querySelector('.spick') && (sec.querySelector('.spick').onclick = pick);
+    sec.querySelector('.spc') && (sec.querySelector('.spc').onclick = pick);
+    sec.querySelector('.sclr') && (sec.querySelector('.sclr').onclick = () => ch(() => s.play = null));
+    sec.querySelectorAll('.zadd').forEach(b => b.onclick = async () => {
+      const res = await pickStoryCard('Agregar a ' + SZ_ES[b.dataset.z], 'any'); if (!res) return;
+      ch(() => { s.board[b.dataset.z] = s.board[b.dataset.z] || []; s.board[b.dataset.z].push({ id: uid('t'), key: res.key || null, label: res.label || '', might: res.might ?? null, side: res.side, st: '' }); });
+    });
+    sec.querySelectorAll('.tok').forEach(tk => {
+      tk.ondragstart = ev => { ev.dataTransfer.setData('text/x-tok', i + '|' + tk.dataset.t); ev.dataTransfer.effectAllowed = 'move'; };
+      tk.onclick = () => tokMenu(r, i, tk.dataset.t);
+    });
+    sec.querySelectorAll('.zrow').forEach(zr => {
+      zr.ondragover = ev => { if (ev.dataTransfer.types.includes('text/x-tok')) { ev.preventDefault(); zr.classList.add('over'); } };
+      zr.ondragleave = () => zr.classList.remove('over');
+      zr.ondrop = ev => { zr.classList.remove('over'); const v = ev.dataTransfer.getData('text/x-tok'); if (!v) return; ev.preventDefault(); const [si, tid] = v.split('|'); if (+si !== i) return toast('Mueve las cartas dentro de la misma etapa'); moveTok(r, i, tid, zr.dataset.z); };
+    });
+  });
+}
+function moveTok(r, i, tid, z) {
+  const s = r.stages[i]; const [t, from] = findTok(s, tid); if (!t || from === z) return;
+  commit(); s.board[from] = s.board[from].filter(x => x !== t); (s.board[z] = s.board[z] || []).push(t); save(); renderStory();
+}
+function tokMenu(r, i, tid) {
+  const s = r.stages[i]; const [t, z] = findTok(s, tid); if (!t) return; const c = t.key ? getCard(t.key) : null;
+  const zs = SZONES.filter(x => x.id !== z && (x.id !== 'bf2' || r.bf2 || r.stages.some(st => (st.board.bf2 || []).length)));
+  openModal(`<h2>${esc(c ? c.name : t.label || 'Unidad')}</h2><p class="small muted" style="margin-top:0">${t.side === 'enemy' ? 'Rival' : 'Aliada'} · en ${esc(SZ_ES[z])} · etapa ${i + 1}</p>
+    <div class="field"><label>Mover a</label><div class="btnrow" style="margin:0">${zs.map(x => `<button class="btn sm" data-mv="${x.id}">${esc(x.es)}</button>`).join('')}</div></div>
+    <div class="field"><label>Estado</label><div class="btnrow" style="margin:0"><button class="btn sm${t.st === 'exh' ? ' primary' : ''}" data-st="exh">↷ Agotada</button><button class="btn sm${t.st === 'dead' ? ' primary' : ''}" data-st="dead">✝ Muerta</button><button class="btn sm${!t.st ? ' primary' : ''}" data-st="">Lista</button></div></div>
+    <div class="field"><label>Might en esta etapa</label><div class="btnrow" style="margin:0;align-items:center"><button class="btn sm" data-mi="-1">−</button><b class="mono">${t.might ?? c?.might ?? 0}</b><button class="btn sm" data-mi="1">+</button>${t.might != null && c ? '<button class="btn sm ghost" data-mi="reset">Original</button>' : ''}</div></div>
+    <div class="field"><label>Lado</label><div class="btnrow" style="margin:0"><button class="btn sm${t.side === 'ally' ? ' primary' : ''}" data-sd="ally">Aliada</button><button class="btn sm${t.side === 'enemy' ? ' primary' : ''}" data-sd="enemy">Rival</button></div></div>
+    <div class="btnrow"><button class="btn primary" id="tmOk">Listo</button><button class="btn danger" id="tmDel">Quitar de esta etapa</button><button class="btn ghost" id="tmDelAll" title="Quitarla de esta etapa y de las siguientes">Quitar de aquí en adelante</button></div>`);
+  const done = () => { save(); closeModal(); renderStory(); };
+  $('#modal').querySelectorAll('[data-mv]').forEach(b => b.onclick = () => { closeModal(); moveTok(r, i, tid, b.dataset.mv); });
+  $('#modal').querySelectorAll('[data-st]').forEach(b => b.onclick = () => { commit(); t.st = b.dataset.st; done(); });
+  $('#modal').querySelectorAll('[data-mi]').forEach(b => b.onclick = () => { commit(); if (b.dataset.mi === 'reset') t.might = null; else t.might = Math.max(0, (t.might ?? c?.might ?? 0) + +b.dataset.mi); save(); tokMenu(r, i, tid); renderStory(); });
+  $('#modal').querySelectorAll('[data-sd]').forEach(b => b.onclick = () => { commit(); t.side = b.dataset.sd; done(); });
+  $('#tmOk').onclick = () => { closeModal(); };
+  $('#tmDel').onclick = () => { commit(); s.board[z] = s.board[z].filter(x => x !== t); done(); };
+  $('#tmDelAll').onclick = () => { commit(); for (const st of r.stages.slice(i)) for (const zz of SZONES) st.board[zz.id] = (st.board[zz.id] || []).filter(x => x.id !== tid); done(); };
+}
+function pickStoryCard(title, scope) {
+  return new Promise(res => {
+    const d = deck(); let side = 'ally', q = '', mightG = 2;
+    const deckKeys = [...new Set(d.cards.filter(e => e.zone !== 'rune').map(e => e.key))];
+    const draw = () => {
+      const nq = norm(q);
+      const pool = (scope === 'deck' || (side === 'ally' && !q)) ? deckKeys.map(getCard) : [...DB.values()].filter(c => !/\((Overnumbered|Signature|Metal|Starter)\)/.test(c.name));
+      const list = pool.filter(c => c.type !== 'Rune' && (!nq || norm(c.name).includes(nq) || norm(c.text).includes(nq))).sort((a, b) => (a.energy ?? 99) - (b.energy ?? 99) || a.name.localeCompare(b.name)).slice(0, 60);
+      $('#pkList').innerHTML = list.map(c => `<button class="pk" data-k="${esc(c.id)}">${thumb(c.id, 'sm')}<span><b>${esc(c.name)}</b><small>⚡${c.energy ?? '–'}${c.might != null ? ' · ⚔' + c.might : ''} · ${esc(TYPES_ES[c.type] || c.type)}</small></span></button>`).join('') || '<p class="empty">Nada con esa búsqueda.</p>';
+      $('#pkList').querySelectorAll('.pk').forEach(b => b.onclick = () => { closeModal(); res({ key: b.dataset.k, side }); });
+    };
+    openModal(`<h2>${esc(title)}</h2>
+      ${scope === 'any' ? `<div class="btnrow" style="margin-top:0"><div class="seg" id="pkSide"><button data-v="ally" class="on">Aliada</button><button data-v="enemy">Rival</button></div></div>
+      <div class="pkgen" id="pkGen" hidden><span>Unidad rival sin carta:</span><input type="text" id="pkLabel" value="Unidad" style="width:110px"><span>might</span><button class="btn sm" id="pkMm">−</button><b class="mono" id="pkMv">2</b><button class="btn sm" id="pkMp">+</button><button class="btn sm primary" id="pkGenOk">Agregar</button></div>` : ''}
+      <input type="search" id="pkQ" placeholder="${scope === 'deck' ? 'Busca en tu deck…' : 'Busca por nombre o texto (vacío = tu deck)…'}" style="width:100%">
+      <div class="pklist" id="pkList"></div>
+      <div class="btnrow"><button class="btn" id="pkNo">Cancelar</button></div>`);
+    $('#pkQ').oninput = e => { q = e.target.value; draw(); };
+    $('#pkNo').onclick = () => { closeModal(); res(null); };
+    if (scope === 'any') {
+      $('#pkSide').querySelectorAll('button').forEach(b => b.onclick = () => { side = b.dataset.v; $('#pkSide').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); $('#pkGen').hidden = side !== 'enemy'; draw(); });
+      $('#pkMm').onclick = () => { mightG = Math.max(0, mightG - 1); $('#pkMv').textContent = mightG; };
+      $('#pkMp').onclick = () => { mightG++; $('#pkMv').textContent = mightG; };
+      $('#pkGenOk').onclick = () => { closeModal(); res({ key: null, label: $('#pkLabel').value.trim() || 'Unidad', might: mightG, side: 'enemy' }); };
+    }
+    draw(); setTimeout(() => $('#pkQ').focus(), 40);
+  });
+}
+function storyKey(ev) {
+  if (ev.key === 'Escape') { ev.preventDefault(); if (STORY.play != null) { STORY.play = null; renderStory(); } else closeStory(); return; }
+  if (STORY.play != null) {
+    const r = storyRecipe();
+    if (ev.key === 'ArrowRight' || ev.key === ' ') { ev.preventDefault(); if (STORY.play < r.stages.length - 1) { STORY.play++; renderStory(); } }
+    if (ev.key === 'ArrowLeft') { ev.preventDefault(); if (STORY.play > 0) { STORY.play--; renderStory(); } }
+  }
+}
+/* ejemplo precargado: el combo de Faefolk + Void Assault + Rengar + Gust */
+function seedStageExample(d) {
+  if (d.stagesSeeded) return; d.stagesSeeded = true;
+  if (!(typeof SEED_DECKS !== 'undefined' && SEED_DECKS.some(x => x.name === d.name))) return;
+  const K = n => resolveName(n, 'main'); const fa = K('Irresistible Faefolk'), va = K('Void Assault'), rg = K('Rengar, Trophy Hunter'), gu = K('Gust');
+  if (![fa, va, rg, gu].every(k => d.cards.some(e => e.key === k))) return;
+  const F = { id: uid('t'), key: fa, side: 'ally', st: '' }, A = { id: uid('t'), key: null, label: 'Unidad A', might: 2, side: 'enemy', st: '' }, B = { id: uid('t'), key: null, label: 'Unidad B', might: 2, side: 'enemy', st: '' }, R = { id: uid('t'), key: rg, side: 'ally', st: '' };
+  const b = (eb, bf1, mb, hand = []) => ({ eb, bf1, bf2: [], mb, hand });
+  const c = o => ({ ...o });
+  d.recipes.unshift({
+    id: uid('r'), name: 'Doble arrastre con Rengar', pieces: [fa, va, rg, gu], turn: 7, tags: ['Por etapas'], note: '',
+    result: 'Void Assault y Faefolk jalan a dos unidades rivales al battlefield, Rengar las mata en el combate y Gust salva a Faefolk.',
+    stages: [
+      { id: uid('st'), title: 'Preparación', play: null, energy: 0, runes: {}, note: 'Faefolk está en mi base. El rival tiene dos unidades de 2 might en su base.', board: b([c(A), c(B)], [], [c(F)]) },
+      { id: uid('st'), title: 'Void Assault', play: va, energy: 2, runes: { Body: 1 }, note: 'Void Assault mueve a Faefolk al battlefield y a una unidad rival. Al moverse, Faefolk jala a la segunda unidad rival.', board: b([], [c(F), c(A), c(B)], []) },
+      { id: uid('st'), title: 'Rengar embosca', play: rg, energy: 5, runes: { Body: 1 }, note: 'Rengar entra con Ambush (puede porque hay enemigos ahí) y en el combate mata a las dos unidades de 2.', board: b([], [c(F), c(R), { ...c(A), st: 'dead' }, { ...c(B), st: 'dead' }], []) },
+      { id: uid('st'), title: 'Gust salva a Faefolk', play: gu, energy: 1, runes: {}, note: 'Gust devuelve a Faefolk a tu mano para que no muera. Lo vuelves a jugar después.', board: b([], [c(R)], [], [c(F)]) },
+    ],
+  });
+  setTimeout(save, 0);
 }
 
 </script>
