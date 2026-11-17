@@ -864,7 +864,7 @@ input.stt { border-radius: 8px; }
 .olrow { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--raise); cursor: pointer; }
 .olrow input { accent-color: var(--accent); width: 16px; height: 16px; }
 @media (max-width: 640px) {
-  .acct-in span { display: none; }
+  header .acct-in span { display: none; }
   .acct-in { padding: 6px 8px; }
   .zrow { grid-template-columns: 66px minmax(0, 1fr); }
   .zl { font-size: 10px; padding-left: 9px; }
@@ -874,6 +874,28 @@ input.stt { border-radius: 8px; }
   .brand span { display: none; }
   .deckpick select { max-width: 150px; }
 }
+
+/* bienvenida */
+#welcome { position: fixed; inset: 0; z-index: 40; overflow: auto; background: radial-gradient(1200px 500px at 50% -10%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%), var(--bg); padding: max(28px, env(safe-area-inset-top)) 16px 40px; }
+.wl { max-width: 640px; margin: 0 auto; display: grid; gap: 18px; }
+.wlhead { display: flex; gap: 14px; align-items: center; }
+.wlhead h1 { margin: 0 0 4px; font: 800 30px/1.05 var(--f-display); letter-spacing: -.03em; }
+.wlhead p { margin: 0; }
+.wlogo { flex: none; width: 52px; height: 52px; border-radius: 14px; background: var(--accent) center / 32px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M6 7l12 5M6 17l12-5'/%3E%3Ccircle cx='5' cy='6.5' r='2.4' fill='white' stroke='none'/%3E%3Ccircle cx='5' cy='17.5' r='2.4' fill='white' stroke='none'/%3E%3Ccircle cx='19' cy='12' r='3' fill='white' stroke='none'/%3E%3C/svg%3E"); box-shadow: 0 8px 26px var(--accent-glow); }
+.wlcard { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px; display: grid; gap: 10px; box-shadow: 0 20px 50px rgba(0,0,0,.45); }
+.wlcard h2 { margin: 0; font: 800 19px/1.2 var(--f-display); letter-spacing: -.02em; }
+.wlcard textarea { font-size: 12.5px; }
+.wlrow { display: flex; gap: 8px; flex-wrap: wrap; }
+.wlrow input { flex: 1; min-width: 180px; }
+.wlerr { margin: 0; color: var(--danger); font-size: 13px; min-height: 0; }
+.wlerr:empty { display: none; }
+.wlalt { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.rasteps { margin: 0; padding: 0; list-style: none; counter-reset: ra; display: grid; gap: 6px; font-size: 13.5px; }
+.rasteps li { counter-increment: ra; display: flex; align-items: center; gap: 9px; }
+.rasteps li::before { content: counter(ra); flex: none; width: 22px; height: 22px; border-radius: 7px; background: var(--accent); color: #fff; font: 800 12px/22px var(--f-display); text-align: center; }
+.rasteps a { color: #fff; font-weight: 700; text-decoration-color: var(--accent); text-underline-offset: 3px; }
+.raic { display: inline-grid; place-items: center; width: 20px; height: 20px; border: 1px solid var(--line-strong); border-radius: 5px; font-size: 12px; }
+.modal .rasteps { margin: 6px 0 10px; }
 </style>
 <div id="app">
   <header class="bar">
@@ -2757,13 +2779,13 @@ function runPal(i) { const it = palItems[i]; closePalette(); if (it) it.run(); }
 
 /* ============ Importar / exportar ============ */
 function importDeckUI() {
-  openModal(`<h2>Importar deck</h2><p class="small muted">Pega la lista en formato RiftAtlas / Piltover (secciones Legend, Champion, MainDeck, Battlefields, Runes, Sideboard). Los códigos tipo [UNL-201] son opcionales.</p>
+  openModal(`<h2>Importar deck</h2>${RA_STEPS}<p class="small muted">También sirve la lista de Piltover u otra página con el mismo formato (Legend, Champion, MainDeck, Battlefields, Runes, Sideboard).</p>
     <div class="field"><label for="impName">Nombre del deck</label><input type="text" id="impName" placeholder="Se usa la leyenda si lo dejas vacío"></div>
     <div class="field"><label for="impTx">Lista</label><textarea id="impTx" rows="14" class="mono" style="font-size:12.5px" placeholder="Legend:\n1 Kha'Zix, Voidreaver\n\nChampion:\n1 Kha'Zix, Mutating Horror\n\nMainDeck:\n3 Irresistible Faefolk\n…"></textarea></div>
     <div class="btnrow"><button class="btn primary" id="impOk">Crear deck y mapa</button><button class="btn" id="impCancel">Cancelar</button></div><div id="impRep"></div>`);
   $('#impCancel').onclick = closeModal;
   $('#impOk').onclick = () => {
-    const tx = $('#impTx').value; if (!parseDeck(tx).length) { $('#impRep').innerHTML = '<p class="report" style="color:var(--danger)">No encontré cartas. Revisa que cada línea empiece con la cantidad, por ejemplo “3 Punch First”.</p>'; return; }
+    const tx = $('#impTx').value; if (!parseDeck(tx).length) { $('#impRep').innerHTML = `<p class="report" style="color:var(--danger)">${deckTextError(tx)}</p>`; return; }
     commit(); const { d, missing } = buildDeck($('#impName').value.trim(), tx); S.decks.push(d); switchDeck(d.id); closeModal();
     if (missing.length) setTimeout(() => openModal(`<h2>Deck importado</h2><p>Encontré todas las cartas menos ${missing.length}. Aparecen en el mapa como cartas genéricas con la etiqueta “sin datos”; selecciónalas para buscarlas en Riftcodex o completar sus datos.</p><ul class="report">${missing.map(n => `<li>${esc(n)}</li>`).join('')}</ul><div class="btnrow"><button class="btn primary" onclick="closeModal()">Vale</button></div>`), 200);
     else toast('Deck importado con todas sus cartas');
@@ -2889,6 +2911,53 @@ function onKey(ev) {
   if (dirs[k]) { ev.preventDefault(); navDir(...dirs[k]); }
 }
 
+/* ============ Bienvenida (usuario nuevo, sin decks) ============ */
+const RA_STEPS = `<ol class="rasteps"><li><span>Abre tu deck en <a href="https://riftatlas.com/decks" target="_blank" rel="noopener">RiftAtlas</a>.</span></li><li><span>Arriba de la lista toca <b>Export deck</b> <span class="raic" aria-hidden="true">⤓</span></span></li><li><span>Elige <b>Copy decklist</b> y pégalo aquí abajo.</span></li></ol>`;
+function deckTextError(tx) {
+  const t = (tx || '').trim();
+  if (!t) return 'Pega primero la lista del deck.';
+  if (/^[A-Z2-7]{30,}=*$/.test(t)) return 'Eso es el código del deck. En RiftAtlas elige <b>Copy decklist</b> (no “Copy deck code”) y pégalo de nuevo.';
+  if (/^https?:\/\//i.test(t)) return 'Eso es un link. Abre el deck en RiftAtlas, toca <b>Export deck → Copy decklist</b> y pega el texto que copia.';
+  return 'No encontré cartas. Revisa que cada línea empiece con la cantidad, por ejemplo “3 Punch First”.';
+}
+function showWelcome() {
+  let w = $('#welcome'); if (!w) { w = document.createElement('div'); w.id = 'welcome'; document.body.appendChild(w); }
+  const cloud = typeof CLOUD !== 'undefined' && CLOUD.on, inSess = cloud && CLOUD.user;
+  w.innerHTML = `<div class="wl">
+    <div class="wlhead"><span class="wlogo" aria-hidden="true"></span><div><h1>Mapa de Combos</h1><p class="muted">Conecta las cartas de tu deck, arma tus combos paso a paso y compártelos.</p></div></div>
+    <section class="wlcard">
+      <h2>Importa tu deck desde RiftAtlas</h2>
+      ${RA_STEPS}
+      <textarea id="wlTx" rows="9" class="mono" placeholder="Legend:\n1 Kha'Zix, Voidreaver\n\nChampion:\n1 Kha'Zix, Mutating Horror\n\nMainDeck:\n3 Irresistible Faefolk\n…"></textarea>
+      <div class="wlrow"><input type="text" id="wlName" placeholder="Nombre del deck (opcional)"><button class="btn primary" id="wlGo">Crear mi deck</button></div>
+      <p class="wlerr" id="wlErr" role="alert"></p>
+      <p class="small muted">También sirve la lista de Piltover u otra página con el mismo formato.</p>
+    </section>
+    <div class="wlalt">
+      ${cloud && !inSess ? `<button class="btn acct-in" id="wlIn">${typeof G_ICON !== 'undefined' ? G_ICON : ''}<span>Ya tengo cuenta: entrar con Google</span></button>` : ''}
+      <button class="btn ghost" id="wlDemo">O prueba con un deck de ejemplo</button>
+    </div>
+  </div>`;
+  document.body.classList.add('welcoming');
+  $('#wlGo').onclick = () => {
+    const tx = $('#wlTx').value; if (!parseDeck(tx).length) { $('#wlErr').innerHTML = deckTextError(tx); return; }
+    const { d, missing } = buildDeck($('#wlName').value.trim(), tx); S.decks.push(d); S.deckId = d.id; delete S.pristine;
+    hideWelcome(); save(); setView('deck');
+    toast(missing.length ? `Deck creado · ${missing.length} cartas sin datos (márcalas en el mapa)` : '¡Listo! Deck importado');
+  };
+  $('#wlDemo').onclick = () => { seedState(); hideWelcome(); save(); setView('deck'); toast('Deck de ejemplo cargado. Cuando quieras, importa el tuyo con “+ Deck”'); };
+  if ($('#wlIn')) $('#wlIn').onclick = () => signIn();
+  setTimeout(() => $('#wlTx')?.focus(), 50);
+}
+function hideWelcome() {
+  const w = $('#welcome'); if (!w || !document.body.classList.contains('welcoming')) return;
+  w.remove(); document.body.classList.remove('welcoming');
+  for (const e of deck().cards) getCard(e.key);
+  renderAll(true);
+  let pend = typeof CLOUD !== 'undefined' && CLOUD.pending; try { pend = pend || sessionStorage.getItem('pendingShare'); sessionStorage.removeItem('pendingShare'); } catch (e) { }
+  if (pend && typeof CLOUD !== 'undefined' && CLOUD.on) { CLOUD.pending = null; setTimeout(() => openShared(pend), 400); }
+}
+
 /* ============ Arranque ============ */
 function $(s) { return document.querySelector(s); }
 function seedState() {
@@ -2913,7 +2982,7 @@ function seedState() {
 }
 function init() {
   S = load();
-  if (!S) { S = seedState(); save(); }
+  if (!S) { S = { v: 1, custom: {}, decks: [], deckId: null, theme: null, pristine: true }; }
   applyDim();
   renderDefs();
   if (innerWidth <= 1100) $('#work').classList.add('no-left', 'no-right');
@@ -2958,15 +3027,15 @@ function init() {
   $('#tglLeft').onclick = () => toggleLeft(); $('#tglRight').onclick = () => toggleRight();
   $('#fileIn').onchange = ev => { const f = ev.target.files[0]; if (f) importJSON(f); ev.target.value = ''; };
   document.querySelectorAll('.ptabs button').forEach(b => b.onclick = () => setLeftTab(b.dataset.t));
-  for (const e of deck().cards) getCard(e.key);
+  if (S.decks.length) for (const e of deck().cards) getCard(e.key);
   document.querySelectorAll('#viewTabs button, #viewBar button').forEach(b => b.onclick = () => setView(b.dataset.v));
   let v0 = null; try { v0 = localStorage.getItem(LS_KEY + '.view'); } catch (e) { }
-  renderAll(true);
-  setView(['deck', 'combos', 'map', 'games'].includes(v0) ? v0 : 'deck');
+  if (S.decks.length) { renderAll(true); setView(['deck', 'combos', 'map', 'games'].includes(v0) ? v0 : 'deck'); }
+  else showWelcome();
   connectDb();
   cloudInit();
   let seen = null; try { seen = localStorage.getItem(LS_KEY + '.seen'); } catch (e) { }
-  if (!seen) { try { localStorage.setItem(LS_KEY + '.seen', '1'); } catch (e) { } setTimeout(() => toast('Tip: ⌘K para buscar cualquier cosa · ? para ver los atajos'), 800); }
+  if (!seen && S.decks.length) { try { localStorage.setItem(LS_KEY + '.seen', '1'); } catch (e) { } setTimeout(() => toast('Tip: ⌘K para buscar cualquier cosa · ? para ver los atajos'), 800); }
 }
 window.addEventListener('DOMContentLoaded', init);
 
@@ -3026,7 +3095,7 @@ function setView(v) {
   if (v === 'map') { stage().focus({ preventScroll: true }); setTimeout(drawMinimap, 30); } else renderView();
 }
 function renderView() {
-  if (VIEW === 'map' || !S) return;
+  if (VIEW === 'map' || !S || !S.decks.length) return;
   const d = ensureDeckPro(deck());
   if (VIEW === 'deck') renderDeckView(d);
   else if (VIEW === 'combos') renderCombosView(d);
@@ -3771,14 +3840,14 @@ function onUser(u) {
   if (CLOUD.unsub) { CLOUD.unsub(); CLOUD.unsub = null; }
   CLOUD.user = u || null; CLOUD.ready = false; CLOUD.last = ''; CLOUD.parts = 0;
   acctBtn();
-  if (!u) { $('#saveInd').textContent = 'Guardado en este navegador'; return; }
+  if (!u) { $('#saveInd').textContent = 'Guardado en este navegador'; if (document.body.classList.contains('welcoming')) showWelcome(); return; }
   $('#saveInd').textContent = 'Conectando con tu cuenta…';
   let first = true;
   CLOUD.unsub = CLOUD.fb.onSnapshot(userRef(u.uid), async snap => {
     if (CLOUD.user !== u) return;
     const wasFirst = first; first = false;
     if (!snap.exists()) {
-      if (wasFirst) { CLOUD.ready = true; await cloudSave(true); toast('Listo: tus decks quedaron guardados en tu cuenta'); }
+      if (wasFirst) { CLOUD.ready = true; if (S.decks.length) { await cloudSave(true); toast('Listo: tus decks quedaron guardados en tu cuenta'); } else { $('#saveInd').textContent = 'Guardado en tu cuenta'; if (typeof showWelcome === 'function' && document.body.classList.contains('welcoming')) showWelcome(); } }
       return;
     }
     const m = snap.data(); CLOUD.parts = m.n || 0;
@@ -3786,7 +3855,7 @@ function onUser(u) {
     const str = await readParts(u.uid, m);
     if (str == null) { CLOUD.ready = true; return; }
     let remote; try { remote = JSON.parse(str); } catch (e) { CLOUD.ready = true; return; }
-    if (!remote || !Array.isArray(remote.decks) || !remote.decks.length) { CLOUD.ready = true; if (wasFirst) cloudSave(true); return; }
+    if (!remote || !Array.isArray(remote.decks) || !remote.decks.length) { CLOUD.ready = true; if (wasFirst && S.decks.length) cloudSave(true); return; }
     const extra = wasFirst && !S.pristine ? S.decks.filter(d => !remote.decks.some(x => x.id === d.id)) : [];
     const localCustom = S.custom || {};
     applyRemote(remote, !wasFirst);
@@ -3813,6 +3882,7 @@ function applyRemote(remote, notify) {
   if (!S.decks.some(x => x.id === S.deckId)) S.deckId = S.decks[0].id;
   try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch (e) { }
   UNDO.length = 0; REDO.length = 0; histBtns();
+  if (document.body.classList.contains('welcoming')) { hideWelcome(); setView('deck'); }
   sel.nodes.clear(); sel.edge = null; if (play) stopPlay();
   renderAll(true); if (typeof renderView === 'function') renderView(); if (typeof storyOpen === 'function' && storyOpen()) renderStory();
   if (notify) toast('Actualizado con los cambios de tu otro dispositivo');
@@ -3827,7 +3897,7 @@ function offerLocalDecks(extra, custom) {
   };
 }
 async function cloudSave(force) {
-  const u = CLOUD.user; if (!u || !CLOUD.ready) return;
+  const u = CLOUD.user; if (!u || !CLOUD.ready || !S.decks.length) return;
   if (CLOUD.saving) { CLOUD.again = true; return; }
   const str = cloudStr();
   if (!force && str === CLOUD.last) { $('#saveInd').textContent = 'Guardado en tu cuenta'; return; }
@@ -3879,12 +3949,13 @@ async function openShared(id) {
   let p; try { p = JSON.parse(d.j); } catch (e) { clean(); return toast('El link está dañado'); }
   const it = p.item, who = d.ownerName ? esc(d.ownerName) : 'Alguien';
   const addCustom = () => { for (const [k, v] of Object.entries(p.custom || {})) if (!S.custom[k]) S.custom[k] = v; };
+  if (d.kind !== 'deck' && !S.decks.length) { clean(); try { sessionStorage.setItem('pendingShare', id); } catch (e) { } CLOUD.pending = id; toast(`${d.ownerName || 'Alguien'} te compartió un combo: importa tu deck y te lo muestro`); return; }
   if (d.kind === 'deck') {
     const n = (it.cards || []).filter(c => c.zone === 'main').reduce((a, c) => a + c.qty, 0);
     openModal(`<h2>${who} te compartió un deck</h2><p><b>${esc(it.name)}</b></p><p class="muted">${n} cartas en el main · ${(it.recipes || []).length} combos · ${(it.maps || []).length} mapas</p>
       <div class="btnrow"><button class="btn primary" id="sdAdd">Agregar a mis decks</button><button class="btn" id="sdNo">Ahora no</button></div>`);
     $('#sdNo').onclick = () => { clean(); closeModal(); };
-    $('#sdAdd').onclick = () => { clean(); closeModal(); commit(); addCustom(); it.id = uid('d'); it.name = S.decks.some(x => x.name === it.name) ? it.name + ' (de ' + (d.ownerName || 'amigo') + ')' : it.name; S.decks.push(it); switchDeck(it.id); setView('deck'); toast('Deck agregado'); };
+    $('#sdAdd').onclick = () => { clean(); closeModal(); commit(); addCustom(); if (document.body.classList.contains('welcoming')) { document.getElementById('welcome').remove(); document.body.classList.remove('welcoming'); } it.id = uid('d'); it.name = S.decks.some(x => x.name === it.name) ? it.name + ' (de ' + (d.ownerName || 'amigo') + ')' : it.name; S.decks.push(it); switchDeck(it.id); setView('deck'); toast('Deck agregado'); };
   } else {
     const pcs = (it.pieces || []).slice(0, 4);
     openModal(`<h2>${who} te compartió un combo</h2><div class="rp" style="margin:6px 0 10px">${pcs.map(k => thumb(k, 'sm')).join('<span class="plus">+</span>')}</div><p><b>${esc(it.name)}</b></p>${it.result ? `<p class="muted">${esc(it.result)}</p>` : ''}
