@@ -3121,7 +3121,7 @@ function stageHTML(r, i, ro) {
   const used = z => (z === 'bf2' && r.bf2) || (z === 'chain' && chainOn(r)) || (s.board[z] || []).length || r.stages.some(x => (x.board[z] || []).length);
   // fantasmas: dónde estaba en la etapa anterior lo que se movió
   const ghosts = z => !prev || z === 'chain' ? '' : (prev.board[z] || []).filter(t => { if (t.st === 'dead') return false; const [ct, cz] = findTok(s, t.id); return ct && cz !== z && cz !== 'chain'; }).map(ghostHTML).join('');
-  const rows = SZONES.filter(z => !z.opt || used(z.id) || (z.id === 'hand' && !ro)).map(z => {
+  const rows = SZONES.filter(z => !z.opt || used(z.id) || ((z.id === 'hand' || z.id === 'chain') && !ro)).map(z => {
     const toks = s.board[z.id] || [];
     const lab = z.id === 'chain' ? 'Cadena' : z.id.startsWith('bf') && r.bfNames?.[z.id] ? esc(r.bfNames[z.id]) : z.es.replace('Battlefield', 'Battle&shy;field');
     return `<div class="zrow z-${z.id}" data-z="${z.id}"${z.id === 'chain' ? ' title="Hechizos y habilidades en la cadena: se resuelve primero el último que entra (1º)"' : ''}><span class="zl">${lab}</span><div class="ztoks">${toks.map((t, k) => tokHTML(r, i, t, z.id, ro, z.id === 'chain' ? toks.length - k : 0)).join('')}${ghosts(z.id)}${ro ? '' : `<button class="zadd" data-z="${z.id}" title="${z.id === 'chain' ? 'Agregar un hechizo o habilidad a la cadena' : 'Agregar unidad aquí'}">+</button>`}</div></div>`;
@@ -3152,7 +3152,7 @@ function renderStory(keepScroll = true) {
       <marker id="samM" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse" style="color:var(--accent)"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
       <marker id="samV" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse" style="color:var(--gold)"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs></svg>
     <div class="shead"><div class="stitle"><input id="stName" value="${esc(r.name)}" aria-label="Nombre del combo"><span class="stot">Total: ⚡ <b>${tot.en}</b> energía${tot.rt ? ` · <b>${tot.rt}</b> runa${tot.rt > 1 ? 's' : ''} ${fmtRunes(tot.ru)}` : ''} · ${r.stages.length} etapa${r.stages.length > 1 ? 's' : ''}</span></div>
-    <div class="btnrow" style="margin:0"><button class="btn ghost icon" id="stUndo" title="Deshacer (⌘Z)" aria-label="Deshacer">${ICON_UNDO}</button><button class="btn ghost icon" id="stRedo" title="Rehacer (⇧⌘Z)" aria-label="Rehacer">${ICON_REDO}</button><button class="btn primary" id="stPlay">▶ Reproducir</button><button class="btn" id="stMap" title="Marca las cartas de este combo en el mapa">🗺 Ver en el mapa</button><button class="btn" id="stChain" title="Zona para la cadena de hechizos y respuestas">${chainOn(r) ? '− Cadena' : '+ Cadena'}</button><button class="btn" id="stBf" title="Mostrar u ocultar un segundo battlefield">${r.stages.some(s => (s.board.bf2 || []).length) || r.bf2 ? '− Battlefield 2' : '+ Battlefield 2'}</button><button class="btn ghost icon" id="stClose" aria-label="Cerrar">✕</button></div></div>
+    <div class="btnrow" style="margin:0"><button class="btn ghost icon" id="stUndo" title="Deshacer (⌘Z)" aria-label="Deshacer">${ICON_UNDO}</button><button class="btn ghost icon" id="stRedo" title="Rehacer (⇧⌘Z)" aria-label="Rehacer">${ICON_REDO}</button><button class="btn primary" id="stPlay">▶ Reproducir</button><button class="btn" id="stMap" title="Marca las cartas de este combo en el mapa">🗺 Ver en el mapa</button><button class="btn" id="stBf" title="Mostrar u ocultar un segundo battlefield">${r.stages.some(s => (s.board.bf2 || []).length) || r.bf2 ? '− Battlefield 2' : '+ Battlefield 2'}</button><button class="btn ghost icon" id="stClose" aria-label="Cerrar">✕</button></div></div>
     <p class="small muted shint${STORY.arrow ? ' arm' : ''}">${STORY.arrow ? '<b>Toca la carta a la que apunta la flecha</b> (Esc para cancelar).' : `Arrastra las cartas entre zonas. Al pasar el mouse: ↻ girar, ✝ muere, ➝ flecha (arrástrala hasta su objetivo). Cada etapa nueva copia el tablero; lo que se mueve deja su “antes” con flecha.${chainHas ? ' En la Cadena, 1º es lo que se resuelve primero.' : ''}`}</p>
     <div class="strip">${r.stages.map((s, i) => stageHTML(r, i, false) + (i < r.stages.length - 1 ? '<div class="sarrow">➜</div>' : '')).join('')}<div class="saddcol"><button class="saddst" id="stAdd"><b>+</b>Nueva etapa${lastChain ? '<small>la cadena se resuelve</small>' : ''}</button>${lastChain ? '<button class="saddst resp" id="stResp" title="La siguiente etapa mantiene la cadena para que agregues la respuesta encima"><b>↪</b>Responder<small>la cadena sigue</small></button>' : ''}</div></div>
     ${STORY.play != null ? `<div class="splayer"><div class="spbox">${stageHTML(r, STORY.play, true)}</div><div class="spnav"><button class="btn" id="spPrev" ${STORY.play ? '' : 'disabled'}>‹ Anterior</button><span class="mono">${STORY.play + 1} / ${r.stages.length}</span><button class="btn primary" id="spNext">${STORY.play < r.stages.length - 1 ? 'Siguiente ›' : 'Terminar'}</button><button class="btn ghost" id="spClose">Cerrar</button></div></div>` : ''}`;
@@ -3258,7 +3258,7 @@ function applyPlay(r, i, key) {
   s.play = key; s.energy = c.energy || 0;
   s.runes = {}; if (c.power) { const doms = runeDoms(); const dm = (c.domains || []).find(x => doms.includes(x)) || (c.domains || [])[0] || doms[0]; s.runes[dm] = c.power; }
   if (!s.title || (old && s.title === getCard(old).name.split(' - ')[0])) s.title = c.name.split(' - ')[0];
-  if (c.type === 'Spell') { if (!s.board.chain.some(x => x.key === key && x.side === 'ally')) s.board.chain.push({ id: uid('t'), key, side: 'ally', st: '', auto: true }); }
+  if (c.type === 'Spell') { const inHand = (s.board.hand || []).find(x => x.key === key && x.side === 'ally'); if (inHand) { s.board.hand = s.board.hand.filter(x => x !== inHand); inHand.auto = true; s.board.chain.push(inHand); } else if (!s.board.chain.some(x => x.key === key && x.side === 'ally')) s.board.chain.push({ id: uid('t'), key, side: 'ally', st: '', auto: true }); }
   else if (c.type === 'Unit' || c.type === 'Gear') {
     const ambush = c.type === 'Unit' && /ambush|emboscada/i.test(c.text || '') && (s.board.bf1 || []).some(x => x.side === 'enemy');
     const z = ambush ? 'bf1' : 'mb'; const inHand = (s.board.hand || []).find(x => x.key === key && x.side === 'ally');
@@ -3276,11 +3276,6 @@ function bindStory(r) {
   $('#stMap').onclick = () => showComboOnMap(r);
   $('#stPlay').onclick = () => { STORY.play = 0; STORY.arrow = null; STORY.tsel = null; renderStory(); };
   $('#stBf').onclick = () => ch(() => { const on = r.stages.some(s => (s.board.bf2 || []).length) || r.bf2; if (on) { r.bf2 = false; for (const s of r.stages) { s.board.mb = (s.board.mb || []).concat(s.board.bf2 || []); s.board.bf2 = []; } } else r.bf2 = true; });
-  $('#stChain').onclick = async () => {
-    if (!chainOn(r)) return ch(() => { r.chain = true; });
-    if (r.stages.some(s => (s.board.chain || []).length) && !(await askConfirm('¿Quitar la cadena? Se borran los hechizos que tenga en todas las etapas.', 'Quitar', true))) return;
-    ch(() => { r.chain = false; for (const s of r.stages) s.board.chain = []; });
-  };
   const addStage = keep => { ch(() => r.stages.push(newStage(r.stages[r.stages.length - 1], keep))); const st = el.querySelector('.strip'); st.scrollLeft = st.scrollWidth; el.querySelector('.strip .stg:last-of-type .stt')?.focus(); };
   $('#stAdd').onclick = () => addStage(false);
   $('#stResp') && ($('#stResp').onclick = () => addStage(true));
@@ -3334,7 +3329,7 @@ function moveTok(r, i, tid, z) {
 }
 function tokMenu(r, i, tid) {
   const s = r.stages[i]; const [t, z] = findTok(s, tid); if (!t) return; const c = t.key ? getCard(t.key) : null;
-  const zs = SZONES.filter(x => x.id !== z && (x.id !== 'bf2' || r.bf2 || r.stages.some(st => (st.board.bf2 || []).length)) && (x.id !== 'chain' || chainOn(r) || (c && c.type === 'Spell')));
+  const zs = SZONES.filter(x => x.id !== z && (x.id !== 'bf2' || r.bf2 || r.stages.some(st => (st.board.bf2 || []).length)));
   openModal(`<h2>${esc(c ? c.name : t.label || 'Unidad')}</h2><p class="small muted" style="margin-top:0">${t.side === 'enemy' ? 'Rival' : 'Aliada'} · en ${esc(SZ_ES[z])} · etapa ${i + 1}</p>
     <div class="field"><label>Mover a</label><div class="btnrow" style="margin:0">${zs.map(x => `<button class="btn sm" data-mv="${x.id}">${esc(x.es)}</button>`).join('')}</div></div>
     <div class="field"><label>Estado</label><div class="btnrow" style="margin:0"><button class="btn sm${t.st === 'exh' ? ' primary' : ''}" data-st="exh">↻ Agotada</button><button class="btn sm${t.st === 'dead' ? ' primary' : ''}" data-st="dead">✝ Muerta</button><button class="btn sm${!t.st ? ' primary' : ''}" data-st="">Lista</button></div></div>
